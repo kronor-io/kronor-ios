@@ -6,26 +6,34 @@ import PackageDescription
 let package = Package(
     name: "Kronor",
     platforms: [
-      .iOS(.v12),
-      .macOS(.v10_14),
-      .tvOS(.v12),
+      .iOS(.v15),
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "Kronor",
-            targets: ["Kronor"]),
+            targets: ["Kronor"]
+        ),
         
         .library(
             name: "KronorApi",
-            targets: ["KronorApi"]),
+            targets: ["KronorApi"]
+        ),
         
-        
+        .library(
+            name: "KronorComponents",
+            targets: ["KronorComponents"]
+        ),
+
     ],
     dependencies: [
         .package(
             url: "https://github.com/apollographql/apollo-ios.git",
-            from: "1.0.0"
+            .upToNextMajor(from: "1.0.0")
+        ),
+        .package(
+            url: "https://github.com/Tinder/StateMachine",
+            .upToNextMajor(from: "0.3.0")
         ),
     ],
     targets: [
@@ -38,6 +46,7 @@ let package = Package(
             name: "KronorApi",
             dependencies: [
                 .product(name: "ApolloAPI", package: "apollo-ios"),
+                .product(name: "ApolloWebSocket", package: "apollo-ios"),
             ],
             path: "./KronorApi"
         ),
@@ -45,9 +54,10 @@ let package = Package(
             name: "KronorComponents",
             dependencies: [
                 .target(name: "KronorApi"),
-                .product(name: "ApolloAPI", package: "apollo-ios"),
+                .product(name: "Apollo", package: "apollo-ios"),
+                .product(name: "StateMachine", package: "StateMachine"),
             ],
-            path: "./KronorComponents"
+            path: "./KronorComponents" 
         ),
         
     ]
