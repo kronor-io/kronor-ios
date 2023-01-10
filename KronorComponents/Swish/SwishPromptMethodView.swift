@@ -1,6 +1,6 @@
 //
 //  SwishPromptMethodView.swift
-//  kronor-test-app
+//  kronor-ios
 //
 //  Created by lorenzo on 2023-01-04.
 //
