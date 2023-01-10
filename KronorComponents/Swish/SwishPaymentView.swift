@@ -2,7 +2,7 @@
 //  SwishPaymentView.swift
 //  kronor-test-app
 //
-//  Created by Jose-JORO on 2023-01-04.
+//  Created by lorenzo on 2023-01-04.
 //
 
 import SwiftUI

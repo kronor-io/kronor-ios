@@ -2,7 +2,7 @@
 //  SwishWrapperView.swift
 //  kronor-test-app
 //
-//  Created by Jose-JORO on 2023-01-09.
+//  Created by lorenzo on 2023-01-09.
 //
 
 import SwiftUI
