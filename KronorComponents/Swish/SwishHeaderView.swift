@@ -8,9 +8,12 @@
 import SwiftUI
 
 struct SwishHeaderView: View {
+    static let swishLogoPath = Bundle.module.path(forResource: "swish-logo", ofType: "png")!
+    static let swishLogo = UIImage(contentsOfFile: swishLogoPath)!
+
     var body: some View {
         VStack {
-            Image("swish-logo")
+            Image(uiImage: Self.swishLogo)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
         }.frame(width: 150,

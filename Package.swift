@@ -57,8 +57,8 @@ let package = Package(
                 .product(name: "Apollo", package: "apollo-ios"),
                 .product(name: "StateMachine", package: "StateMachine"),
             ],
-            path: "./KronorComponents" 
+            path: "./KronorComponents",
+            resources: [.process("Images")]
         ),
-        
     ]
 )
