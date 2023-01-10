@@ -11,9 +11,13 @@ struct SwishHeaderView: View {
     static let swishLogoPath = Bundle.module.path(forResource: "swish-logo", ofType: "png")!
     static let swishLogo = UIImage(contentsOfFile: swishLogoPath)!
 
+    static let swishLogoDarkPath = Bundle.module.path(forResource: "swish-logo-dark", ofType: "png")!
+    static let swishLogoDark = UIImage(contentsOfFile: swishLogoDarkPath)!
+    @Environment(\.colorScheme) var currentMode
+
     var body: some View {
         VStack {
-            Image(uiImage: Self.swishLogo)
+            Image(uiImage: currentMode == .dark ? Self.swishLogoDark : Self.swishLogo)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
         }.frame(width: 150,
@@ -25,5 +29,10 @@ struct SwishHeaderView: View {
 struct SwishHeaderView_Previews: PreviewProvider {
     static var previews: some View {
         SwishHeaderView()
+            .previewDisplayName("Logo")
+
+        SwishHeaderView()
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Logo Dark")
     }
 }
