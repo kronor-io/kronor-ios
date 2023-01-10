@@ -1,0 +1,5 @@
+mutation CancelSessionPayments($idempotencyKey: String!) {
+  cancelPayment(cancel: {idempotencyKey: $idempotencyKey}) {
+    waitToken
+  }
+}

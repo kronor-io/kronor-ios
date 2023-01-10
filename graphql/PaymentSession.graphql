@@ -1,0 +1,5 @@
+ mutation NewPaymentSession($payment: PaymentSessionInput!) {
+    newPaymentSession(payment: $payment) {
+        token
+    }
+}

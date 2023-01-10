@@ -1,0 +1,5 @@
+mutation SwishPayment($payment: SwishPaymentInput!) {
+    newSwishPayment(pay: $payment) {
+      waitToken
+    }
+}
