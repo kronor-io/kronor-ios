@@ -30,7 +30,11 @@ struct SwishPaymentView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "hourglass.circle")
-                    Text("Creating secure Swish transaction")
+                    Text(
+                        "Creating secure Swish transaction",
+                        bundle: .module,
+                        comment:  "A waiting message that indicates that the app is communicating with the server"
+                    )
                         .font(.subheadline)
                     Spacer()
                 }
@@ -42,7 +46,11 @@ struct SwishPaymentView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "arrow.up.forward.app")
-                    Text("Opening the swish app")
+                    Text(
+                        "Opening the swish app",
+                        bundle: .module,
+                        comment:  "Indicates that this app is prompting the user to open the Swish app in the same device"
+                    )
                         .font(.subheadline)
                         
                     Spacer()
@@ -58,7 +66,11 @@ struct SwishPaymentView: View {
                     return HStack {
                         Spacer()
                         Image(systemName: "qrcode.viewfinder")
-                        Text("Generating QR code")
+                        Text(
+                            "Generating QR code",
+                            bundle: .module,
+                            comment:  "A waiting message indicating that a new QR code image is being generated"
+                        )
                             .font(.subheadline)
                             
                         Spacer()
@@ -72,7 +84,11 @@ struct SwishPaymentView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "arrow.up.forward.app")
-                    Text("You can pay with the Swish app now")
+                    Text(
+                        "You can pay with the Swish app now",
+                        bundle: .module,
+                        comment:  "A waiting message indicating that the customer should open the Swish app in another phone"
+                    )
                         .font(.headline)
                         
                     Spacer()
@@ -85,7 +101,11 @@ struct SwishPaymentView: View {
                 HStack {
                     Spacer()
                     Image(systemName: "hourglass.circle")
-                    Text("Completing payment")
+                    Text(
+                        "Completing payment",
+                        bundle: .module,
+                        comment:  "A waiting message indicating that the customer should complete the payment in the Swish app"
+                    )
                         .font(.subheadline)
                     Spacer()
                 }
@@ -105,7 +125,11 @@ struct SwishPaymentView: View {
                     Image(systemName: "checkmark.circle")
                         .foregroundColor(Color.green)
                         
-                    Text("Payment completed")
+                    Text(
+                        "Payment completed",
+                        bundle: .module,
+                        comment:  "A success message indicating that the payment was completed and the payment session will end"
+                    )
                         .font(.headline)
                         .foregroundColor(Color.green)
                         
@@ -114,9 +138,23 @@ struct SwishPaymentView: View {
             }
 
             
-        case .errored(let error):
+        case .errored(_):
             return SwishWrapperView {
-                Text(String("errored: \(error)"))
+                HStack {
+                    Spacer()
+                    Image(systemName: "checkmark.circle")
+                        .foregroundColor(Color.green)
+                        
+                    Text(
+                        "Could not complete the payment due to an error. Please try again after a short time",
+                        bundle: .module,
+                        comment:  "An error message indicating there was an unexpected error with the payment"
+                    )
+                        .font(.headline)
+                        .foregroundColor(Color.green)
+                        
+                    Spacer()
+                }
             }
         }
     }

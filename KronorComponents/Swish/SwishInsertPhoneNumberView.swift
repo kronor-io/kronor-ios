@@ -15,15 +15,14 @@ struct SwishInsertPhoneNumberView: View {
     var body: some View {
         VStack{
             Spacer()
-            TextField("Entrer your Swish phone number", text: $phoneNumber)
+            TextField(Bundle.module.localizedString(forKey: "Entrer your Swish phone number", value: nil, table: nil), text: $phoneNumber)
                 .keyboardType(.phonePad)
                 .padding()
                 .overlay(RoundedRectangle(cornerRadius: 8)
                 .stroke(Color.gray, lineWidth: 1))
                 .padding(.horizontal)
             
-            let isClickable = !phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-                            && phoneNumber.count >= 8
+            let isClickable = phoneNumber.trimmingCharacters(in: .whitespacesAndNewlines).count >= 8
             
             Button(action: {
                 if isClickable {
@@ -31,7 +30,13 @@ struct SwishInsertPhoneNumberView: View {
                         await viewModel.transition(.phoneNumberInserted(number: phoneNumber))
                     }
                 }
-            }) { Text("Pay Now") }
+            }) {
+                Text(
+                    "Pay Now",
+                    bundle: .module,
+                    comment: "Call to action after entering the Swish phone number to make a payment"
+                )
+            }
                 .disabled(!isClickable)
                 .padding()
             Spacer()

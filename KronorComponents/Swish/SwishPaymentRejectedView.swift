@@ -20,7 +20,11 @@ struct SwishPaymentRejectedView: View {
                 Image(systemName: "xmark.circle")
                     .foregroundColor(Color.red)
                     
-                Text("Payment failed")
+                Text(
+                    "Payment failed",
+                    bundle: .module,
+                     comment: "indicates that the payment resulted in error, cancelled by the customer or declined by the provider"
+                )
                     .font(.headline)
                     .foregroundColor(Color.red)
                     
@@ -38,7 +42,11 @@ struct SwishPaymentRejectedView: View {
                     }
                     clickedOnSomething = true
                 }) {
-                    Text("cancel")
+                    Text(
+                        "cancel",
+                        bundle: .module,
+                        comment: "Indicates that the user wants to cancel the payment session and go back to the checkout"
+                    )
                 }
                 .padding(.vertical)
                 
@@ -51,7 +59,11 @@ struct SwishPaymentRejectedView: View {
                     }
                     clickedOnSomething = true
                 }) {
-                    Text("try again?")
+                    Text(
+                        "try again?",
+                        bundle: .module,
+                        comment: "Indicates that the user wants to continue the payment session and try another payment"
+                    )
                 }
                 .padding(.vertical)
             }
