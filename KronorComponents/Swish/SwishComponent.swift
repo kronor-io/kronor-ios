@@ -8,7 +8,7 @@
 import SwiftUI
 
 public struct SwishComponent: View {
-    private var viewModel: SwishPaymentViewModel
+    let viewModel: SwishPaymentViewModel
     
     public init(sessionToken: String,
          returnURL: URL,
