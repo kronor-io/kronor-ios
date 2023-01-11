@@ -10,7 +10,7 @@ import SwiftUI
 public struct SwishComponent: View {
     private var viewModel: SwishPaymentViewModel
     
-    init(sessionToken: String,
+    public init(sessionToken: String,
          returnURL: URL,
          onPaymentFailure: @escaping () -> (),
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
