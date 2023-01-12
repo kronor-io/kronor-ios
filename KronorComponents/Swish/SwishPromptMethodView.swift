@@ -29,7 +29,12 @@ struct SwishPromptMethodView: View {
 
             Spacer()
             
-            Text("or pay using another phone")
+            
+            Text(
+                "or pay using another phone",
+                bundle: .module,
+                comment: ""
+            )
                 .fontWeight(.thin)
                 .foregroundColor(Color.gray)
                 .padding(.vertical)

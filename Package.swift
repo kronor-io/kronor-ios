@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "Kronor",
+    defaultLocalization: "en",
     platforms: [
       .iOS(.v15),
     ],
@@ -58,7 +59,7 @@ let package = Package(
                 .product(name: "StateMachine", package: "StateMachine"),
             ],
             path: "./KronorComponents",
-            resources: [.process("Images")]
+            resources: [.process("Assets")]
         ),
     ]
 )
