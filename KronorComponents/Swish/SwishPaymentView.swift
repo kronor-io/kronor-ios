@@ -142,8 +142,8 @@ struct SwishPaymentView: View {
             return SwishWrapperView {
                 HStack {
                     Spacer()
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(Color.green)
+                    Image(systemName: "xmark.circle")
+                        .foregroundColor(Color.red)
                         
                     Text(
                         "Could not complete the payment due to an error. Please try again after a short time",
@@ -151,7 +151,7 @@ struct SwishPaymentView: View {
                         comment:  "An error message indicating there was an unexpected error with the payment"
                     )
                         .font(.headline)
-                        .foregroundColor(Color.green)
+                        .foregroundColor(Color.red)
                         
                     Spacer()
                 }

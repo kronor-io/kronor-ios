@@ -1,0 +1,53 @@
+/* A waiting message indicating that the customer should complete the payment in the Swish app */
+"Completing payment" = "Slutföra betalning";
+
+/* An error message indicating there was an unexpected error with the payment */
+"Could not complete the payment due to an error. Please try again after a short time" = "Betalningen kunde inte slutföras på grund av ett fel. Försök igen efter en kort tid.";
+
+/* A waiting message that indicates that the app is communicating with the server */
+"Creating secure Swish transaction" = "Skapa en säker Swish-betalning";
+
+/* A waiting message indicating that a new QR code image is being generated */
+"Generating QR code" = "Skapa en QR-kod";
+
+/* Indicates that this app is prompting the user to open the Swish app in the same device */
+"Opening the swish app" = "Öppna Swish-appen";
+
+/* A success message indicating that the payment was completed and the payment session will end */
+"Payment completed" = "Betalning genomförd";
+
+/* A waiting message indicating that the customer should open the Swish app in another phone */
+"You can pay with the Swish app now" = "Nu kan du betala med Swish-appen";
+
+/* A button label that indicates the customer wants to pay getting a notification in another device */
+"Enter phone number" = "Ange telefonnummer";
+
+/* A button label that indicates the customer wants to pay with the Swish app in the same device */
+"Open Swish App" = "Öppna Swish-appen";
+
+/* No comment provided by engineer. */
+"or pay using another phone" = "eller betala med en annan telefon";
+
+/* A button label that indicates the customer wants to pay by scanning a QR code in another device */
+"Scan QR Code" = "Skanna QR-kod";
+
+/* The caption for a QR code image prompting the user to scan it with another device */
+"Scan this code with the Swish app" = "Skanna den här koden med Swish-appen";
+
+/* No comment provided by engineer. */
+"Dummy Contents" = "Dummy Contents";
+
+/* Call to action after entering the Swish phone number to make a payment */
+"Pay Now" = "Betala nu";
+
+/* Indicates that the user wants to cancel the payment session and go back to the checkout */
+"cancel" = "avbryta";
+
+/* No comment provided by engineer. */
+"or" = "eller";
+
+/* indicates that the payment resulted in error, cancelled by the customer or declined by the provider */
+"Payment failed" = "Betalningen misslyckades";
+
+/* Indicates that the user wants to continue the payment session and try another payment */
+"try again?" = "försöka igen?";
