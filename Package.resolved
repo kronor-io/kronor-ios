@@ -10,6 +10,15 @@
       }
     },
     {
+      "identity" : "fingerprintjs-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fingerprintjs/fingerprintjs-ios/",
+      "state" : {
+        "revision" : "3a0f3cc3968fdd24793e89f79e08a1e334a0ea56",
+        "version" : "1.2.0"
+      }
+    },
+    {
       "identity" : "inflectorkit",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/mattt/InflectorKit",

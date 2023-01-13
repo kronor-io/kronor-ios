@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Kronor
 import KronorApi
 import Apollo
 import os
@@ -40,6 +41,7 @@ class SwishPaymentViewModel: ObservableObject {
     }
     
     private var returnURL: URL
+    private var device: Kronor.Device?
     private var onPaymentFailure: () -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     
@@ -54,6 +56,7 @@ class SwishPaymentViewModel: ObservableObject {
     init(sessionToken: String,
          stateMachine: SwishStatechart.SwishStateMachine,
          returnURL: URL,
+         device: Kronor.Device? = nil,
          onPaymentFailure: @escaping () -> (),
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
@@ -61,6 +64,7 @@ class SwishPaymentViewModel: ObservableObject {
         self.client = KronorApi.makeGraphQLClient(token: sessionToken)
         self.state = stateMachine.state
         self.returnURL = returnURL
+        self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
     }
@@ -92,7 +96,9 @@ class SwishPaymentViewModel: ObservableObject {
         case .createMcomPaymentRequest:
             Self.logger.debug("creating swish mcom request")
 
-            let rWaitToken = await createMcomPaymentRequest(client: self.client, returnURL: self.returnURL)
+            let rWaitToken = await createMcomPaymentRequest(client: self.client,
+                                                            returnURL: self.returnURL,
+                                                            device: self.device)
             
             switch rWaitToken {
                 
@@ -108,7 +114,8 @@ class SwishPaymentViewModel: ObservableObject {
             Self.logger.debug("creating swish ecom request")
             let rWaitToken = await createEcomPaymentRequest(client: self.client,
                                                             phoneNumber: phoneNumber,
-                                                            returnURL: self.returnURL)
+                                                            returnURL: self.returnURL,
+                                                            device: self.device)
             
             switch rWaitToken {
 
@@ -251,35 +258,61 @@ class SwishPaymentViewModel: ObservableObject {
     }
 }
 
-func createMcomPaymentRequest(client: ApolloClient, returnURL: URL) async -> Result<String, KronorError> {
+func createMcomPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorError> {
     let input = KronorApi.SwishPaymentInput(
         flow: "mcom",
         idempotencyKey: UUID().uuidString,
         returnUrl: returnURL.absoluteString
     )
+    
+    var deviceInfo = device.map(makeDeviceInfo)
+    if deviceInfo == nil {
+        let def = await Kronor.detectDevice()
+        deviceInfo = makeDeviceInfo(device: def)
+    }
 
-    return await createSwishPaymentRequest(client: client, input: input)
+    return await createSwishPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }
 
-func createEcomPaymentRequest(client: ApolloClient, phoneNumber: String, returnURL: URL) async -> Result<String, KronorError> {
+func createEcomPaymentRequest(client: ApolloClient, phoneNumber: String, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorError> {
     let input = KronorApi.SwishPaymentInput(
         customerSwishNumber: .some(phoneNumber),
         flow: "ecom",
         idempotencyKey: UUID().uuidString,
         returnUrl: returnURL.absoluteString
     )
+    
+    var deviceInfo = device.map(makeDeviceInfo)
+    if deviceInfo == nil {
+        let def = await Kronor.detectDevice()
+        deviceInfo = makeDeviceInfo(device: def)
+    }
 
-    return await createSwishPaymentRequest(client: client, input: input)
+    return await createSwishPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }
 
-func createSwishPaymentRequest(client: ApolloClient, input: KronorApi.SwishPaymentInput) async -> Result<String, KronorError> {
+func makeDeviceInfo(device: Kronor.Device) -> KronorApi.AddSessionDeviceInformationInput {
+    KronorApi.AddSessionDeviceInformationInput(
+        browserName: device.appName,
+        browserVersion: device.appVersion,
+        fingerprint: device.fingerprint,
+        osName: device.osName,
+        osVersion: device.osVersion,
+        userAgent: "\(device.appName)/\(device.appVersion) (\(device.deviceModel))"
+    )
+}
+
+func createSwishPaymentRequest(client: ApolloClient,
+                               input: KronorApi.SwishPaymentInput,
+                               deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
     return await withCheckedContinuation {continuation in
-        client.perform(mutation: KronorApi.SwishPaymentMutation(payment: input)) {data in
+        client.perform(mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo)) {data in
             switch data {
             case .failure(let error):
                 continuation.resume(returning: .failure(.networkError(error: error)))
             case .success(let result):
                 if let data = result.data {
+                    print("\(data)")
                     continuation.resume(returning: .success(data.newSwishPayment.waitToken))
                 } else {
                     continuation.resume(returning: .failure(

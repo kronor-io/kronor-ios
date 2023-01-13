@@ -28,7 +28,7 @@ enum KronorError: Error, Equatable {
 final class SwishStatechart : StateMachineBuilder {
     
     enum State : Equatable  {
-        case promptingMethod 
+        case promptingMethod
         case insertingPhoneNumber
         case creatingPaymentRequest (selected: SelectedMethod)
         case waitingForPaymentRequest (selected: SelectedMethod)

@@ -36,11 +36,17 @@ let package = Package(
             url: "https://github.com/Tinder/StateMachine",
             .upToNextMajor(from: "0.3.0")
         ),
+        .package(
+            url: "https://github.com/fingerprintjs/fingerprintjs-ios",
+            .upToNextMajor(from: "1.0.0")
+        ),
     ],
     targets: [
         .target(
             name: "Kronor",
-            dependencies: [],
+            dependencies: [
+                .product(name: "FingerprintJS", package: "fingerprintjs-ios"),
+            ],
             path: "./Kronor"
         ),
         .target(
@@ -54,6 +60,7 @@ let package = Package(
         .target(
             name: "KronorComponents",
             dependencies: [
+                .target(name: "Kronor"),
                 .target(name: "KronorApi"),
                 .product(name: "Apollo", package: "apollo-ios"),
                 .product(name: "StateMachine", package: "StateMachine"),

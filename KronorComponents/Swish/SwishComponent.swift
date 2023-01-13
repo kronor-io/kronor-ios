@@ -6,20 +6,23 @@
 //
 
 import SwiftUI
+import Kronor
 
 public struct SwishComponent: View {
     let viewModel: SwishPaymentViewModel
     
     public init(sessionToken: String,
-         returnURL: URL,
-         onPaymentFailure: @escaping () -> (),
-         onPaymentSuccess: @escaping (_ paymentId: String) -> ()
+                returnURL: URL,
+                device: Kronor.Device? = nil,
+                onPaymentFailure: @escaping () -> (),
+                onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = SwishStatechart.makeStateMachine()
         self.viewModel = SwishPaymentViewModel(
             sessionToken: sessionToken,
             stateMachine: machine,
             returnURL: returnURL,
+            device: device,
             onPaymentFailure: onPaymentFailure,
             onPaymentSuccess: onPaymentSuccess
         )

@@ -1,5 +1,9 @@
-mutation SwishPayment($payment: SwishPaymentInput!) {
+mutation SwishPayment($payment: SwishPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
     newSwishPayment(pay: $payment) {
       waitToken
+    }
+
+    addSessionDeviceInformation(info: $deviceInfo) {
+      result
     }
 }

@@ -33,6 +33,7 @@ public extension KronorApi {
       switch typename {
       case "mutation_root": return KronorApi.Objects.Mutation_root
       case "SwishPaymentResult": return KronorApi.Objects.SwishPaymentResult
+      case "AddSessionDeviceInformationResult": return KronorApi.Objects.AddSessionDeviceInformationResult
       case "PaymentSessionResult": return KronorApi.Objects.PaymentSessionResult
       case "subscription_root": return KronorApi.Objects.Subscription_root
       case "PaymentRequest": return KronorApi.Objects.PaymentRequest
