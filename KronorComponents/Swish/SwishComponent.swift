@@ -11,7 +11,8 @@ import Kronor
 public struct SwishComponent: View {
     let viewModel: SwishPaymentViewModel
     
-    public init(sessionToken: String,
+    public init(env: Kronor.Environment,
+                sessionToken: String,
                 returnURL: URL,
                 device: Kronor.Device? = nil,
                 onPaymentFailure: @escaping () -> (),
@@ -19,6 +20,7 @@ public struct SwishComponent: View {
     ) {
         let machine = SwishStatechart.makeStateMachine()
         self.viewModel = SwishPaymentViewModel(
+            env: env,
             sessionToken: sessionToken,
             stateMachine: machine,
             returnURL: returnURL,
@@ -37,6 +39,7 @@ public struct SwishComponent: View {
 struct SwishComponent_Previews: PreviewProvider {
     static var previews: some View {
         SwishComponent(
+            env: .sandbox,
             sessionToken: "dummy",
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {

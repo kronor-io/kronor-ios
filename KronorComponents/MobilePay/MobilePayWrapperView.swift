@@ -13,7 +13,7 @@ struct MobilePayWrapperView: View {
     var body: some View {
         VStack {
             Spacer()
-            MobilePayHeadereView()
+            MobilePayHeaderView()
             Spacer()
             AnyView(contents())
             Spacer()

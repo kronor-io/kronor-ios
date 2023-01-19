@@ -49,6 +49,7 @@ struct SwishInsertPhoneNumberView_Previews: PreviewProvider {
     
     static var previews: some View {
         let viewModel = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine,
             returnURL: URL(string: "io.kronortest://")!,

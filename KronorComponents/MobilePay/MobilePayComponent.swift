@@ -11,7 +11,8 @@ import Kronor
 public struct MobilePayComponent: View {
     let viewModel: MobilePayViewModel
     
-    public init(sessionToken: String,
+    public init(env: Kronor.Environment,
+                sessionToken: String,
                 returnURL: URL,
                 device: Kronor.Device? = nil,
                 onPaymentFailure: @escaping () -> (),
@@ -20,6 +21,7 @@ public struct MobilePayComponent: View {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
 
         let viewModel = MobilePayViewModel(
+            env: env,
             sessionToken: sessionToken,
             stateMachine: machine,
             returnURL: returnURL,
@@ -43,6 +45,7 @@ public struct MobilePayComponent: View {
 struct MobilePayComponent_Previews: PreviewProvider {
     static var previews: some View {
         MobilePayComponent(
+            env: .sandbox,
             sessionToken: "dummy",
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {

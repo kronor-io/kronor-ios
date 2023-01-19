@@ -1,5 +1,5 @@
 //
-//  MobilePayHeadereView.swift
+//  MobilePayHeaderView.swift
 //  
 //
 //  Created by Jose-JORO on 2023-01-18.
@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-struct MobilePayHeadereView: View {
+struct MobilePayHeaderView: View {
     static let logoPath = Bundle.module.path(forResource: "mobilepay-logo", ofType: "png")!
     static let logo = UIImage(contentsOfFile: logoPath)!
 
@@ -23,12 +23,12 @@ struct MobilePayHeadereView: View {
     }
 }
 
-struct MobilePayHeadereView_Previews: PreviewProvider {
+struct MobilePayHeaderView_Previews: PreviewProvider {
     static var previews: some View {
-        MobilePayHeadereView()
+        MobilePayHeaderView()
             .previewDisplayName("Logo")
 
-        MobilePayHeadereView()
+        MobilePayHeaderView()
             .preferredColorScheme(.dark)
             .previewDisplayName("Logo Dark")
     }

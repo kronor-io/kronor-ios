@@ -166,6 +166,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // prompt
         let machine = SwishStatechart.makeStateMachine()
         let viewModel = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine,
             returnURL: URL(string: "io.kronortest://")!,
@@ -178,6 +179,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // creatingPaymentRequest
         let machine2 = SwishStatechart.makeStateMachineWithInitialState(initial: .creatingPaymentRequest(selected: .swishApp))
         let viewModel2 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine2,
             returnURL: URL(string: "io.kronortest://")!,
@@ -190,6 +192,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // creatingPaymentRequest
         let machine3 = SwishStatechart.makeStateMachineWithInitialState(initial: .waitingForPaymentRequest(selected: .swishApp))
         let viewModel3 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine3,
             returnURL: URL(string: "io.kronortest://")!,
@@ -202,6 +205,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // waitingForPayment
         let machine4 = SwishStatechart.makeStateMachineWithInitialState(initial: .waitingForPayment)
         let viewModel4 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine4,
             returnURL: URL(string: "io.kronortest://")!,
@@ -214,6 +218,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // paymentRequestInitialized (app)
         let machine5 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .swishApp))
         let viewModel5 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine5,
             returnURL: URL(string: "io.kronortest://")!,
@@ -226,6 +231,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // paymentRequestInitialized (qr)
         let machine6 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .qrCode))
         let viewModel6 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine6,
             returnURL: URL(string: "io.kronortest://")!,
@@ -238,6 +244,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // paymentRequestInitialized (phone)
         let machine7 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .phoneNumber))
         let viewModel7 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine7,
             returnURL: URL(string: "io.kronortest://")!,
@@ -250,6 +257,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // paymentRejected
         let machine8 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRejected)
         let viewModel8 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine8,
             returnURL: URL(string: "io.kronortest://")!,
@@ -262,6 +270,7 @@ struct SwishPaymentView_Previews: PreviewProvider {
         // paymentCompleted
         let machine9 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentCompleted)
         let viewModel9 = SwishPaymentViewModel(
+            env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine9,
             returnURL: URL(string: "io.kronortest://")!,

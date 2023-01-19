@@ -9,6 +9,7 @@ import Apollo
 import ApolloWebSocket
 import ApolloAPI
 import Foundation
+import Kronor
 
 let store = ApolloStore(cache: InMemoryNormalizedCache())
 let provider = DefaultInterceptorProvider(store: store)
@@ -40,16 +41,16 @@ public extension KronorApi {
         case usageError (error: KronorApi.APIError)
     }
     
-    static func makeGraphQLClient(token: String) -> ApolloClient {
-        let websocketsUrl = URL(string: "wss://staging.kronor.io/v1/graphql")!
+    static func makeGraphQLClient(env: Kronor.Environment, token: String) -> ApolloClient {
+        let websocketsUrl = Kronor.wsApiURL(env: env)
         let webSocketClient = WebSocket(url: websocketsUrl, protocol: .graphql_ws)
         let payload: JSONEncodableDictionary = ["headers": ["Authorization": "Bearer " + token]]
         let wsConfig = WebSocketTransport.Configuration(reconnect:true, connectingPayload: payload)
         let webSocketTransport = WebSocketTransport(websocket: webSocketClient, store: store, config: wsConfig)
         
         let httpTransport = RequestChainNetworkTransport(interceptorProvider: provider,
-                                                     endpointURL: URL(string: "https://staging.kronor.io/v1/graphql")!,
-                                                     additionalHeaders: ["Authorization": "Bearer " + token])
+                                                         endpointURL: Kronor.apiURL(env: env),
+                                                         additionalHeaders: ["Authorization": "Bearer " + token])
         let transport = SplitNetworkTransport(uploadingNetworkTransport: httpTransport, webSocketNetworkTransport: webSocketTransport)
         return ApolloClient(networkTransport: transport, store: store)
     }

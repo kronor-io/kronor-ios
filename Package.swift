@@ -52,6 +52,7 @@ let package = Package(
         .target(
             name: "KronorApi",
             dependencies: [
+                .target(name: "Kronor"),
                 .product(name: "ApolloAPI", package: "apollo-ios"),
                 .product(name: "ApolloWebSocket", package: "apollo-ios"),
             ],

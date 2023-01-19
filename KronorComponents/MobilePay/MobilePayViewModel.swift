@@ -39,7 +39,8 @@ class MobilePayViewModel: ObservableObject {
     @Published var state: EmbeddedPaymentStatechart.State
     @Published var embeddedSiteURL: URL?
     
-    init(sessionToken: String,
+    init(env: Kronor.Environment,
+         sessionToken: String,
          stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine,
          returnURL: URL,
          device: Kronor.Device? = nil,
@@ -47,15 +48,16 @@ class MobilePayViewModel: ObservableObject {
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
-        self.client = KronorApi.makeGraphQLClient(token: sessionToken)
+        self.client = KronorApi.makeGraphQLClient(env: env, token: sessionToken)
         self.state = stateMachine.state
         self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
         
+        let gatewayURL = Kronor.gatewayURL(env: env)
         var components = URLComponents()
-        components.scheme = "https"
-        components.host = "payment-gateway.staging.kronor.io"
+        components.scheme = gatewayURL.scheme
+        components.host = gatewayURL.host
         components.path = "/reepay-redirect"
         components.queryItems = [
             URLQueryItem(name: "paymentMethod", value: "mobilePay"),

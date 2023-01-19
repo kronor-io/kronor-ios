@@ -53,7 +53,8 @@ class SwishPaymentViewModel: ObservableObject {
     @Published var swishAppInstalled = false
 #endif
 
-    init(sessionToken: String,
+    init(env: Kronor.Environment,
+         sessionToken: String,
          stateMachine: SwishStatechart.SwishStateMachine,
          returnURL: URL,
          device: Kronor.Device? = nil,
@@ -61,7 +62,7 @@ class SwishPaymentViewModel: ObservableObject {
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
-        self.client = KronorApi.makeGraphQLClient(token: sessionToken)
+        self.client = KronorApi.makeGraphQLClient(env: env, token: sessionToken)
         self.state = stateMachine.state
         self.returnURL = returnURL
         self.device = device
