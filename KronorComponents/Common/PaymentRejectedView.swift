@@ -1,14 +1,14 @@
 //
-//  SwishPaymentRejectedView.swift
-//  kronor-ios
+//  PaymentRejectedView.swift
+//  
 //
-//  Created by lorenzo on 2023-01-09.
+//  Created by Jose-JORO on 2023-01-19.
 //
 
 import SwiftUI
 
-struct SwishPaymentRejectedView: View {
-    var viewModel: SwishPaymentViewModel
+struct PaymentRejectedView: View {
+    var viewModel: RetryableModel
     
     @State var clickedOnSomething = false
 
@@ -37,9 +37,7 @@ struct SwishPaymentRejectedView: View {
                Spacer()
             } else {
                 Button(action: {
-                    Task {
-                        await viewModel.transition(.cancelFlow)
-                    }
+                    viewModel.cancel()
                     clickedOnSomething = true
                 }) {
                     Text(
@@ -54,9 +52,7 @@ struct SwishPaymentRejectedView: View {
                     .font(.caption)
                 
                 Button(action: {
-                    Task {
-                        await viewModel.transition(.retry)
-                    }
+                    viewModel.retry()
                     clickedOnSomething = true
                 }) {
                     Text(
@@ -71,19 +67,16 @@ struct SwishPaymentRejectedView: View {
     }
 }
 
-struct SwishPaymentRejectedView_Previews: PreviewProvider {
-    static let machine = SwishStatechart.makeStateMachine()
-    
+struct PaymentRejectedView_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = SwishPaymentViewModel(
-            sessionToken: "dummy",
-            stateMachine: machine,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        SwishWrapperView {
-            SwishPaymentRejectedView(viewModel: viewModel)
-        }
+        PaymentRejectedView(viewModel: PreviewRetryable())
+    }
+}
+
+struct PreviewRetryable: RetryableModel {
+    func cancel() {
+    }
+
+    func retry() {
     }
 }

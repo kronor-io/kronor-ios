@@ -4,13 +4,13 @@
 @_exported import ApolloAPI
 
 public extension KronorApi {
-  class SwishPaymentMutation: GraphQLMutation {
-    public static let operationName: String = "SwishPayment"
+  class VippsPaymentMutation: GraphQLMutation {
+    public static let operationName: String = "VippsPayment"
     public static let document: ApolloAPI.DocumentType = .notPersisted(
       definition: .init(
         #"""
-        mutation SwishPayment($payment: SwishPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
-          newSwishPayment(pay: $payment) {
+        mutation VippsPayment($payment: VippsPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
+          newVippsPayment(pay: $payment) {
             __typename
             waitToken
           }
@@ -22,11 +22,11 @@ public extension KronorApi {
         """#
       ))
 
-    public var payment: SwishPaymentInput
+    public var payment: VippsPaymentInput
     public var deviceInfo: AddSessionDeviceInformationInput
 
     public init(
-      payment: SwishPaymentInput,
+      payment: VippsPaymentInput,
       deviceInfo: AddSessionDeviceInformationInput
     ) {
       self.payment = payment
@@ -44,30 +44,30 @@ public extension KronorApi {
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
-        .field("newSwishPayment", NewSwishPayment.self, arguments: ["pay": .variable("payment")]),
+        .field("newVippsPayment", NewVippsPayment.self, arguments: ["pay": .variable("payment")]),
         .field("addSessionDeviceInformation", AddSessionDeviceInformation.self, arguments: ["info": .variable("deviceInfo")]),
       ] }
 
-      /// Create a new payment request to receive money via swish
-      public var newSwishPayment: NewSwishPayment { __data["newSwishPayment"] }
+      /// Create a new payment request to receive money via Vipps, available only in Norway.
+      public var newVippsPayment: NewVippsPayment { __data["newVippsPayment"] }
       /// Set customer device information for a given payment session.
       public var addSessionDeviceInformation: AddSessionDeviceInformation { __data["addSessionDeviceInformation"] }
 
-      /// NewSwishPayment
+      /// NewVippsPayment
       ///
-      /// Parent Type: `SwishPaymentResult`
-      public struct NewSwishPayment: KronorApi.SelectionSet {
+      /// Parent Type: `VippsPaymentResult`
+      public struct NewVippsPayment: KronorApi.SelectionSet {
         public let __data: DataDict
         public init(data: DataDict) { __data = data }
 
-        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.SwishPaymentResult }
+        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.VippsPaymentResult }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("waitToken", String.self),
         ] }
 
-        /// Once a payment is initialized, we will start the swish payment
+        /// Once a payment is initialized, we will start the Vipps payment
         /// workflow. You can use this token to query the current status
-        /// of the payment.
+        /// of the payment, with paymentRequests query.
         public var waitToken: String { __data["waitToken"] }
       }
 

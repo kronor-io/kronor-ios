@@ -1,0 +1,9 @@
+mutation MobilePayPayment($payment: MobilePayPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
+  newMobilePayPayment(pay: $payment) {
+    waitToken
+  }
+
+  addSessionDeviceInformation(info: $deviceInfo) {
+    result
+  }
+}

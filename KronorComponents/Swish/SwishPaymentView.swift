@@ -114,7 +114,7 @@ struct SwishPaymentView: View {
 
         case .paymentRejected:
             return SwishWrapperView {
-                SwishPaymentRejectedView(viewModel: viewModel)
+                PaymentRejectedView(viewModel: self.viewModel)
             }
 
             

@@ -32,8 +32,11 @@ public extension KronorApi {
     public static func objectType(forTypename typename: String) -> Object? {
       switch typename {
       case "mutation_root": return KronorApi.Objects.Mutation_root
-      case "SwishPaymentResult": return KronorApi.Objects.SwishPaymentResult
+      case "VippsPaymentResult": return KronorApi.Objects.VippsPaymentResult
       case "AddSessionDeviceInformationResult": return KronorApi.Objects.AddSessionDeviceInformationResult
+      case "MobilePayPaymentResult": return KronorApi.Objects.MobilePayPaymentResult
+      case "SwishPaymentResult": return KronorApi.Objects.SwishPaymentResult
+      case "CreditCardPaymentResult": return KronorApi.Objects.CreditCardPaymentResult
       case "PaymentSessionResult": return KronorApi.Objects.PaymentSessionResult
       case "subscription_root": return KronorApi.Objects.Subscription_root
       case "PaymentRequest": return KronorApi.Objects.PaymentRequest

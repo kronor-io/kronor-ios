@@ -1,0 +1,9 @@
+mutation CreditCardPayment($payment: CreditCardPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
+  newCreditCardPayment(pay: $payment) {
+    waitToken
+  }
+
+  addSessionDeviceInformation(info: $deviceInfo) {
+    result
+  }
+}

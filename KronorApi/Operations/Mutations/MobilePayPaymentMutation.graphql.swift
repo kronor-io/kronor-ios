@@ -4,13 +4,13 @@
 @_exported import ApolloAPI
 
 public extension KronorApi {
-  class SwishPaymentMutation: GraphQLMutation {
-    public static let operationName: String = "SwishPayment"
+  class MobilePayPaymentMutation: GraphQLMutation {
+    public static let operationName: String = "MobilePayPayment"
     public static let document: ApolloAPI.DocumentType = .notPersisted(
       definition: .init(
         #"""
-        mutation SwishPayment($payment: SwishPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
-          newSwishPayment(pay: $payment) {
+        mutation MobilePayPayment($payment: MobilePayPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
+          newMobilePayPayment(pay: $payment) {
             __typename
             waitToken
           }
@@ -22,11 +22,11 @@ public extension KronorApi {
         """#
       ))
 
-    public var payment: SwishPaymentInput
+    public var payment: MobilePayPaymentInput
     public var deviceInfo: AddSessionDeviceInformationInput
 
     public init(
-      payment: SwishPaymentInput,
+      payment: MobilePayPaymentInput,
       deviceInfo: AddSessionDeviceInformationInput
     ) {
       self.payment = payment
@@ -44,30 +44,30 @@ public extension KronorApi {
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
-        .field("newSwishPayment", NewSwishPayment.self, arguments: ["pay": .variable("payment")]),
+        .field("newMobilePayPayment", NewMobilePayPayment.self, arguments: ["pay": .variable("payment")]),
         .field("addSessionDeviceInformation", AddSessionDeviceInformation.self, arguments: ["info": .variable("deviceInfo")]),
       ] }
 
-      /// Create a new payment request to receive money via swish
-      public var newSwishPayment: NewSwishPayment { __data["newSwishPayment"] }
+      /// Create a new payment request to receive money via MobilePay, available only in Denmark and Finland.
+      public var newMobilePayPayment: NewMobilePayPayment { __data["newMobilePayPayment"] }
       /// Set customer device information for a given payment session.
       public var addSessionDeviceInformation: AddSessionDeviceInformation { __data["addSessionDeviceInformation"] }
 
-      /// NewSwishPayment
+      /// NewMobilePayPayment
       ///
-      /// Parent Type: `SwishPaymentResult`
-      public struct NewSwishPayment: KronorApi.SelectionSet {
+      /// Parent Type: `MobilePayPaymentResult`
+      public struct NewMobilePayPayment: KronorApi.SelectionSet {
         public let __data: DataDict
         public init(data: DataDict) { __data = data }
 
-        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.SwishPaymentResult }
+        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.MobilePayPaymentResult }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("waitToken", String.self),
         ] }
 
-        /// Once a payment is initialized, we will start the swish payment
+        /// Once a payment is initialized, we will start the MobilePay payment
         /// workflow. You can use this token to query the current status
-        /// of the payment.
+        /// of the payment, with paymentRequests query.
         public var waitToken: String { __data["waitToken"] }
       }
 

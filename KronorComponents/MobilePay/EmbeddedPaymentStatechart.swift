@@ -1,5 +1,5 @@
 //
-//  Statechart.swift
+//  EmbeddedPaymentStatechart.swift
 //  kronor-ios
 //
 //  Created by lorenzo on 2023-01-04.
@@ -9,14 +9,13 @@ import Foundation
 import StateMachine
 import KronorApi
 
-final class SwishStatechart : StateMachineBuilder {
+final class EmbeddedPaymentStatechart : StateMachineBuilder {
     
     enum State : Equatable  {
-        case promptingMethod
-        case insertingPhoneNumber
-        case creatingPaymentRequest (selected: SelectedMethod)
-        case waitingForPaymentRequest (selected: SelectedMethod)
-        case paymentRequestInitialized (selected: SelectedMethod)
+        case initializing
+        case creatingPaymentRequest
+        case waitingForPaymentRequest
+        case paymentRequestInitialized
         case waitingForPayment
         case paymentRejected
         case paymentCompleted
@@ -24,78 +23,50 @@ final class SwishStatechart : StateMachineBuilder {
     }
     
     enum Event : Equatable  {
-        case useSwishApp
-        case usePhoneNumber
-        case phoneNumberInserted (number: String)
-        case useQR
+        case initialize
         case paymentRequestCreated (waitToken: String)
         case paymentRequestInitialized
         case paymentAuthorized
         case paymentRejected
+        case cancel
         case retry
         case cancelFlow
         case error (error: KronorApi.KronorError)
-        case swishAppOpened
     }
     
     enum SideEffect {
-        case createEcomPaymentRequest (phoneNumber: String)
-        case createMcomPaymentRequest
+        case createPaymentRequest
+        case openEmbeddedSite
         case cancelPaymentRequest
-        case openSwishApp
         case subscribeToPaymentStatus (waitToken: String)
         case notifyPaymentSuccess
         case notifyPaymentFailure
         case resetState
     }
     
-    enum SelectedMethod : Equatable {
-        case swishApp
-        case qrCode
-        case phoneNumber
-    }
-    
-    typealias SwishStateMachine = StateMachine<State, Event, SideEffect>
+    typealias EmbeddedPaymentStateMachine = StateMachine<State, Event, SideEffect>
     
 
-    static func makeStateMachine() -> SwishStateMachine {
-        makeStateMachineWithInitialState(initial: .promptingMethod)
+    static func makeStateMachine() -> EmbeddedPaymentStateMachine {
+        makeStateMachineWithInitialState(initial: .initializing)
     }
     
-    static func makeStateMachineWithInitialState(initial: State) -> SwishStateMachine {
-        SwishStateMachine {
+    static func makeStateMachineWithInitialState(initial: State) -> EmbeddedPaymentStateMachine {
+        EmbeddedPaymentStateMachine {
             initialState(initial)
             
-            state(.promptingMethod) {
-                
-                on(.useSwishApp) {
-                    transition(to: .creatingPaymentRequest(selected: .swishApp), emit: .createMcomPaymentRequest)
-                }
-                
-                on(.useQR) {
-                    transition(to: .creatingPaymentRequest(selected: .qrCode), emit: .createMcomPaymentRequest)
-                }
-                
-                on(.usePhoneNumber) {
-                    transition(to: .insertingPhoneNumber)
+            state(.initializing) {
+                on(.initialize) {
+                    transition(to: .creatingPaymentRequest, emit: .createPaymentRequest)
                 }
             }
-            
-            state(.insertingPhoneNumber) {
-                on(.phoneNumberInserted) {
-                    guard case let .phoneNumberInserted(phoneNumber) = $1 else { return dontTransition() }
-                    
-                    return transition(to: .creatingPaymentRequest(selected: .phoneNumber), emit: .createEcomPaymentRequest(phoneNumber: phoneNumber))
-                }
-            }
-            
+      
             state(.creatingPaymentRequest) {
                 
                 on (.paymentRequestCreated) {
-                    guard case let .creatingPaymentRequest(selected) = $0 else { return dontTransition() }
                     guard case let .paymentRequestCreated(waitToken) = $1 else { return dontTransition() }
                     
-                    return transition(to: .waitingForPaymentRequest(selected: selected),
+                    return transition(to: .waitingForPaymentRequest,
                                       emit: .subscribeToPaymentStatus(waitToken: waitToken))
                 }
 
@@ -103,34 +74,19 @@ final class SwishStatechart : StateMachineBuilder {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
             }
-            
+
             state(.waitingForPaymentRequest) {
-                
+
                 on(.paymentRequestInitialized) {
-                    guard case let .waitingForPaymentRequest(selected) = $0 else { return dontTransition() }
-                    
-                    var sideEffect: SideEffect?
-                    if case .swishApp = selected {
-                        sideEffect = .openSwishApp
-                    }
-                    
-                    return transition(to: .paymentRequestInitialized(selected: selected), emit: sideEffect)
+                    return transition(to: .paymentRequestInitialized, emit: .openEmbeddedSite)
                 }
 
                 on (.error) {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
             }
-            
-            state(.paymentRequestInitialized) {
-                on (.retry) {
-                    transition(to: .promptingMethod, emit: .resetState)
-                }
-                
-                on (.swishAppOpened) {
-                    transition(to: .waitingForPayment)
-                }
 
+            state(.paymentRequestInitialized) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
                 }
@@ -140,8 +96,11 @@ final class SwishStatechart : StateMachineBuilder {
                 on (.error) {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
+                on(.cancel) {
+                    transition(to: .paymentRejected, emit: .cancelPaymentRequest)
+                }
             }
-            
+
             state(.waitingForPayment) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
@@ -152,26 +111,26 @@ final class SwishStatechart : StateMachineBuilder {
                 on (.error) {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
+                on(.cancel) {
+                    transition(to: .paymentRejected, emit: .cancelPaymentRequest)
+                }
             }
-            
+
             state(.paymentRejected) {
                 on(.cancelFlow) {
                     dontTransition(emit: .notifyPaymentFailure)
                 }
-                
                 on(.retry) {
-                    transition(to: .promptingMethod, emit: .resetState)
+                    transition(to: .initializing, emit: .resetState)
                 }
             }
         }
     }
 }
 
-extension SwishStatechart.State: StateMachineHashable  {
+extension EmbeddedPaymentStatechart.State: StateMachineHashable  {
     enum HashableIdentifier {
-        case promptingMethod
-        case insertingPhoneNumber
-        case displayingQR
+        case initializing
         case creatingPaymentRequest
         case waitingForPaymentRequest
         case paymentRequestInitialized
@@ -180,13 +139,11 @@ extension SwishStatechart.State: StateMachineHashable  {
         case paymentCompleted
         case errored
     }
-    
+
     var hashableIdentifier: HashableIdentifier {
         switch self {
-        case .promptingMethod:
-            return .promptingMethod
-        case .insertingPhoneNumber:
-            return .insertingPhoneNumber
+        case .initializing:
+            return .initializing
         case .creatingPaymentRequest:
             return .creatingPaymentRequest
         case .waitingForPaymentRequest:
@@ -206,12 +163,6 @@ extension SwishStatechart.State: StateMachineHashable  {
 
     var associatedValue: Any {
         switch self {
-        case let .waitingForPaymentRequest(value):
-            return value
-        case let .creatingPaymentRequest(value):
-            return value
-        case let .paymentRequestInitialized(value):
-            return value
         case let .errored(value):
             return value
         default:
@@ -220,32 +171,23 @@ extension SwishStatechart.State: StateMachineHashable  {
     }
 }
 
-extension SwishStatechart.Event: StateMachineHashable  {
+extension EmbeddedPaymentStatechart.Event: StateMachineHashable  {
     enum HashableIdentifier {
-        case useSwishApp
-        case usePhoneNumber
-        case phoneNumberInserted
-        case useQR
+        case initialize
         case paymentRequestCreated
         case paymentRequestInitialized
         case paymentAuthorized
         case paymentRejected
         case error
-        case retry
+        case cancel
         case cancelFlow
-        case swishAppOpened
+        case retry
     }
-    
+
     var hashableIdentifier: HashableIdentifier {
         switch self {
-        case .useSwishApp:
-            return .useSwishApp
-        case .usePhoneNumber:
-            return .usePhoneNumber
-        case .phoneNumberInserted:
-            return .phoneNumberInserted
-        case .useQR:
-            return .useQR
+        case .initialize:
+            return .initialize
         case .paymentRequestCreated:
             return .paymentRequestCreated
         case .paymentRequestInitialized:
@@ -256,20 +198,18 @@ extension SwishStatechart.Event: StateMachineHashable  {
             return .paymentRejected
         case .error:
             return .error
-        case .retry:
-            return .retry
+        case .cancel:
+            return .cancel
         case .cancelFlow:
             return .cancelFlow
-        case .swishAppOpened:
-            return .swishAppOpened
+        case .retry:
+            return .retry
         }
     }
 
     var associatedValue: Any {
         switch self {
         case let .error(value):
-            return value
-        case let .phoneNumberInserted(value):
             return value
         default:
             return ()
