@@ -98,6 +98,46 @@ input BooleanComparisonExp {
   _nin: [Boolean!]
 }
 
+"""Settings for using Braintree"""
+type BraintreeSetting {
+  currency: SupportedCurrencyEnum!
+  paypalClientId: String!
+  tokenizationKey: String!
+}
+
+"""
+Boolean expression to filter rows from the table "tenant.braintree_setting". All fields are combined with a logical 'AND'.
+"""
+input BraintreeSettingBoolExp {
+  _and: [BraintreeSettingBoolExp!]
+  _not: BraintreeSettingBoolExp
+  _or: [BraintreeSettingBoolExp!]
+  currency: SupportedCurrencyEnumComparisonExp
+  paypalClientId: StringComparisonExp
+  tokenizationKey: StringComparisonExp
+}
+
+"""Ordering options when selecting data from "tenant.braintree_setting"."""
+input BraintreeSettingOrderBy {
+  currency: OrderBy
+  paypalClientId: OrderBy
+  tokenizationKey: OrderBy
+}
+
+"""
+select columns of table "tenant.braintree_setting"
+"""
+enum BraintreeSettingSelectColumn {
+  """column name"""
+  currency
+
+  """column name"""
+  paypalClientId
+
+  """column name"""
+  tokenizationKey
+}
+
 """
 Boolean expression to compare columns of type "country". All fields are combined with logical 'AND'.
 """
@@ -236,48 +276,6 @@ input CurrencyComparisonExp {
 }
 
 """
-columns and relationships of "runtime.current_payment_detail"
-"""
-type CurrentPaymentDetail {
-  detail(
-    """JSON select path"""
-    path: String
-  ): jsonb!
-}
-
-"""
-order by aggregate values of table "runtime.current_payment_detail"
-"""
-input CurrentPaymentDetailAggregateOrderBy {
-  count: OrderBy
-}
-
-"""
-Boolean expression to filter rows from the table "runtime.current_payment_detail". All fields are combined with a logical 'AND'.
-"""
-input CurrentPaymentDetailBoolExp {
-  _and: [CurrentPaymentDetailBoolExp!]
-  _not: CurrentPaymentDetailBoolExp
-  _or: [CurrentPaymentDetailBoolExp!]
-  detail: JsonbComparisonExp
-}
-
-"""
-Ordering options when selecting data from "runtime.current_payment_detail".
-"""
-input CurrentPaymentDetailOrderBy {
-  detail: OrderBy
-}
-
-"""
-select columns of table "runtime.current_payment_detail"
-"""
-enum CurrentPaymentDetailSelectColumn {
-  """column name"""
-  detail
-}
-
-"""
 columns and relationships of "runtime.current_payment_status"
 """
 type CurrentPaymentStatus {
@@ -410,39 +408,59 @@ type DirectDebitPaymentResult {
   waitToken: String!
 }
 
-input JsonbCastExp {
-  String: StringComparisonExp
+"""
+Describes the schema for the finshark payment transaction details to be used by hasura
+"""
+type FinsharkDetails {
+  paymentFlowsUrl: String
 }
 
 """
-Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'.
+order by aggregate values of table "runtime.transaction_finshark_details"
 """
-input JsonbComparisonExp {
-  _cast: JsonbCastExp
+input FinsharkDetailsAggregateOrderBy {
+  count: OrderBy
+  max: FinsharkDetailsMaxOrderBy
+  min: FinsharkDetailsMinOrderBy
+}
 
-  """is the column contained in the given json value"""
-  _containedIn: jsonb
+"""
+Boolean expression to filter rows from the table "runtime.transaction_finshark_details". All fields are combined with a logical 'AND'.
+"""
+input FinsharkDetailsBoolExp {
+  _and: [FinsharkDetailsBoolExp!]
+  _not: FinsharkDetailsBoolExp
+  _or: [FinsharkDetailsBoolExp!]
+  paymentFlowsUrl: StringComparisonExp
+}
 
-  """does the column contain the given json value at the top level"""
-  _contains: jsonb
-  _eq: jsonb
-  _gt: jsonb
-  _gte: jsonb
+"""
+order by max() on columns of table "runtime.transaction_finshark_details"
+"""
+input FinsharkDetailsMaxOrderBy {
+  paymentFlowsUrl: OrderBy
+}
 
-  """does the string exist as a top-level key in the column"""
-  _hasKey: String
+"""
+order by min() on columns of table "runtime.transaction_finshark_details"
+"""
+input FinsharkDetailsMinOrderBy {
+  paymentFlowsUrl: OrderBy
+}
 
-  """do all of these strings exist as top-level keys in the column"""
-  _hasKeysAll: [String!]
+"""
+Ordering options when selecting data from "runtime.transaction_finshark_details".
+"""
+input FinsharkDetailsOrderBy {
+  paymentFlowsUrl: OrderBy
+}
 
-  """do any of these strings exist as top-level keys in the column"""
-  _hasKeysAny: [String!]
-  _in: [jsonb!]
-  _isNull: Boolean
-  _lt: jsonb
-  _lte: jsonb
-  _neq: jsonb
-  _nin: [jsonb!]
+"""
+select columns of table "runtime.transaction_finshark_details"
+"""
+enum FinsharkDetailsSelectColumn {
+  """column name"""
+  paymentFlowsUrl
 }
 
 """Supported languages"""
@@ -452,6 +470,44 @@ enum Language {
   IS
   NO
   SV
+}
+
+"""Arguments for sending a log"""
+input LogInput {
+  """Any additional data you want to send, preferably a json encoded string"""
+  additionalData: String
+
+  """Unique client identifier"""
+  clientSessionId: String!
+
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """State context"""
+  stateContext: String!
+
+  """Name of the state to log"""
+  stateName: String!
+}
+
+"""The result of log."""
+type LogResult {
+  """Placeholder response to return, always an empty string"""
+  status: String!
 }
 
 """List of merchants registered with us."""
@@ -628,6 +684,48 @@ input PackedPhoneNumberComparisonExp {
   _nin: [packed_phone_number!]
 }
 
+"""Arguments for creating a new PayPal payment"""
+input PayPalPaymentInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """The url to return to after the payment is done."""
+  returnUrl: String!
+}
+
+"""The result of initiating a PayPal payment."""
+type PayPalPaymentResult {
+  """
+  The amount the customer pays in minor units.
+  So 100,56 kr would be 10056
+  """
+  amount: String!
+
+  """The currency of the payment"""
+  currency: String!
+
+  """
+  Once a payment is initialized, we will start the PayPal payment
+  workflow. You can use this id to query the current status of the
+  payment.
+  """
+  paymentId: String!
+}
+
 """Arguments for cancelling payment"""
 input PaymentCancelInput {
   """
@@ -669,6 +767,9 @@ enum PaymentMethodEnum {
 
   """Pay with MobilePay Online"""
   MOBILEPAY
+
+  """Pay with PayPal"""
+  PAYPAL
 
   """Swish"""
   SWISH
@@ -755,24 +856,6 @@ type PaymentRequest {
   amount: bigint!
   createdAt: timestamptz!
   currency: SupportedCurrencyEnum!
-
-  """Additional information specific to the payment"""
-  detail(
-    """distinct select on columns"""
-    distinctOn: [CurrentPaymentDetailSelectColumn!]
-
-    """limit the number of rows returned"""
-    limit: Int
-
-    """skip the first n rows. Use only with order_by"""
-    offset: Int
-
-    """sort the rows by one or more columns"""
-    orderBy: [CurrentPaymentDetailOrderBy!]
-
-    """filter the rows returned"""
-    where: CurrentPaymentDetailBoolExp
-  ): [CurrentPaymentDetail!]
 
   """Gives the latest status that the payment is on."""
   latestStatus(
@@ -866,6 +949,26 @@ type PaymentRequest {
   ): [CreditCardDetails!]
 
   """
+  A computed field, executes function "runtime.get_transaction_finshark_details"
+  """
+  transactionFinsharkDetails(
+    """distinct select on columns"""
+    distinctOn: [FinsharkDetailsSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [FinsharkDetailsOrderBy!]
+
+    """filter the rows returned"""
+    where: FinsharkDetailsBoolExp
+  ): [FinsharkDetails!]
+
+  """
   A computed field, executes function "runtime.get_transaction_mobilepay_details"
   """
   transactionMobilePayDetails(
@@ -937,7 +1040,6 @@ input PaymentRequestBoolExp {
   amount: BigintComparisonExp
   createdAt: TimestamptzComparisonExp
   currency: SupportedCurrencyEnumComparisonExp
-  detail: CurrentPaymentDetailBoolExp
   latestStatus: CurrentPaymentStatusBoolExp
   merchant: MerchantBoolExp
   message: StringComparisonExp
@@ -948,6 +1050,7 @@ input PaymentRequestBoolExp {
   status: CurrentPaymentStatusBoolExp
   statusHistory: CurrentPaymentStatusBoolExp
   transactionCreditCardDetails: CreditCardDetailsBoolExp
+  transactionFinsharkDetails: FinsharkDetailsBoolExp
   transactionMobilePayDetails: MobilePayDetailsBoolExp
   transactionSwishDetails: SwishDetailsBoolExp
   transactionVippsDetails: VippsDetailsBoolExp
@@ -959,7 +1062,6 @@ input PaymentRequestOrderBy {
   amount: OrderBy
   createdAt: OrderBy
   currency: OrderBy
-  detailAggregate: CurrentPaymentDetailAggregateOrderBy
   latestStatusAggregate: CurrentPaymentStatusAggregateOrderBy
   merchant: MerchantOrderBy
   message: OrderBy
@@ -970,6 +1072,7 @@ input PaymentRequestOrderBy {
   statusAggregate: CurrentPaymentStatusAggregateOrderBy
   statusHistoryAggregate: CurrentPaymentStatusAggregateOrderBy
   transactionCreditCardDetailsAggregate: CreditCardDetailsAggregateOrderBy
+  transactionFinsharkDetailsAggregate: FinsharkDetailsAggregateOrderBy
   transactionMobilePayDetailsAggregate: MobilePayDetailsAggregateOrderBy
   transactionSwishDetailsAggregate: SwishDetailsAggregateOrderBy
   transactionVippsDetailsAggregate: VippsDetailsAggregateOrderBy
@@ -1223,6 +1326,57 @@ input StringComparisonExp {
   _similar: String
 }
 
+"""Arguments for creating a new PayPal payment"""
+input SupplyPayPalPaymentMethodIdInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """
+  The payment id of a PayPal payment, this is obtained when a
+  payment request is made. As opposed to a payment_reference which
+  is the same across multiple payment attempts, this is unique
+  only for each specific payment.
+  
+  Max length: 64.
+  """
+  paymentId: String!
+
+  """
+  This is obtained from Braintree when you use their client SDK to
+  create a payment.
+  
+  Max length: 64.
+  """
+  paymentMethodId: String!
+}
+
+"""
+The result of supplying a PayPal paymentMethodId to a PayPal
+payment.
+"""
+type SupplyPayPalPaymentMethodIdResult {
+  """
+  Once a payment is initialized, we will start the PayPal payment
+  workflow. You can use this id to query the current status of the
+  payment.
+  """
+  paymentId: String!
+}
+
 enum SupportedCurrencyEnum {
   """Danish Krone, currency of Denmark"""
   DKK
@@ -1252,6 +1406,8 @@ input SupportedCurrencyEnumComparisonExp {
 Describes the schema for the swish payment transaction details to be used by hasura
 """
 type SwishDetails {
+  amount: bigint
+
   """A reference sent from the bank once the payment has been made"""
   bankPaymentReference: String
 
@@ -1269,15 +1425,32 @@ type SwishDetails {
 
   """Error message from swish"""
   errorMessage: String
+  qrCode: String
+  returnUrl: String
 }
 
 """
 order by aggregate values of table "runtime.transaction_swish_details"
 """
 input SwishDetailsAggregateOrderBy {
+  avg: SwishDetailsAvgOrderBy
   count: OrderBy
   max: SwishDetailsMaxOrderBy
   min: SwishDetailsMinOrderBy
+  stddev: SwishDetailsStddevOrderBy
+  stddev_pop: SwishDetailsStddevPopOrderBy
+  stddev_samp: SwishDetailsStddevSampOrderBy
+  sum: SwishDetailsSumOrderBy
+  var_pop: SwishDetailsVarPopOrderBy
+  var_samp: SwishDetailsVarSampOrderBy
+  variance: SwishDetailsVarianceOrderBy
+}
+
+"""
+order by avg() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsAvgOrderBy {
+  amount: OrderBy
 }
 
 """
@@ -1287,18 +1460,23 @@ input SwishDetailsBoolExp {
   _and: [SwishDetailsBoolExp!]
   _not: SwishDetailsBoolExp
   _or: [SwishDetailsBoolExp!]
+  amount: BigintComparisonExp
   bankPaymentReference: StringComparisonExp
   customerSwishNumber: PackedPhoneNumberComparisonExp
   dateCreated: TimestamptzComparisonExp
   datePaid: TimestamptzComparisonExp
   errorCode: StringComparisonExp
   errorMessage: StringComparisonExp
+  qrCode: StringComparisonExp
+  returnUrl: StringComparisonExp
 }
 
 """
 order by max() on columns of table "runtime.transaction_swish_details"
 """
 input SwishDetailsMaxOrderBy {
+  amount: OrderBy
+
   """A reference sent from the bank once the payment has been made"""
   bankPaymentReference: OrderBy
 
@@ -1313,12 +1491,16 @@ input SwishDetailsMaxOrderBy {
 
   """Error message from swish"""
   errorMessage: OrderBy
+  qrCode: OrderBy
+  returnUrl: OrderBy
 }
 
 """
 order by min() on columns of table "runtime.transaction_swish_details"
 """
 input SwishDetailsMinOrderBy {
+  amount: OrderBy
+
   """A reference sent from the bank once the payment has been made"""
   bankPaymentReference: OrderBy
 
@@ -1333,24 +1515,32 @@ input SwishDetailsMinOrderBy {
 
   """Error message from swish"""
   errorMessage: OrderBy
+  qrCode: OrderBy
+  returnUrl: OrderBy
 }
 
 """
 Ordering options when selecting data from "runtime.transaction_swish_details".
 """
 input SwishDetailsOrderBy {
+  amount: OrderBy
   bankPaymentReference: OrderBy
   customerSwishNumber: OrderBy
   dateCreated: OrderBy
   datePaid: OrderBy
   errorCode: OrderBy
   errorMessage: OrderBy
+  qrCode: OrderBy
+  returnUrl: OrderBy
 }
 
 """
 select columns of table "runtime.transaction_swish_details"
 """
 enum SwishDetailsSelectColumn {
+  """column name"""
+  amount
+
   """column name"""
   bankPaymentReference
 
@@ -1368,6 +1558,61 @@ enum SwishDetailsSelectColumn {
 
   """column name"""
   errorMessage
+
+  """column name"""
+  qrCode
+
+  """column name"""
+  returnUrl
+}
+
+"""
+order by stddev() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsStddevOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by stddev_pop() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsStddevPopOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by stddev_samp() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsStddevSampOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by sum() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsSumOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by var_pop() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsVarPopOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by var_samp() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsVarSampOrderBy {
+  amount: OrderBy
+}
+
+"""
+order by variance() on columns of table "runtime.transaction_swish_details"
+"""
+input SwishDetailsVarianceOrderBy {
+  amount: OrderBy
 }
 
 """Arguments for cancelling a swish payment"""
@@ -1595,8 +1840,6 @@ scalar country
 
 scalar currency
 
-scalar jsonb
-
 """mutation root"""
 type mutation_root {
   """Set customer device information for a given payment session."""
@@ -1611,6 +1854,9 @@ type mutation_root {
   """Cancel payment request made using newSwishPayment."""
   cancelSwishPayment(pay: SwishPaymentCancelInput!): SwishPaymentCancelResult!
 
+  """Log information about various stages of the payment component."""
+  log(info: LogInput!): LogResult!
+
   """Create a new payment request to receive money via credit card"""
   newCreditCardPayment(pay: CreditCardPaymentInput!): CreditCardPaymentResult!
 
@@ -1621,6 +1867,9 @@ type mutation_root {
   Create a new payment request to receive money via MobilePay, available only in Denmark and Finland.
   """
   newMobilePayPayment(pay: MobilePayPaymentInput!): MobilePayPaymentResult!
+
+  """Create a new payment request to receive money via PayPal"""
+  newPayPalPayment(pay: PayPalPaymentInput!): PayPalPaymentResult!
 
   """
   Create a new payment session to start a new stand alone payment. The token from the session can be used in subsequent calls for the payment flow.
@@ -1634,11 +1883,34 @@ type mutation_root {
   Create a new payment request to receive money via Vipps, available only in Norway.
   """
   newVippsPayment(pay: VippsPaymentInput!): VippsPaymentResult!
+
+  """Supply PaymentMethodId (nonce) to progress PayPal paymeent"""
+  supplyPayPalPaymentMethodId(pay: SupplyPayPalPaymentMethodIdInput!): SupplyPayPalPaymentMethodIdResult!
 }
 
 scalar packed_phone_number
 
 type query_root {
+  """
+  fetch data from the table: "tenant.braintree_setting"
+  """
+  braintreeSetting(
+    """distinct select on columns"""
+    distinctOn: [BraintreeSettingSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [BraintreeSettingOrderBy!]
+
+    """filter the rows returned"""
+    where: BraintreeSettingBoolExp
+  ): [BraintreeSetting!]!
+
   """Select a single merchant by Id"""
   merchant(id: bigint!): Merchant
 
@@ -1683,6 +1955,26 @@ type query_root {
 }
 
 type subscription_root {
+  """
+  fetch data from the table: "tenant.braintree_setting"
+  """
+  braintreeSetting(
+    """distinct select on columns"""
+    distinctOn: [BraintreeSettingSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [BraintreeSettingOrderBy!]
+
+    """filter the rows returned"""
+    where: BraintreeSettingBoolExp
+  ): [BraintreeSetting!]!
+
   """
   fetch data from the table: "tenant.payment_method_available"
   """

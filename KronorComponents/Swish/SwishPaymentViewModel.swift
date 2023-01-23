@@ -29,13 +29,13 @@ class SwishPaymentViewModel: ObservableObject {
 
     
     var qrCode: String? {
-        paymenRequest?.detail?[0].detail.value["qr_code"] as? String
+        self.paymenRequest?.transactionSwishDetails?[0].qrCode
     }
     
     var swishURL: URL? {
-        if let raw = self.paymenRequest?.detail?[0].detail.value["return_url"] as? String,
-           let url = URL(string: raw) {
-            return url
+        if let raw = self.paymenRequest?.transactionSwishDetails?[0].returnUrl {
+           let url = URL(string: raw)
+           return url
         }
         return nil
     }
@@ -242,6 +242,18 @@ class SwishPaymentViewModel: ObservableObject {
                         }
                     }
                 }
+                
+                if let errors = selectionSet.errors {
+                    Task { [weak self] in
+                        await self?.handleError(error: .usageError(
+                            error: KronorApi.APIError(
+                                errors: errors,
+                                extensions: selectionSet.extensions ?? [:]
+                            )
+                        ))
+                    }
+                }
+
             }
         }
     }

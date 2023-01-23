@@ -2,12 +2,6 @@ subscription PaymentStatus {
         paymentRequests(orderBy: {createdAt: ASC}) {
             waitToken
             amount
-            merchant {
-                currency
-            }
-            detail {
-                detail
-            }
             status {
                 status
             }
@@ -15,6 +9,8 @@ subscription PaymentStatus {
             resultingPaymentId
             transactionSwishDetails {
                 errorCode
+                returnUrl
+                qrCode
             }
             transactionCreditCardDetails {
                 sessionId
@@ -28,6 +24,5 @@ subscription PaymentStatus {
                 sessionId
                 sessionUrl
             }
-            paymentFlow
         }
 }

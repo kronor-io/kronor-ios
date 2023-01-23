@@ -14,14 +14,6 @@ public extension KronorApi {
             __typename
             waitToken
             amount
-            merchant {
-              __typename
-              currency
-            }
-            detail {
-              __typename
-              detail
-            }
             status {
               __typename
               status
@@ -31,6 +23,8 @@ public extension KronorApi {
             transactionSwishDetails {
               __typename
               errorCode
+              returnUrl
+              qrCode
             }
             transactionCreditCardDetails {
               __typename
@@ -47,7 +41,6 @@ public extension KronorApi {
               sessionId
               sessionUrl
             }
-            paymentFlow
           }
         }
         """#
@@ -78,8 +71,6 @@ public extension KronorApi {
         public static var __selections: [ApolloAPI.Selection] { [
           .field("waitToken", KronorApi.Uuid.self),
           .field("amount", KronorApi.Bigint.self),
-          .field("merchant", Merchant.self),
-          .field("detail", [Detail]?.self),
           .field("status", [Status]?.self),
           .field("createdAt", KronorApi.Timestamptz.self),
           .field("resultingPaymentId", KronorApi.Bigint?.self),
@@ -87,15 +78,10 @@ public extension KronorApi {
           .field("transactionCreditCardDetails", [TransactionCreditCardDetail]?.self),
           .field("transactionMobilePayDetails", [TransactionMobilePayDetail]?.self),
           .field("transactionVippsDetails", [TransactionVippsDetail]?.self),
-          .field("paymentFlow", String?.self),
         ] }
 
         public var waitToken: KronorApi.Uuid { __data["waitToken"] }
         public var amount: KronorApi.Bigint { __data["amount"] }
-        /// An object relationship
-        public var merchant: Merchant { __data["merchant"] }
-        /// Additional information specific to the payment
-        public var detail: [Detail]? { __data["detail"] }
         /// List of statuses the payment is currently on
         public var status: [Status]? { __data["status"] }
         public var createdAt: KronorApi.Timestamptz { __data["createdAt"] }
@@ -109,41 +95,6 @@ public extension KronorApi {
         public var transactionMobilePayDetails: [TransactionMobilePayDetail]? { __data["transactionMobilePayDetails"] }
         /// A computed field, executes function "runtime.get_transaction_vipps_details"
         public var transactionVippsDetails: [TransactionVippsDetail]? { __data["transactionVippsDetails"] }
-        public var paymentFlow: String? { __data["paymentFlow"] }
-
-        /// PaymentRequest.Merchant
-        ///
-        /// Parent Type: `Merchant`
-        public struct Merchant: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(data: DataDict) { __data = data }
-
-          public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Merchant }
-          public static var __selections: [ApolloAPI.Selection] { [
-            .field("currency", KronorApi.Currency.self),
-          ] }
-
-          /// Currency in which the purchase and other operations are done.
-          /// Only currencies in ISO-4217 format are recognized.
-          /// The currency needs to match the supported currencies for the merchant.
-          /// Example: SEK, EUR.
-          public var currency: KronorApi.Currency { __data["currency"] }
-        }
-
-        /// PaymentRequest.Detail
-        ///
-        /// Parent Type: `CurrentPaymentDetail`
-        public struct Detail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(data: DataDict) { __data = data }
-
-          public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.CurrentPaymentDetail }
-          public static var __selections: [ApolloAPI.Selection] { [
-            .field("detail", KronorApi.Jsonb.self),
-          ] }
-
-          public var detail: KronorApi.Jsonb { __data["detail"] }
-        }
 
         /// PaymentRequest.Status
         ///
@@ -170,10 +121,14 @@ public extension KronorApi {
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.SwishDetails }
           public static var __selections: [ApolloAPI.Selection] { [
             .field("errorCode", String?.self),
+            .field("returnUrl", String?.self),
+            .field("qrCode", String?.self),
           ] }
 
           /// Error code from swish
           public var errorCode: String? { __data["errorCode"] }
+          public var returnUrl: String? { __data["returnUrl"] }
+          public var qrCode: String? { __data["qrCode"] }
         }
 
         /// PaymentRequest.TransactionCreditCardDetail
