@@ -1,5 +1,5 @@
 //
-//  MobilePayViewModel.swift
+//  EmbeddedPaymentViewModel.swift
 //  
 //
 //  Created by Jose-JORO on 2023-01-18.
@@ -11,11 +11,17 @@ import KronorApi
 import Apollo
 import os
 
-class MobilePayViewModel: ObservableObject {
+enum SupportedEmbeddedMethod: String {
+    case mobilePay
+    case creditCard
+    case vipps
+}
+
+class EmbeddedPaymentViewModel: ObservableObject {
     
     private static let logger = Logger(
             subsystem: Bundle.main.bundleIdentifier!,
-            category: String(describing: MobilePayViewModel.self)
+            category: String(describing: EmbeddedPaymentViewModel.self)
     )
 
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
@@ -23,13 +29,17 @@ class MobilePayViewModel: ObservableObject {
     private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
     private var subscription: Cancellable?
 
+    private var paymentMethod: SupportedEmbeddedMethod
     private var returnURL: URL
     private var device: Kronor.Device?
     private var onPaymentFailure: () -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     
     var sessionURL: URL? {
-        if let raw = self.paymenRequest?.transactionMobilePayDetails?[0].sessionUrl,
+        if let raw =
+            self.paymenRequest?.transactionMobilePayDetails?[0].sessionUrl
+            ?? self.paymenRequest?.transactionCreditCardDetails?[0].sessionUrl
+            ?? self.paymenRequest?.transactionVippsDetails?[0].sessionUrl,
            let url = URL(string: raw) {
             return url
         }
@@ -42,6 +52,7 @@ class MobilePayViewModel: ObservableObject {
     init(env: Kronor.Environment,
          sessionToken: String,
          stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine,
+         paymentMethod: SupportedEmbeddedMethod,
          returnURL: URL,
          device: Kronor.Device? = nil,
          onPaymentFailure: @escaping () -> (),
@@ -53,6 +64,7 @@ class MobilePayViewModel: ObservableObject {
         self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
+        self.paymentMethod = paymentMethod
         
         let gatewayURL = Kronor.gatewayURL(env: env)
         var components = URLComponents()
@@ -60,7 +72,7 @@ class MobilePayViewModel: ObservableObject {
         components.host = gatewayURL.host
         components.path = "/reepay-redirect"
         components.queryItems = [
-            URLQueryItem(name: "paymentMethod", value: "mobilePay"),
+            URLQueryItem(name: "paymentMethod", value: paymentMethod.rawValue),
             URLQueryItem(name: "token", value: sessionToken),
             URLQueryItem(name: "successUrl", value: returnURL.absoluteString),
             URLQueryItem(name: "failureUrl", value: returnURL.absoluteString),
@@ -95,16 +107,29 @@ class MobilePayViewModel: ObservableObject {
         switch sideEffect {
             
         case .createPaymentRequest:
-            Self.logger.debug("creating mobile pay request")
+            Self.logger.debug("creating payment request")
             
-            let rWaitToken = await createMobilePayPaymentRequest(client: self.client,
-                                                                 returnURL: self.returnURL,
-                                                                 device: self.device)
+            let rWaitToken = await {
+                switch self.paymentMethod {
+                case .mobilePay:
+                    return await createMobilePayPaymentRequest(client: self.client,
+                                                               returnURL: self.returnURL,
+                                                               device: self.device)
+                case .creditCard:
+                    return await createCreditCardPaymentRequest(client: self.client,
+                                                               returnURL: self.returnURL,
+                                                               device: self.device)
+                case .vipps:
+                    return await createVippsRequest(client: self.client,
+                                                    returnURL: self.returnURL,
+                                                    device: self.device)
+                }
+            }()
             
             switch rWaitToken {
                 
             case .failure(let error):
-                Self.logger.error("error creating mobilepay request: \(error)")
+                Self.logger.error("error creating payment request: \(error)")
                 await handleError(error: error)
             case .success(let waitToken):
                 let _ = await transition(.paymentRequestCreated(waitToken: waitToken))
@@ -238,7 +263,7 @@ class MobilePayViewModel: ObservableObject {
     }
 }
 
-extension MobilePayViewModel: RetryableModel {
+extension EmbeddedPaymentViewModel: RetryableModel {
     func cancel() {
         Task {
             await self.transition(.cancelFlow)
@@ -265,4 +290,34 @@ func createMobilePayPaymentRequest(client: ApolloClient, returnURL: URL, device:
     }
 
     return await KronorApi.createMobilePayPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+}
+
+func createCreditCardPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
+    let input = KronorApi.CreditCardPaymentInput(
+        idempotencyKey: UUID().uuidString,
+        returnUrl: returnURL.absoluteString
+    )
+    
+    var deviceInfo = device.map(makeDeviceInfo)
+    if deviceInfo == nil {
+        let def = await Kronor.detectDevice()
+        deviceInfo = makeDeviceInfo(device: def)
+    }
+
+    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+}
+
+func createVippsRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
+    let input = KronorApi.CreditCardPaymentInput(
+        idempotencyKey: UUID().uuidString,
+        returnUrl: returnURL.absoluteString
+    )
+    
+    var deviceInfo = device.map(makeDeviceInfo)
+    if deviceInfo == nil {
+        let def = await Kronor.detectDevice()
+        deviceInfo = makeDeviceInfo(device: def)
+    }
+
+    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }

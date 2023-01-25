@@ -1,5 +1,5 @@
 //
-//  MobilePayPaymentView.swift
+//  EmbeddedPaymentView.swift
 //  
 //
 //  Created by Jose-JORO on 2023-01-18.
@@ -7,27 +7,11 @@
 
 import SwiftUI
 
-
-struct MobilePayWaitingView: View {
-    var body: some View {
-        MobilePayWrapperView {
-            HStack {
-                Spacer()
-                Image(systemName: "hourglass.circle")
-                Text(
-                    "Creating secure MobilePay transaction",
-                    bundle: .module,
-                    comment:  "A waiting message that indicates the app is communicating with the server"
-                )
-                    .font(.subheadline)
-                Spacer()
-            }
-        }
-    }
-}
-
-struct MobilePayPaymentView: View {
-    @ObservedObject var viewModel: MobilePayViewModel
+struct EmbeddedPaymentView: View {
+    @ObservedObject var viewModel: EmbeddedPaymentViewModel
+    
+    var waitingView: any View
+    
     @ObservedObject var webView = WebViewModel()
     
     func dismissSheet() {
@@ -45,13 +29,12 @@ struct MobilePayPaymentView: View {
         switch viewModel.state {
         
         case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest:
-            return AnyView(MobilePayWaitingView())
+            return AnyView(self.waitingView)
 
 
         case .paymentRequestInitialized, .waitingForPayment:
             let keepOpen = Binding(
                 get: {
-                    print("new URL: \(self.webView.link)")
                     if self.viewModel.embeddedSiteURL == nil {
                      return false
                     }
@@ -63,7 +46,7 @@ struct MobilePayPaymentView: View {
                 set: { _ in }
             )
 
-            return AnyView(MobilePayWaitingView()
+            return AnyView(self.waitingView
                 .sheet(isPresented: keepOpen, onDismiss: dismissSheet) {
                     if let url = self.viewModel.embeddedSiteURL {
                         SwiftUIWebView(viewModel: self.webView, url: url)
@@ -72,13 +55,13 @@ struct MobilePayPaymentView: View {
 
 
         case .paymentRejected:
-            return AnyView(MobilePayWrapperView {
+            return AnyView(
                 PaymentRejectedView(viewModel: self.viewModel)
-            })
+            )
 
             
         case .paymentCompleted:
-            return AnyView(MobilePayWrapperView {
+            return AnyView(
                 HStack {
                     Spacer()
                     Image(systemName: "checkmark.circle")
@@ -94,11 +77,11 @@ struct MobilePayPaymentView: View {
 
                     Spacer()
                 }
-            })
+            )
 
             
         case .errored(_):
-            return AnyView(MobilePayWrapperView {
+            return AnyView(
                 HStack {
                     Spacer()
                     Image(systemName: "xmark.circle")
@@ -111,26 +94,31 @@ struct MobilePayPaymentView: View {
                     )
                     .font(.headline)
                     .foregroundColor(Color.red)
+                    .padding(.horizontal)
 
                     Spacer()
                 }
-            })
+                    .padding(.all)
+            )
         }
     }
 }
 
-struct MobilePayPaymentView_Previews: PreviewProvider {
+struct EmbeddedPaymentView_Previews: PreviewProvider {
     static var previews: some View {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let viewModel = MobilePayViewModel(
+        let viewModel = EmbeddedPaymentViewModel(
             env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine,
+            paymentMethod: .mobilePay,
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {},
             onPaymentSuccess: {paymentId in }
         )
-        MobilePayPaymentView(viewModel: viewModel)
-            .previewDisplayName("prompt")
+        WrapperView(header: Spacer()) {
+            EmbeddedPaymentView(viewModel: viewModel, waitingView: MobilePayWaitingView())
+                .previewDisplayName("prompt")
+        }
     }
 }

@@ -2,7 +2,7 @@
 //  MobilePayHeaderView.swift
 //  
 //
-//  Created by Jose-JORO on 2023-01-18.
+//  Created by lorenzo on 2023-01-18.
 //
 
 

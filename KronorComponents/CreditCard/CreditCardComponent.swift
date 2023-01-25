@@ -1,14 +1,14 @@
 //
-//  MobilePayComponent.swift
+//  CreditCardComponent.swift
 //  
 //
-//  Created by lorenzo on 2023-01-17.
+//  Created by lorenzo on 2023-01-23.
 //
 
 import SwiftUI
 import Kronor
 
-public struct MobilePayComponent: View {
+public struct CreditCardComponent: View {
     let viewModel: EmbeddedPaymentViewModel
     
     public init(env: Kronor.Environment,
@@ -24,7 +24,7 @@ public struct MobilePayComponent: View {
             env: env,
             sessionToken: sessionToken,
             stateMachine: machine,
-            paymentMethod: .mobilePay,
+            paymentMethod: .creditCard,
             returnURL: returnURL,
             device: device,
             onPaymentFailure: onPaymentFailure,
@@ -39,18 +39,15 @@ public struct MobilePayComponent: View {
     }
 
     public var body: some View {
-        WrapperView(header: MobilePayHeaderView()) {
-            EmbeddedPaymentView(
-                viewModel: self.viewModel,
-                waitingView: MobilePayWaitingView()
-            )
+        WrapperView(header: CreditCardHeaderView(viewModel: self.viewModel)) {
+            EmbeddedPaymentView(viewModel: self.viewModel, waitingView: CreditCardWaitingView())
         }
     }
 }
 
-struct MobilePayComponent_Previews: PreviewProvider {
+struct CreditCardComponent_Previews: PreviewProvider {
     static var previews: some View {
-        MobilePayComponent(
+        CreditCardComponent(
             env: .sandbox,
             sessionToken: "dummy",
             returnURL: URL(string: "io.kronortest://")!,

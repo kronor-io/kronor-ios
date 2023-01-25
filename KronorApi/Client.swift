@@ -70,6 +70,22 @@ public extension KronorApi {
             $0.newMobilePayPayment.waitToken
         }
     }
+    
+    static func createCreditCardPaymentRequest(client: ApolloClient,
+                                                input: KronorApi.CreditCardPaymentInput,
+                                                deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
+        await createPaymentRequest(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+            $0.newCreditCardPayment.waitToken
+        }
+    }
+    
+    static func createVippsPaymentRequest(client: ApolloClient,
+                                          input: KronorApi.VippsPaymentInput,
+                                          deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
+        await createPaymentRequest(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+            $0.newVippsPayment.waitToken
+        }
+    }
 }
 
 
