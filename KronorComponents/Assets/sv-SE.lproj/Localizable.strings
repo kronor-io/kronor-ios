@@ -1,14 +1,14 @@
 /* A waiting message that indicates the app is communicating with the server */
-"Creating secure MobilePay transaction" = "Upprätta en säker MobilePay-transaktion";
+"Creating secure MobilePay transaction" = "Påbörjar en säker MobilePay-transaktion";
 
 /* An error message indicating there was an unexpected error with the payment */
-"Could not complete the payment due to an error. Please try again after a short time" = "Betalningen kunde inte slutföras på grund av ett fel. Försök igen efter en kort tid.";
+"Could not complete the payment due to an error. Please try again after a short time" = "Betalningen kunde inte slutföras på grund av ett fel. Försök igen lite senare.";
 
 /* A success message indicating that the payment was completed and the payment session will end */
-"Payment completed" = "Betalning genomförd";
+"Payment completed" = "Betalningen genomförd";
 
 /* Indicates that the user wants to cancel the payment session and go back to the checkout */
-"cancel" = "avbryta";
+"cancel" = "avbryt";
 
 /* No comment provided by engineer. */
 "or" = "eller";
@@ -17,37 +17,37 @@
 "Payment failed" = "Betalningen misslyckades";
 
 /* Indicates that the user wants to continue the payment session and try another payment */
-"try again?" = "försöka igen?";
+"try again?" = "försök igen?";
 
 /* No comment provided by engineer. */
 "Dummy Contents" = "Dummy Contents";
 
 /* A waiting message that indicates the app is communicating with the server */
-"Establishing secure connection" = "Upprättande av en säker anslutning";
+"Establishing secure connection" = "Upprättar av en säker anslutning";
 
 /* A waiting message indicating that the customer should complete the payment in the Swish app */
-"Completing payment" = "Slutföra betalningen";
+"Completing payment" = "Slutför betalningen";
 
 /* A waiting message that indicates that the app is communicating with the server */
-"Creating secure Swish transaction" = "Upprätta en säker Swish-transaktion";
+"Creating secure Swish transaction" = "Påbörjar en säker Swish-transaktion";
 
 /* A waiting message that indicates that the app is communicating with the server */
-"Creating secure PayPal transaction" = "Upprätta en säker PayPal-transaktion";
+"Creating secure PayPal transaction" = "Påbörjar en säker PayPal-transaktion";
 
 /* A waiting message indicating that a new QR code image is being generated */
-"Generating QR code" = "Hämta QR-kod";
+"Generating QR code" = "Hämtar QR-kod";
 
 /* Indicates that this app is prompting the user to open the Swish app in the same device */
-"Opening the swish app" = "Öppna Swish-appen";
+"Opening the swish app" = "Öppna din Swish-app";
 
 /* A waiting message indicating that the customer should open the Swish app in another phone */
-"You can pay with the Swish app now" = "Nu kan du betala med Swish-appen";
+"You can pay with the Swish app now" = "Nu kan du betala med din Swish-app";
 
 /* A button label that indicates the customer wants to pay getting a notification in another device */
 "Enter phone number" = "Ange telefonnummer";
 
 /* A button label that indicates the customer wants to pay with the Swish app in the same device */
-"Open Swish App" = "Öppna Swish-appen";
+"Open Swish App" = "Öppna din Swish-app";
 
 /* No comment provided by engineer. */
 "or pay using another phone" = "eller betala med en annan telefon";
@@ -56,13 +56,13 @@
 "Scan QR Code" = "Skanna QR-koden";
 
 /* The caption for a QR code image prompting the user to scan it with another device */
-"Scan this code with the Swish app" = "Skanna den här koden med Swish-appen";
+"Scan this code with the Swish app" = "Skanna den här koden din Swish-app";
 
 /* Call to action after entering the Swish phone number to make a payment */
 "Pay Now" = "Betala nu";
 
 /* A waiting message that indicates the app is communicating with the server */
-"Creating secure Vipps transaction" = "Upprätta en säker Vipps-transaktion";
+"Creating secure Vipps transaction" = "Påbörjar en säker Vipps-transaktion";
 
 /* A waiting message that indicates the app is finilizing the payment */
-"Completing your payment, please wait" = "Betalningen är slutförd, vänligen vänta";
+"Completing your payment, please wait" = "Slutför betalningen, vänligen vänta";
