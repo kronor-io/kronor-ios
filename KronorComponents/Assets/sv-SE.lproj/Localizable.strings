@@ -31,6 +31,9 @@
 /* A waiting message that indicates that the app is communicating with the server */
 "Creating secure Swish transaction" = "Upprätta en säker Swish-transaktion";
 
+/* A waiting message that indicates that the app is communicating with the server */
+"Creating secure PayPal transaction" = "Upprätta en säker PayPal-transaktion";
+
 /* A waiting message indicating that a new QR code image is being generated */
 "Generating QR code" = "Hämta QR-kod";
 
@@ -61,3 +64,5 @@
 /* A waiting message that indicates the app is communicating with the server */
 "Creating secure Vipps transaction" = "Upprätta en säker Vipps-transaktion";
 
+/* A waiting message that indicates the app is finilizing the payment */
+"Completing your payment, please wait" = "Betalningen är slutförd, vänligen vänta";

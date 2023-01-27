@@ -1,8 +1,8 @@
 //
-//  EmbeddedPaymentViewModel.swift
+//  PayPalViewModel.swift
 //  
 //
-//  Created by lorenzo on 2023-01-18.
+//  Created by lorenzo on 2023-01-26.
 //
 
 import Foundation
@@ -10,49 +10,33 @@ import Kronor
 import KronorApi
 import Apollo
 import os
+import BraintreeCore
+import BraintreePayPal
 
-enum SupportedEmbeddedMethod: String {
-    case mobilePay
-    case creditCard
-    case vipps
-}
 
-class EmbeddedPaymentViewModel: ObservableObject {
+class PayPalViewModel: ObservableObject {
     
     private static let logger = Logger(
             subsystem: Bundle.main.bundleIdentifier!,
-            category: String(describing: EmbeddedPaymentViewModel.self)
+            category: String(describing: PayPalViewModel.self)
     )
 
-    private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
+    private let stateMachine: PayPalStatechart.PayPalStateMachine
     private var client: ApolloClient
+    private var paypalData: KronorApi.PayPalData?
     private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
     private var subscription: Cancellable?
 
-    private var paymentMethod: SupportedEmbeddedMethod
     private var returnURL: URL
     private var device: Kronor.Device?
     private var onPaymentFailure: () -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
-    
-    var sessionURL: URL? {
-        if let raw =
-            self.paymenRequest?.transactionMobilePayDetails?[0].sessionUrl
-            ?? self.paymenRequest?.transactionCreditCardDetails?[0].sessionUrl
-            ?? self.paymenRequest?.transactionVippsDetails?[0].sessionUrl,
-           let url = URL(string: raw) {
-            return url
-        }
-        return nil
-    }
-    
-    @Published var state: EmbeddedPaymentStatechart.State
-    @Published var embeddedSiteURL: URL?
+
+    @Published var state: PayPalStatechart.State
     
     init(env: Kronor.Environment,
          sessionToken: String,
-         stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine,
-         paymentMethod: SupportedEmbeddedMethod,
+         stateMachine: PayPalStatechart.PayPalStateMachine,
          returnURL: URL,
          device: Kronor.Device? = nil,
          onPaymentFailure: @escaping () -> (),
@@ -64,25 +48,10 @@ class EmbeddedPaymentViewModel: ObservableObject {
         self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
-        self.paymentMethod = paymentMethod
-        
-        let gatewayURL = Kronor.gatewayURL(env: env)
-        var components = URLComponents()
-        components.scheme = gatewayURL.scheme
-        components.host = gatewayURL.host
-        components.path = "/reepay-redirect"
-        components.queryItems = [
-            URLQueryItem(name: "paymentMethod", value: paymentMethod.rawValue),
-            URLQueryItem(name: "token", value: sessionToken),
-            URLQueryItem(name: "successUrl", value: returnURL.absoluteString),
-            URLQueryItem(name: "failureUrl", value: returnURL.absoluteString),
-            URLQueryItem(name: "failure", value: "true"),
-        ]
-
-        self.returnURL = components.url!
+        self.returnURL = returnURL
     }
 
-    func transition(_ event: EmbeddedPaymentStatechart.Event) async {
+    func transition(_ event: PayPalStatechart.Event) async {
         Self.logger.trace("handling event: \(String(describing: event.hashableIdentifier))")
 
         let result = try? self.stateMachine.transition(event)
@@ -103,39 +72,26 @@ class EmbeddedPaymentViewModel: ObservableObject {
         }
     }
 
-    private func handleSideEffect(sideEffect: EmbeddedPaymentStatechart.SideEffect) async {
+    private func handleSideEffect(sideEffect: PayPalStatechart.SideEffect) async {
         switch sideEffect {
             
         case .createPaymentRequest:
             Self.logger.debug("creating payment request")
             
-            let rWaitToken = await {
-                switch self.paymentMethod {
-                case .mobilePay:
-                    return await createMobilePayPaymentRequest(client: self.client,
-                                                               returnURL: self.returnURL,
-                                                               device: self.device)
-                case .creditCard:
-                    return await createCreditCardPaymentRequest(client: self.client,
-                                                               returnURL: self.returnURL,
-                                                               device: self.device)
-                case .vipps:
-                    return await createVippsRequest(client: self.client,
-                                                    returnURL: self.returnURL,
-                                                    device: self.device)
-                }
-            }()
+            let paypalResult = await createPayPalPaymentRequest(client: self.client,
+                                                                returnURL: self.returnURL,
+                                                                device: self.device)
             
-            switch rWaitToken {
-                
+            switch paypalResult {
             case .failure(let error):
                 Self.logger.error("error creating payment request: \(error)")
                 await handleError(error: error)
-            case .success(let waitToken):
-                let _ = await transition(.paymentRequestCreated(waitToken: waitToken))
+            case .success(let data):
+                self.paypalData = data
+                let _ = await transition(.paymentRequestCreated)
             }
-            
-            
+
+
         case .cancelPaymentRequest:
             Task { [weak self] in
                 if let self {
@@ -165,13 +121,9 @@ class EmbeddedPaymentViewModel: ObservableObject {
             }
 
 
-        case .subscribeToPaymentStatus(let waitToken):
-            subscribeToPaymentStatus(waitToken: waitToken)
-
-
-        case .openEmbeddedSite:
-            await MainActor.run {
-                self.embeddedSiteURL = self.sessionURL
+        case .subscribeToPaymentStatus:
+            if let waitToken = self.paypalData?.paymentData.paymentId {
+                subscribeToPaymentStatus(waitToken: waitToken)
             }
             
         case .resetState:
@@ -183,13 +135,39 @@ class EmbeddedPaymentViewModel: ObservableObject {
             }
 
             self.paymenRequest = nil
-
-            await MainActor.run {
-                self.embeddedSiteURL = nil
-            }
+            self.paypalData = nil
 
             Task {
                 await self.transition(.initialize)
+            }
+
+        case .initializeBraintreeSDK:
+            if let data = self.paypalData,
+               let amount = Int(data.paymentData.amount) {
+                
+                let payPalDriver = BTPayPalDriver(apiClient: BTAPIClient(authorization: data.braintreeSettings.tokenizationKey)!)
+                let checkoutRequest = BTPayPalCheckoutRequest(amount: String(amount/100))
+                checkoutRequest.currencyCode = data.paymentData.currency
+
+                do {
+                    let tokenized = try await payPalDriver.tokenizePayPalAccount(with: checkoutRequest)
+                    let result = await KronorApi.sendPayPalNonce(client: self.client, input: KronorApi.SupplyPayPalPaymentMethodIdInput(
+                        idempotencyKey: UUID().uuidString,
+                        paymentId: data.paymentData.paymentId,
+                        paymentMethodId: tokenized.nonce
+                    ))
+                    
+                    switch result {
+                    case .failure(let error):
+                        await self.handleError(error: error)
+                    default:
+                        await self.transition(.nonceSent)
+                    }
+                } catch {
+                    await self.handleError(error: .networkError(error: error))
+                }
+            } else {
+                Self.logger.error("Could not convert amount to major units: \(String(describing: self.paypalData?.paymentData.amount))")
             }
         }
     }
@@ -218,12 +196,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
                 if let request {
                     self?.paymenRequest = request
-
-                    if case .waitingForPaymentRequest = self?.stateMachine.state {
-                        Task { [weak self] in
-                            await self?.transition(.paymentRequestInitialized)
-                        }
-                    }
                     
                     if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
                         Task { [weak self] in
@@ -249,7 +221,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     
     deinit {
         switch self.state {
-        case .waitingForPayment, .paymentRequestInitialized, .creatingPaymentRequest, .waitingForPaymentRequest:
+        case .waitingForPayment, .paymentRequestInitialized:
             Task { [weak self] in
                 if let self {
                     Self.logger.debug("[deinit] cancelling payment request")
@@ -263,7 +235,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
 }
 
-extension EmbeddedPaymentViewModel: RetryableModel {
+extension PayPalViewModel: RetryableModel {
     func cancel() {
         Task {
             await self.transition(.cancelFlow)
@@ -277,8 +249,8 @@ extension EmbeddedPaymentViewModel: RetryableModel {
     }
 }
 
-func createMobilePayPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.MobilePayPaymentInput(
+func createPayPalPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<KronorApi.PayPalData, KronorApi.KronorError> {
+    let input = KronorApi.PayPalPaymentInput(
         idempotencyKey: UUID().uuidString,
         returnUrl: returnURL.absoluteString
     )
@@ -289,35 +261,5 @@ func createMobilePayPaymentRequest(client: ApolloClient, returnURL: URL, device:
         deviceInfo = makeDeviceInfo(device: def)
     }
 
-    return await KronorApi.createMobilePayPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
-}
-
-func createCreditCardPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.CreditCardPaymentInput(
-        idempotencyKey: UUID().uuidString,
-        returnUrl: returnURL.absoluteString
-    )
-    
-    var deviceInfo = device.map(makeDeviceInfo)
-    if deviceInfo == nil {
-        let def = await Kronor.detectDevice()
-        deviceInfo = makeDeviceInfo(device: def)
-    }
-
-    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
-}
-
-func createVippsRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.CreditCardPaymentInput(
-        idempotencyKey: UUID().uuidString,
-        returnUrl: returnURL.absoluteString
-    )
-    
-    var deviceInfo = device.map(makeDeviceInfo)
-    if deviceInfo == nil {
-        let def = await Kronor.detectDevice()
-        deviceInfo = makeDeviceInfo(device: def)
-    }
-
-    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+    return await KronorApi.createPayPalPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }

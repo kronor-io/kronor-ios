@@ -58,7 +58,7 @@ public extension KronorApi {
     static func createSwishPaymentRequest(client: ApolloClient,
                                           input: KronorApi.SwishPaymentInput,
                                           deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await createPaymentRequest(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
             $0.newSwishPayment.waitToken
         }
     }
@@ -66,7 +66,7 @@ public extension KronorApi {
     static func createMobilePayPaymentRequest(client: ApolloClient,
                                               input: KronorApi.MobilePayPaymentInput,
                                               deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await createPaymentRequest(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
             $0.newMobilePayPayment.waitToken
         }
     }
@@ -74,7 +74,7 @@ public extension KronorApi {
     static func createCreditCardPaymentRequest(client: ApolloClient,
                                                 input: KronorApi.CreditCardPaymentInput,
                                                 deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await createPaymentRequest(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
             $0.newCreditCardPayment.waitToken
         }
     }
@@ -82,16 +82,54 @@ public extension KronorApi {
     static func createVippsPaymentRequest(client: ApolloClient,
                                           input: KronorApi.VippsPaymentInput,
                                           deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await createPaymentRequest(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
             $0.newVippsPayment.waitToken
+        }
+    }
+    
+    internal struct PayPalResult {
+        var paymentData: Result<KronorApi.PayPalPaymentMutation.Data.NewPayPalPayment, KronorError>
+        var braintreeSettings: Result<KronorApi.BraintreeSettingQuery.Data.BraintreeSetting, KronorError>
+    }
+    
+    struct PayPalData {
+        public var paymentData: KronorApi.PayPalPaymentMutation.Data.NewPayPalPayment
+        public var braintreeSettings: KronorApi.BraintreeSettingQuery.Data.BraintreeSetting
+    }
+    
+    static func createPayPalPaymentRequest(
+        client: ApolloClient,
+        input: KronorApi.PayPalPaymentInput,
+        deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<PayPalData, KronorError> {
+            let result = await PayPalResult(
+                paymentData: sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+                    $0.newPayPalPayment
+                },
+                braintreeSettings: fetchBraintreeSettings(client: client)
+            )
+            
+            return result.paymentData.flatMap { payment in
+                result.braintreeSettings.map { settings in
+                    PayPalData(
+                        paymentData: payment,
+                        braintreeSettings: settings
+                    )
+                }
+            }
+    }
+    
+    static func sendPayPalNonce(client: ApolloClient,
+                                input: KronorApi.SupplyPayPalPaymentMethodIdInput) async -> Result<(), KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.SupplyPayPalPaymentMethodIdMutation(payment: input)) {_ in
+            return ()
         }
     }
 }
 
 
-func createPaymentRequest<Mutation: GraphQLMutation>(client: ApolloClient,
+func sendMutation<Mutation: GraphQLMutation, OperationResult>(client: ApolloClient,
                                                      mutation: Mutation,
-                                                     extractToken: @escaping (Mutation.Data) -> String) async -> Result<String, KronorApi.KronorError> {
+                                                     extractData: @escaping (Mutation.Data) -> OperationResult) async -> Result<OperationResult, KronorApi.KronorError> {
     await withCheckedContinuation {continuation in
         client.perform(mutation: mutation) {data in
             switch data {
@@ -99,7 +137,28 @@ func createPaymentRequest<Mutation: GraphQLMutation>(client: ApolloClient,
                 continuation.resume(returning: .failure(.networkError(error: error)))
             case .success(let result):
                 if let data = result.data {
-                    continuation.resume(returning: .success(extractToken(data)))
+                    continuation.resume(returning: .success(extractData(data)))
+                } else {
+                    continuation.resume(returning: .failure(
+                        .usageError(error: KronorApi.APIError(
+                            errors: result.errors ?? [], extensions: result.extensions ?? [:])
+                        ))
+                    )
+                }
+            }
+        }
+    }
+}
+
+func fetchBraintreeSettings(client: ApolloClient) async -> Result<KronorApi.BraintreeSettingQuery.Data.BraintreeSetting, KronorApi.KronorError> {
+    await withCheckedContinuation {continuation in
+        client.fetch(query: KronorApi.BraintreeSettingQuery()) {data in
+            switch data {
+            case .failure(let error):
+                continuation.resume(returning: .failure(.networkError(error: error)))
+            case .success(let result):
+                if let data = result.data {
+                    continuation.resume(returning: .success(data.braintreeSetting[0]))
                 } else {
                     continuation.resume(returning: .failure(
                         .usageError(error: KronorApi.APIError(
