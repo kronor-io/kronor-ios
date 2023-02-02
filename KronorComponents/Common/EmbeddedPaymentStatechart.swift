@@ -42,6 +42,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case notifyPaymentSuccess
         case notifyPaymentFailure
         case resetState
+        case cancelAndNotifyFailure
     }
     
     typealias EmbeddedPaymentStateMachine = StateMachine<State, Event, SideEffect>
@@ -97,7 +98,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
                 on(.cancel) {
-                    transition(to: .paymentRejected, emit: .cancelPaymentRequest)
+                    transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
                 }
             }
 
@@ -112,7 +113,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
                 on(.cancel) {
-                    transition(to: .paymentRejected, emit: .cancelPaymentRequest)
+                    transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
                 }
             }
 

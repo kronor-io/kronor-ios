@@ -88,8 +88,8 @@ public extension KronorApi {
     }
     
     internal struct PayPalResult {
-        var paymentData: Result<KronorApi.PayPalPaymentMutation.Data.NewPayPalPayment, KronorError>
-        var braintreeSettings: Result<KronorApi.BraintreeSettingQuery.Data.BraintreeSetting, KronorError>
+        let paymentData: Result<KronorApi.PayPalPaymentMutation.Data.NewPayPalPayment, KronorError>
+        let braintreeSettings: Result<KronorApi.BraintreeSettingQuery.Data.BraintreeSetting, KronorError>
     }
     
     struct PayPalData {
@@ -101,13 +101,17 @@ public extension KronorApi {
         client: ApolloClient,
         input: KronorApi.PayPalPaymentInput,
         deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<PayPalData, KronorError> {
+            async let paymentData = sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+                $0.newPayPalPayment
+            }
+
+            async let braintreeSettings = fetchBraintreeSettings(client: client)
+
             let result = await PayPalResult(
-                paymentData: sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
-                    $0.newPayPalPayment
-                },
-                braintreeSettings: fetchBraintreeSettings(client: client)
+                paymentData: paymentData,
+                braintreeSettings: braintreeSettings
             )
-            
+
             return result.paymentData.flatMap { payment in
                 result.braintreeSettings.map { settings in
                     PayPalData(

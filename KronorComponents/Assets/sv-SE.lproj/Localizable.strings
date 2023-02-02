@@ -7,6 +7,18 @@
 /* A success message indicating that the payment was completed and the payment session will end */
 "Payment completed" = "Betalningen genomförd";
 
+/* Abort the payment */
+"Cancel" = "Avbryt";
+
+/* Alert message to ask the user if they want to cancel the payment */
+"Cancel Payment?" = "Avbryt betalningen?";
+
+/* Continue in the same payment session */
+"Continue" = "Fortsätt";
+
+/* Abort the payment */
+"Yes, cancel" = "Ja, avbryt";
+
 /* Indicates that the user wants to cancel the payment session and go back to the checkout */
 "cancel" = "avbryt";
 

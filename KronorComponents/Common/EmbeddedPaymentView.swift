@@ -9,19 +9,23 @@ import SwiftUI
 
 struct EmbeddedPaymentView: View {
     @ObservedObject var viewModel: EmbeddedPaymentViewModel
-    
+
     var waitingView: any View
     
     @ObservedObject var webView = WebViewModel()
     
     func dismissSheet() {
         Task {
-            // wait to make sure that the closing of the sheet was not premature
-            try await Task.sleep(nanoseconds: UInt64(0.3 * Double(NSEC_PER_SEC)))
             if self.viewModel.state != .paymentCompleted && self.viewModel.state != .paymentRejected {
                 await self.viewModel.transition(.cancel)
                 self.webView.link = URL(string: "https://kronor.io")!
             }
+        }
+    }
+
+    func abortPayment() {
+        Task {
+            await self.viewModel.transition(.cancelFlow)
         }
     }
 
@@ -38,10 +42,9 @@ struct EmbeddedPaymentView: View {
                     if self.viewModel.embeddedSiteURL == nil {
                      return false
                     }
-                    
-                    let isKronorURL = self.webView.link.host?.hasSuffix("kronor.io") ?? false
-                    let queryContainsFailure = self.webView.link.query?.contains("&failure=true") ?? false
-                    return !(isKronorURL && queryContainsFailure)
+
+                    let kronorHost = self.webView.link.host?.hasSuffix("kronor.io") ?? false
+                    return kronorHost && self.webView.link != self.viewModel.returnURL
                 },
                 set: { _ in }
             )
@@ -49,9 +52,13 @@ struct EmbeddedPaymentView: View {
             return AnyView(self.waitingView
                 .sheet(isPresented: keepOpen, onDismiss: dismissSheet) {
                     if let url = self.viewModel.embeddedSiteURL {
-                        SwiftUIWebView(viewModel: self.webView, url: url)
+                        EmbeddedSiteView(
+                            webViewModel: self.webView,
+                            url: url,
+                            onCancel: dismissSheet
+                        )
                     }
-                })
+                }.transition(.slide))
 
 
         case .paymentRejected:
@@ -79,7 +86,7 @@ struct EmbeddedPaymentView: View {
                 }
             )
 
-            
+
         case .errored(_):
             return AnyView(
                 HStack {

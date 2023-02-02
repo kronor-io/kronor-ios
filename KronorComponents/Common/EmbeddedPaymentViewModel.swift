@@ -30,25 +30,15 @@ class EmbeddedPaymentViewModel: ObservableObject {
     private var subscription: Cancellable?
 
     private var paymentMethod: SupportedEmbeddedMethod
-    private var returnURL: URL
     private var device: Kronor.Device?
     private var onPaymentFailure: () -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
-    
-    var sessionURL: URL? {
-        if let raw =
-            self.paymenRequest?.transactionMobilePayDetails?[0].sessionUrl
-            ?? self.paymenRequest?.transactionCreditCardDetails?[0].sessionUrl
-            ?? self.paymenRequest?.transactionVippsDetails?[0].sessionUrl,
-           let url = URL(string: raw) {
-            return url
-        }
-        return nil
-    }
+    internal let sessionURL: URL
+    internal let returnURL: URL
     
     @Published var state: EmbeddedPaymentStatechart.State
     @Published var embeddedSiteURL: URL?
-    
+
     init(env: Kronor.Environment,
          sessionToken: String,
          stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine,
@@ -65,21 +55,30 @@ class EmbeddedPaymentViewModel: ObservableObject {
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
         self.paymentMethod = paymentMethod
-        
+
         let gatewayURL = Kronor.gatewayURL(env: env)
         var components = URLComponents()
         components.scheme = gatewayURL.scheme
         components.host = gatewayURL.host
-        components.path = "/reepay-redirect"
+        components.path = "/payment"
         components.queryItems = [
+            URLQueryItem(name: "env", value: Self.toEnvName(env: env)),
             URLQueryItem(name: "paymentMethod", value: paymentMethod.rawValue),
             URLQueryItem(name: "token", value: sessionToken),
-            URLQueryItem(name: "successUrl", value: returnURL.absoluteString),
-            URLQueryItem(name: "failureUrl", value: returnURL.absoluteString),
-            URLQueryItem(name: "failure", value: "true"),
+            URLQueryItem(name: "merchantReturnUrl", value: returnURL.absoluteString)
         ]
 
-        self.returnURL = components.url!
+        self.sessionURL = components.url!
+        self.returnURL = returnURL
+    }
+    
+    static func toEnvName(env: Kronor.Environment) -> String {
+        switch env {
+        case .sandbox:
+            return "staging"
+        case .production:
+            return "prod"
+        }
     }
 
     func transition(_ event: EmbeddedPaymentStatechart.Event) async {
@@ -151,7 +150,22 @@ class EmbeddedPaymentViewModel: ObservableObject {
             await MainActor.run {
                 self.onPaymentFailure()
             }
+
+
+        case .cancelAndNotifyFailure:
+            Self.logger.trace("performing cancelAndNotifyFailure")
+            Task { [weak self] in
+                if let self {
+                    Self.logger.notice("cancelling payment request")
+                    let _ = await cancelSessionPayments(client: self.client)
+                }
+            }
             
+            self.subscription?.cancel()
+            await MainActor.run {
+                self.onPaymentFailure()
+            }
+
             
         case .notifyPaymentSuccess:
             Self.logger.trace("performing notifyPaymentSuccess")
