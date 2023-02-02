@@ -164,7 +164,11 @@ class PayPalViewModel: ObservableObject {
                         await self.transition(.nonceSent)
                     }
                 } catch {
-                    await self.handleError(error: .networkError(error: error))
+                    if error._code == 4 {
+                        await self.transition(.cancel)
+                    } else {
+                        await self.handleError(error: .networkError(error: error))
+                    }
                 }
             } else {
                 Self.logger.error("Could not convert amount to major units: \(String(describing: self.paypalData?.paymentData.amount))")
