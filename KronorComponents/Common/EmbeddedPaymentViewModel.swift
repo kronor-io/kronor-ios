@@ -187,7 +187,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             await MainActor.run {
                 self.embeddedSiteURL = self.sessionURL
             }
-            
+
         case .resetState:
             self.subscription?.cancel()
             self.subscription = nil
@@ -204,6 +204,16 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
             Task {
                 await self.transition(.initialize)
+            }
+
+        case .cancelAfterDeadline:
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+                Task { [weak self] in
+                    if let state = self?.state, state == .waitingForPaymentRequest {
+                        Self.logger.info("attempting to cancel payment after deadline")
+                        await self?.transition(.cancel)
+                    }
+                }
             }
         }
     }

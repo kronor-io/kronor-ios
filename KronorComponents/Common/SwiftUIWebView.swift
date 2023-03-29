@@ -21,7 +21,10 @@ struct SwiftUIWebView: UIViewRepresentable {
 
     func makeUIView(context: UIViewRepresentableContext<SwiftUIWebView>) -> WKWebView {
         self.webView.navigationDelegate = context.coordinator
+        self.webView.allowsBackForwardNavigationGestures = false
+        self.webView.allowsLinkPreview = false
         self.webView.load(URLRequest(url: self.url))
+
         return self.webView
     }
 
@@ -41,6 +44,26 @@ struct SwiftUIWebView: UIViewRepresentable {
                 self.viewModel.link = url
             }
             self.viewModel.didFinishLoading = true
+        }
+
+        func webView(_ webView: WKWebView,
+                     decidePolicyFor navigationAction: WKNavigationAction,
+                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+
+            // if the url is not http(s) schema, then the UIApplication open the url
+            if let url = navigationAction.request.url,
+               let scheme = url.scheme,
+               scheme != "http",
+               scheme != "https" {
+
+                UIApplication.shared.open(url)
+
+                // cancel the request
+                decisionHandler(.cancel)
+            } else {
+                // allow the request
+                decisionHandler(.allow)
+            }
         }
     }
 
