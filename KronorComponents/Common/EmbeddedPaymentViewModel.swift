@@ -207,7 +207,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             }
 
         case .cancelAfterDeadline:
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 Task { [weak self] in
                     if let state = self?.state, state == .waitingForPaymentRequest {
                         Self.logger.info("attempting to cancel payment after deadline")

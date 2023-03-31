@@ -40,7 +40,11 @@ struct EmbeddedPaymentView: View {
         self.innerBody
             .onOpenURL(perform: { url in
                 Task {
-                    if url.absoluteString.hasPrefix(self.viewModel.returnURL.absoluteString) {
+                    let components = URLComponents(string: url.absoluteString)
+                    let isCancel = components?.queryItems?.contains{ item in
+                        item.name == "cancel"
+                    }
+                    if isCancel ?? false {
                         await self.viewModel.transition(.waitForCancel)
                     }
                 }

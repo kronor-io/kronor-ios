@@ -91,6 +91,13 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 on(.cancel) {
                     transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
                 }
+                // In case the session was completed while trying to cancel
+                on(.paymentAuthorized) {
+                    transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
+                }
+                on(.paymentRejected) {
+                    transition(to: .paymentRejected)
+                }
             }
 
             state(.paymentRequestInitialized) {
