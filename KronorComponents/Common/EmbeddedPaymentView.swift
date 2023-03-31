@@ -17,8 +17,15 @@ struct EmbeddedPaymentView: View {
     func dismissSheet() {
         Task {
             if self.viewModel.state != .paymentCompleted && self.viewModel.state != .paymentRejected {
+                await self.viewModel.transition(.waitForCancel)
+            }
+        }
+    }
+
+    func cancelNow() {
+        Task {
+            if self.viewModel.state != .paymentCompleted && self.viewModel.state != .paymentRejected {
                 await self.viewModel.transition(.cancel)
-                self.webView.link = URL(string: "https://kronor.io")!
             }
         }
     }
@@ -30,6 +37,21 @@ struct EmbeddedPaymentView: View {
     }
 
     var body: some View {
+        self.innerBody
+            .onOpenURL(perform: { url in
+                Task {
+                    let components = URLComponents(string: url.absoluteString)
+                    let isCancel = components?.queryItems?.contains{ item in
+                        item.name == "cancel"
+                    }
+                    if isCancel ?? false {
+                        await self.viewModel.transition(.waitForCancel)
+                    }
+                }
+            })
+    }
+
+    var innerBody: some View {
         switch viewModel.state {
         
         case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest:
@@ -43,8 +65,7 @@ struct EmbeddedPaymentView: View {
                      return false
                     }
 
-                    let kronorHost = self.webView.link.host?.hasSuffix("kronor.io") ?? false
-                    return kronorHost && self.webView.link != self.viewModel.returnURL
+                    return self.webView.link != self.viewModel.returnURL
                 },
                 set: { _ in }
             )
@@ -55,7 +76,7 @@ struct EmbeddedPaymentView: View {
                         EmbeddedSiteView(
                             webViewModel: self.webView,
                             url: url,
-                            onCancel: dismissSheet
+                            onCancel: cancelNow
                         )
                     }
                 }.transition(.slide))

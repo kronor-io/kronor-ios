@@ -32,6 +32,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case retry
         case cancelFlow
         case error (error: KronorApi.KronorError)
+        case waitForCancel
     }
     
     enum SideEffect {
@@ -43,6 +44,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case notifyPaymentFailure
         case resetState
         case cancelAndNotifyFailure
+        case cancelAfterDeadline
     }
     
     typealias EmbeddedPaymentStateMachine = StateMachine<State, Event, SideEffect>
@@ -85,6 +87,17 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 on (.error) {
                     transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
+
+                on(.cancel) {
+                    transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
+                }
+                // In case the session was completed while trying to cancel
+                on(.paymentAuthorized) {
+                    transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
+                }
+                on(.paymentRejected) {
+                    transition(to: .paymentRejected)
+                }
             }
 
             state(.paymentRequestInitialized) {
@@ -100,6 +113,9 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 on(.cancel) {
                     transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
                 }
+                on(.waitForCancel) {
+                    transition(to: .waitingForPaymentRequest, emit: .cancelAfterDeadline)
+                }
             }
 
             state(.waitingForPayment) {
@@ -114,6 +130,9 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 }
                 on(.cancel) {
                     transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
+                }
+                on(.waitForCancel) {
+                    transition(to: .waitingForPaymentRequest, emit: .cancelAfterDeadline)
                 }
             }
 
@@ -183,6 +202,7 @@ extension EmbeddedPaymentStatechart.Event: StateMachineHashable  {
         case cancel
         case cancelFlow
         case retry
+        case waitForCancel
     }
 
     var hashableIdentifier: HashableIdentifier {
@@ -205,6 +225,8 @@ extension EmbeddedPaymentStatechart.Event: StateMachineHashable  {
             return .cancelFlow
         case .retry:
             return .retry
+        case .waitForCancel:
+            return .waitForCancel
         }
     }
 
