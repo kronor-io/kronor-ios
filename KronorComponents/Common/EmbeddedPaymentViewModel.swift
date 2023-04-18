@@ -11,10 +11,31 @@ import KronorApi
 import Apollo
 import os
 
-enum SupportedEmbeddedMethod: String {
+enum SupportedEmbeddedMethod {
     case mobilePay
     case creditCard
     case vipps
+    case fallback(name: String)
+    
+    func getName() -> String {
+        switch self {
+        case .creditCard:
+            return "creditCard"
+        case .mobilePay:
+            return "mobilePay"
+        case .vipps:
+            return "vipps"
+        case .fallback(let name):
+            return name
+        }
+    }
+    
+    func isFallback() -> Bool {
+        switch self {
+        case .fallback(_): return true
+        default: return false
+        }
+    }
 }
 
 class EmbeddedPaymentViewModel: ObservableObject {
@@ -56,6 +77,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
         self.onPaymentFailure = onPaymentFailure
         self.paymentMethod = paymentMethod
 
+
         let gatewayURL = Kronor.gatewayURL(env: env)
         var components = URLComponents()
         components.scheme = gatewayURL.scheme
@@ -63,7 +85,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
         components.path = "/payment"
         components.queryItems = [
             URLQueryItem(name: "env", value: Self.toEnvName(env: env)),
-            URLQueryItem(name: "paymentMethod", value: paymentMethod.rawValue),
+            URLQueryItem(name: "paymentMethod", value: paymentMethod.getName()),
             URLQueryItem(name: "token", value: sessionToken),
             URLQueryItem(name: "merchantReturnUrl", value: returnURL.absoluteString)
         ]
@@ -101,11 +123,21 @@ class EmbeddedPaymentViewModel: ObservableObject {
             await handleSideEffect(sideEffect: sideEffect)
         }
     }
+    
+    func initialize() async {
+        subscribeToPaymentStatusMatcher(matcher: {_ in true })
+    }
 
     private func handleSideEffect(sideEffect: EmbeddedPaymentStatechart.SideEffect) async {
         switch sideEffect {
             
         case .createPaymentRequest:
+            
+            if self.paymentMethod.isFallback() {
+                let _ = await transition(.paymentRequestWillBeCreatedElsewhere)
+                return
+            }
+            
             Self.logger.debug("creating payment request")
             
             let rWaitToken = await {
@@ -122,6 +154,10 @@ class EmbeddedPaymentViewModel: ObservableObject {
                     return await createVippsRequest(client: self.client,
                                                     returnURL: self.returnURL,
                                                     device: self.device)
+                case .fallback(_):
+                    // cannot create the payment request as we don't know how.
+                    // it will be created by the web version of the payment gateway
+                    fatalError("impossible")
                 }
             }()
             
@@ -181,11 +217,11 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         case .subscribeToPaymentStatus(let waitToken):
             subscribeToPaymentStatus(waitToken: waitToken)
-
-
+     
         case .openEmbeddedSite:
             await MainActor.run {
                 self.embeddedSiteURL = self.sessionURL
+                Self.logger.info("\(self.sessionURL)")
             }
 
         case .resetState:
@@ -223,6 +259,12 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
     
     private func subscribeToPaymentStatus(waitToken: String) {
+        subscribeToPaymentStatusMatcher { paymentRequest in
+            paymentRequest.waitToken == waitToken
+        }
+    }
+    
+    private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) {
         self.subscription = self.client.subscribe(subscription: KronorApi.PaymentStatusSubscription()) { [weak self] result in
             switch result {
                 
@@ -233,8 +275,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             case .success(let selectionSet):
                 let request = selectionSet.data?.paymentRequests
                     .first(where: { paymentRequest in
-                        paymentRequest.waitToken == waitToken &&
-                        
+                        matcher(paymentRequest) &&
                         (paymentRequest.status?.contains { status in
                             status.status != KronorApi.PaymentStatusEnum.initializing
                         } ?? false)
@@ -265,6 +306,11 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         Task { [weak self] in
                             await self?.transition(.paymentRejected)
                         }
+                    }
+                } else {
+                    print("noo")
+                    Task { [weak self] in
+                        await self?.transition(.initialize)
                     }
                 }
             }

@@ -25,6 +25,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
     enum Event : Equatable  {
         case initialize
         case paymentRequestCreated (waitToken: String)
+        case paymentRequestWillBeCreatedElsewhere
         case paymentRequestInitialized
         case paymentAuthorized
         case paymentRejected
@@ -62,6 +63,20 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 on(.initialize) {
                     transition(to: .creatingPaymentRequest, emit: .createPaymentRequest)
                 }
+
+                on(.paymentRequestInitialized) {
+                    return transition(to: .paymentRequestInitialized, emit: .openEmbeddedSite)
+                }
+
+                // In case the session was completed while trying to create a new one
+                on(.paymentAuthorized) {
+                    transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
+                }
+
+                // If a previous payment in the session was rejected, we just try to create a new payment request
+                on(.paymentRejected) {
+                    transition(to: .paymentRequestInitialized, emit: .openEmbeddedSite)
+                }
             }
       
             state(.creatingPaymentRequest) {
@@ -71,6 +86,10 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                     
                     return transition(to: .waitingForPaymentRequest,
                                       emit: .subscribeToPaymentStatus(waitToken: waitToken))
+                }
+                
+                on (.paymentRequestWillBeCreatedElsewhere) {
+                    return transition(to: .paymentRequestInitialized, emit: .openEmbeddedSite)
                 }
 
                 on (.error) {
@@ -195,6 +214,7 @@ extension EmbeddedPaymentStatechart.Event: StateMachineHashable  {
     enum HashableIdentifier {
         case initialize
         case paymentRequestCreated
+        case paymentRequestWillBeCreatedElsewhere
         case paymentRequestInitialized
         case paymentAuthorized
         case paymentRejected
@@ -211,6 +231,8 @@ extension EmbeddedPaymentStatechart.Event: StateMachineHashable  {
             return .initialize
         case .paymentRequestCreated:
             return .paymentRequestCreated
+        case .paymentRequestWillBeCreatedElsewhere:
+            return .paymentRequestWillBeCreatedElsewhere
         case .paymentRequestInitialized:
             return .paymentRequestInitialized
         case .paymentAuthorized:
