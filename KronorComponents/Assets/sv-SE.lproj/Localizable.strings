@@ -78,3 +78,6 @@
 
 /* A waiting message that indicates the app is finilizing the payment */
 "Completing your payment, please wait" = "Slutför betalningen, vänligen vänta";
+
+/* A waiting message that indicates the app is communicating with the server */
+"Creating secure transaction" = "Påbörjar en säker transaktion";
