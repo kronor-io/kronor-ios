@@ -308,7 +308,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         }
                     }
                 } else {
-                    print("noo")
                     Task { [weak self] in
                         await self?.transition(.initialize)
                     }
