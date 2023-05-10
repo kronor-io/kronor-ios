@@ -1,64 +1,64 @@
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction"                                                                                                                             
+"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                                                             
 
-"Could not complete the payment due to an error. Please try again after a short time" = "Die Zahlung konnte aufgrund eines Fehlers nicht abgeschlossen werden. Bitte versuchen Sie es nach kurzer Zeit erneut"
+"Could not complete the payment due to an error. Please try again after a short time" = "Die Zahlung konnte aufgrund eines Fehlers nicht abgeschlossen werden. Bitte versuchen Sie es nach kurzer Zeit erneut";
 
-"Payment completed" = "Bezahlvorgang abgeschlossen"                                                                                                                                                           
+"Payment completed" = "Bezahlvorgang abgeschlossen";                                                                                                                                                           
 
-"cancel" = "                                                                                                                                                                                                  
-stornieren"                                                                                                                                                                                                   
+"cancel" = "                                                                                                                                                                                                   
+stornieren";                                                                                                                                                                                                   
 
-"or" = "oder"                                                                                                                                                                                                 
+"or" = "oder";                                                                                                                                                                                                 
 
-"Payment failed" = "Bezahlung fehlgeschlagen"                                                                                                                                                                 
+"Payment failed" = "Bezahlung fehlgeschlagen";                                                                                                                                                                 
 
-"try again?" = "erneut versuchen?"                                                                                                                                                                            
+"try again?" = "erneut versuchen?";                                                                                                                                                                            
 
-"Establishing secure connection" = "Aufbau einer sicheren Verbindung"                                                                                                                                         
+"Establishing secure connection" = "Aufbau einer sicheren Verbindung";                                                                                                                                         
 
-"Completing payment" = "Zahlung abschließen"                                                                                                                                                                  
+"Completing payment" = "Zahlung abschließen";                                                                                                                                                                  
 
-"Could not complete the payment due to an error. Please try again after a short time" = "Die Zahlung konnte aufgrund eines Fehlers nicht abgeschlossen werden. Bitte versuchen Sie es nach kurzer Zeit erneut"
+"Could not complete the payment due to an error. Please try again after a short time" = "Die Zahlung konnte aufgrund eines Fehlers nicht abgeschlossen werden. Bitte versuchen Sie es nach kurzer Zeit erneut";
 
-"Creating secure Swish transaction" = "Creating secure Swish transaction"                                                                                                                                     
+"Creating secure Swish transaction" = "Creating secure Swish transaction";                                                                                                                                     
 
-"Creating secure PayPal transaction" = "Erstellen einer sicheren PayPal-Transaktion"                                                                                                                          
+"Creating secure PayPal transaction" = "Erstellen einer sicheren PayPal-Transaktion";                                                                                                                          
 
-"Generating QR code" = "QR-Code generieren"                                                                                                                                                                   
+"Generating QR code" = "QR-Code generieren";                                                                                                                                                                   
 
-"Opening the swish app" = "Opening the swish app"                                                                                                                                                             
+"Opening the swish app" = "Opening the swish app";                                                                                                                                                             
 
-"Payment completed" = "Bezahlvorgang abgeschlossen"                                                                                                                                                           
+"Payment completed" = "Bezahlvorgang abgeschlossen";                                                                                                                                                           
 
-"You can pay with the Swish app now" = "You can pay with the Swish app now"                                                                                                                                   
+"You can pay with the Swish app now" = "You can pay with the Swish app now";                                                                                                                                   
 
-"Enter phone number" = "Bitte Telefonnummer eingeben"                                                                                                                                                         
+"Enter phone number" = "Bitte Telefonnummer eingeben";                                                                                                                                                         
 
-"Open Swish App" = "Open Swish App"                                                                                                                                                                           
+"Open Swish App" = "Open Swish App";                                                                                                                                                                           
 
-"or pay using another phone" = "oder von einem anderen Handy bezahlen"                                                                                                                                        
+"or pay using another phone" = "oder von einem anderen Handy bezahlen";                                                                                                                                        
 
-"Scan QR Code" = "QR-Code scannen"                                                                                                                                                                            
+"Scan QR Code" = "QR-Code scannen";                                                                                                                                                                            
 
-"Scan this code with the Swish app" = "Scan this code with the Swish app"                                                                                                                                     
+"Scan this code with the Swish app" = "Scan this code with the Swish app";                                                                                                                                     
 
-"Pay Now" = "Pay Now"                                                                                                                                                                                         
+"Pay Now" = "Pay Now";                                                                                                                                                                                         
 
-"Creating secure Vipps transaction" = "Creating secure Vipps transaction"                                                                                                                                     
+"Creating secure Vipps transaction" = "Creating secure Vipps transaction";                                                                                                                                     
 
-"Completing your payment, please wait" = "Bitte warten, bis Ihre Zahlung abgeschlossen ist"                                                                                                                   
+"Completing your payment, please wait" = "Bitte warten, bis Ihre Zahlung abgeschlossen ist";                                                                                                                   
 
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction"                                                                                                                             
+"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                                                             
 
-"Cancel Payment?" = "Zahlung stornieren?"                                                                                                                                                                     
+"Cancel Payment?" = "Zahlung stornieren?";                                                                                                                                                                     
 
-"Continue" = "Fortfahren"                                                                                                                                                                                     
+"Continue" = "Fortfahren";                                                                                                                                                                                     
 
-"Yes, cancel" = "                                                                                                                                                                                             
-Ja, abbrechen"                                                                                                                                                                                                
+"Yes, cancel" = "                                                                                                                                                                                              
+Ja, abbrechen";                                                                                                                                                                                                
 
-"Completing your payment, please wait" = "                                                                                                                                                                    
-Bitte warten, bis Ihre Zahlung abgeschlossen ist"                                                                                                                                                             
+"Completing your payment, please wait" = "                                                                                                                                                                     
+Bitte warten, bis Ihre Zahlung abgeschlossen ist";                                                                                                                                                             
 
-"Creating secure PayPal transaction" = "Erstellen einer sicheren PayPal-Transaktion"                                                                                                                          
+"Creating secure PayPal transaction" = "Erstellen einer sicheren PayPal-Transaktion";                                                                                                                          
 
-"Creating secure transaction" = "Erstellen einer sicheren Transaktion"                                                                                                                                        
+"Creating secure transaction" = "Erstellen einer sicheren Transaktion";                                                                                                                                        
