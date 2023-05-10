@@ -1,83 +1,31 @@
-/* A waiting message that indicates the app is communicating with the server */
-"Creating secure MobilePay transaction" = "Påbörjar en säker MobilePay-transaktion";
-
-/* An error message indicating there was an unexpected error with the payment */
-"Could not complete the payment due to an error. Please try again after a short time" = "Betalningen kunde inte slutföras på grund av ett fel. Försök igen lite senare.";
-
-/* A success message indicating that the payment was completed and the payment session will end */
-"Payment completed" = "Betalningen genomförd";
-
-/* Abort the payment */
-"Cancel" = "Avbryt";
-
-/* Alert message to ask the user if they want to cancel the payment */
-"Cancel Payment?" = "Avbryt betalningen?";
-
-/* Continue in the same payment session */
-"Continue" = "Fortsätt";
-
-/* Abort the payment */
-"Yes, cancel" = "Ja, avbryt";
-
-/* Indicates that the user wants to cancel the payment session and go back to the checkout */
-"cancel" = "avbryt";
-
-/* No comment provided by engineer. */
-"or" = "eller";
-
-/* indicates that the payment resulted in error, cancelled by the customer or declined by the provider */
-"Payment failed" = "Betalningen misslyckades";
-
-/* Indicates that the user wants to continue the payment session and try another payment */
-"try again?" = "försök igen?";
-
-/* No comment provided by engineer. */
-"Dummy Contents" = "Dummy Contents";
-
-/* A waiting message that indicates the app is communicating with the server */
-"Establishing secure connection" = "Upprättar av en säker anslutning";
-
-/* A waiting message indicating that the customer should complete the payment in the Swish app */
-"Completing payment" = "Slutför betalningen";
-
-/* A waiting message that indicates that the app is communicating with the server */
-"Creating secure Swish transaction" = "Påbörjar en säker Swish-transaktion";
-
-/* A waiting message that indicates that the app is communicating with the server */
-"Creating secure PayPal transaction" = "Påbörjar en säker PayPal-transaktion";
-
-/* A waiting message indicating that a new QR code image is being generated */
-"Generating QR code" = "Hämtar QR-kod";
-
-/* Indicates that this app is prompting the user to open the Swish app in the same device */
-"Opening the swish app" = "Öppna din Swish-app";
-
-/* A waiting message indicating that the customer should open the Swish app in another phone */
-"You can pay with the Swish app now" = "Nu kan du betala med din Swish-app";
-
-/* A button label that indicates the customer wants to pay getting a notification in another device */
-"Enter phone number" = "Ange telefonnummer";
-
-/* A button label that indicates the customer wants to pay with the Swish app in the same device */
-"Open Swish App" = "Öppna din Swish-app";
-
-/* No comment provided by engineer. */
-"or pay using another phone" = "eller betala med en annan telefon";
-
-/* A button label that indicates the customer wants to pay by scanning a QR code in another device */
-"Scan QR Code" = "Skanna QR-koden";
-
-/* The caption for a QR code image prompting the user to scan it with another device */
-"Scan this code with the Swish app" = "Skanna den här koden din Swish-app";
-
-/* Call to action after entering the Swish phone number to make a payment */
-"Pay Now" = "Betala nu";
-
-/* A waiting message that indicates the app is communicating with the server */
-"Creating secure Vipps transaction" = "Påbörjar en säker Vipps-transaktion";
-
-/* A waiting message that indicates the app is finilizing the payment */
-"Completing your payment, please wait" = "Slutför betalningen, vänligen vänta";
-
-/* A waiting message that indicates the app is communicating with the server */
-"Creating secure transaction" = "Påbörjar en säker transaktion";
+"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction"                                                                                        
+"Could not complete the payment due to an error. Please try again after a short time" = "Kunde inte slutföra betalning på grund av fel. Vänligen prova igen om en stund."
+"Payment completed" = "Betalning slutförd."                                                                                                                              
+"cancel" = "avbryt"                                                                                                                                                      
+"or" = "eller"                                                                                                                                                           
+"Payment failed" = "Betalning misslyckad."                                                                                                                               
+"try again?" = "försök igen?"                                                                                                                                            
+"Establishing secure connection" = "Upprättar säker kontakt."                                                                                                            
+"Completing payment" = "Slutförd betalning."                                                                                                                             
+"Could not complete the payment due to an error. Please try again after a short time" = "Kunde inte slutföra betalning på grund av fel. Vänligen prova igen om en stund."
+"Creating secure Swish transaction" = "Upprättar säker överföring med Swish."                                                                                            
+"Creating secure PayPal transaction" = "Upprättar säker överföring med PayPal."                                                                                          
+"Generating QR code" = "Genererar QR-kod."                                                                                                                               
+"Opening the swish app" = "Öppna Swish-appen."                                                                                                                           
+"Payment completed" = "Betalning slutförd."                                                                                                                              
+"You can pay with the Swish app now" = "Du kan betala med Swish-appen nu."                                                                                               
+"Enter phone number" = "Skriv in telefonnummer."                                                                                                                         
+"Open Swish App" = "Öppna Swish-appen."                                                                                                                                  
+"or pay using another phone" = "eller betala med annan telefon."                                                                                                         
+"Scan QR Code" = "Skanna QR-kod."                                                                                                                                        
+"Scan this code with the Swish app" = "Skanna denna kod med Swish-appen."                                                                                                
+"Pay Now" = "Betala nu."                                                                                                                                                 
+"Creating secure Vipps transaction" = "Creating secure Vipps transaction"                                                                                                
+"Completing your payment, please wait" = "Slutför din betalning, vänligen vänta."                                                                                        
+"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction"                                                                                        
+"Cancel Payment?" = "Avbryt betalning?"                                                                                                                                  
+"Continue" = "Fortsätt."                                                                                                                                                 
+"Yes, cancel" = "Ja, avbryt."                                                                                                                                            
+"Completing your payment, please wait" = "Slutför din betalning, vänligen vänta kvar."                                                                                   
+"Creating secure PayPal transaction" = "Upprättar säker överföring med PayPal."                                                                                          
+"Creating secure transaction" = "Upprättar säker överföring."                                                                                                            
