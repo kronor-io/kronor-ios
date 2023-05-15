@@ -1,4 +1,4 @@
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                               
+"Creating secure MobilePay transaction" = "Opretter sikker Mobilepay transaktion";
 "Could not complete the payment due to an error. Please try again after a short time" = "Maksua ei voitu suorittaa loppuun virheen vuoksi. Yritä uudelleen hetken kuluttua ";    
 "Payment completed" = "Maksu suoritettu";                                                                                                                                        
 "cancel" = "peruuta";                                                                                                                                                            
@@ -22,7 +22,7 @@
 "Pay Now" = "Pay Now";                                                                                                                                                           
 "Creating secure Vipps transaction" = "Creating secure Vipps transaction";                                                                                                       
 "Completing your payment, please wait" = "Vahvistetaaan maksutapahtumaasi, odota";                                                                                               
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                               
+"Creating secure MobilePay transaction" = "Opretter sikker Mobilepay transaktion";
 "Cancel Payment?" = "Keskeytä maksu?";                                                                                                                                           
 "Continue" = "Jatka";                                                                                                                                                            
 "Yes, cancel" = "Kyllä, keskeytä";                                                                                                                                               
