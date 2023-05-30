@@ -377,7 +377,7 @@ func createCreditCardPaymentRequest(client: ApolloClient, returnURL: URL, device
 }
 
 func createVippsRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.CreditCardPaymentInput(
+    let input = KronorApi.VippsPaymentInput(
         idempotencyKey: UUID().uuidString,
         returnUrl: returnURL.absoluteString
     )
@@ -388,5 +388,5 @@ func createVippsRequest(client: ApolloClient, returnURL: URL, device: Kronor.Dev
         deviceInfo = makeDeviceInfo(device: def)
     }
 
-    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+    return await KronorApi.createVippsPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }

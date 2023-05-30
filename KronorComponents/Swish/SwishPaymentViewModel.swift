@@ -224,7 +224,7 @@ class SwishPaymentViewModel: ObservableObject {
                         }
                     }
                     
-                    if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid }) ?? false {
+                    if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
                         Task { [weak self] in
                             await self?.transition(.paymentAuthorized)
                         }
