@@ -28,7 +28,7 @@ public extension KronorApi {
 
     public struct Data: KronorApi.SelectionSet {
       public let __data: DataDict
-      public init(data: DataDict) { __data = data }
+      public init(_dataDict: DataDict) { __data = _dataDict }
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
@@ -43,10 +43,11 @@ public extension KronorApi {
       /// Parent Type: `PaymentCancelResult`
       public struct CancelPayment: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.PaymentCancelResult }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("waitToken", String?.self),
         ] }
 

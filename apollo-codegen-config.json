@@ -17,7 +17,8 @@
       "path" : "./KronorApi",
       "moduleType" : {
         "embeddedInTarget" : {
-            "name": "KronorApi"
+            "name": "KronorApi",
+            "accessModifier": "public"
         }
       }
     },
