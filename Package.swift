@@ -30,7 +30,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/apollographql/apollo-ios.git",
-            .upToNextMajor(from: "1.0.0")
+            .upToNextMinor(from: "1.2.0")
         ),
         .package(
             url: "https://github.com/Tinder/StateMachine",

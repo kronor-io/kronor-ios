@@ -24,7 +24,7 @@ public extension KronorApi {
 
     public struct Data: KronorApi.SelectionSet {
       public let __data: DataDict
-      public init(data: DataDict) { __data = data }
+      public init(_dataDict: DataDict) { __data = _dataDict }
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Query_root }
       public static var __selections: [ApolloAPI.Selection] { [
@@ -39,10 +39,11 @@ public extension KronorApi {
       /// Parent Type: `BraintreeSetting`
       public struct BraintreeSetting: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.BraintreeSetting }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("tokenizationKey", String.self),
           .field("paypalClientId", String.self),
           .field("currency", GraphQLEnum<KronorApi.SupportedCurrencyEnum>.self),

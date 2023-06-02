@@ -40,7 +40,7 @@ public extension KronorApi {
 
     public struct Data: KronorApi.SelectionSet {
       public let __data: DataDict
-      public init(data: DataDict) { __data = data }
+      public init(_dataDict: DataDict) { __data = _dataDict }
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
@@ -58,10 +58,11 @@ public extension KronorApi {
       /// Parent Type: `VippsPaymentResult`
       public struct NewVippsPayment: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.VippsPaymentResult }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("waitToken", String.self),
         ] }
 
@@ -76,10 +77,11 @@ public extension KronorApi {
       /// Parent Type: `AddSessionDeviceInformationResult`
       public struct AddSessionDeviceInformation: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("result", Bool.self),
         ] }
 

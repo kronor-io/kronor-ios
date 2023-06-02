@@ -50,7 +50,7 @@ public extension KronorApi {
 
     public struct Data: KronorApi.SelectionSet {
       public let __data: DataDict
-      public init(data: DataDict) { __data = data }
+      public init(_dataDict: DataDict) { __data = _dataDict }
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Subscription_root }
       public static var __selections: [ApolloAPI.Selection] { [
@@ -65,10 +65,11 @@ public extension KronorApi {
       /// Parent Type: `PaymentRequest`
       public struct PaymentRequest: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.PaymentRequest }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("waitToken", KronorApi.Uuid.self),
           .field("amount", KronorApi.Bigint.self),
           .field("status", [Status]?.self),
@@ -101,10 +102,11 @@ public extension KronorApi {
         /// Parent Type: `CurrentPaymentStatus`
         public struct Status: KronorApi.SelectionSet {
           public let __data: DataDict
-          public init(data: DataDict) { __data = data }
+          public init(_dataDict: DataDict) { __data = _dataDict }
 
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.CurrentPaymentStatus }
           public static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
             .field("status", GraphQLEnum<KronorApi.PaymentStatusEnum>.self),
           ] }
 
@@ -116,10 +118,11 @@ public extension KronorApi {
         /// Parent Type: `SwishDetails`
         public struct TransactionSwishDetail: KronorApi.SelectionSet {
           public let __data: DataDict
-          public init(data: DataDict) { __data = data }
+          public init(_dataDict: DataDict) { __data = _dataDict }
 
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.SwishDetails }
           public static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
             .field("errorCode", String?.self),
             .field("returnUrl", String?.self),
             .field("qrCode", String?.self),
@@ -136,10 +139,11 @@ public extension KronorApi {
         /// Parent Type: `CreditCardDetails`
         public struct TransactionCreditCardDetail: KronorApi.SelectionSet {
           public let __data: DataDict
-          public init(data: DataDict) { __data = data }
+          public init(_dataDict: DataDict) { __data = _dataDict }
 
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.CreditCardDetails }
           public static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
           ] }
@@ -155,10 +159,11 @@ public extension KronorApi {
         /// Parent Type: `MobilePayDetails`
         public struct TransactionMobilePayDetail: KronorApi.SelectionSet {
           public let __data: DataDict
-          public init(data: DataDict) { __data = data }
+          public init(_dataDict: DataDict) { __data = _dataDict }
 
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.MobilePayDetails }
           public static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
           ] }
@@ -174,10 +179,11 @@ public extension KronorApi {
         /// Parent Type: `VippsDetails`
         public struct TransactionVippsDetail: KronorApi.SelectionSet {
           public let __data: DataDict
-          public init(data: DataDict) { __data = data }
+          public init(_dataDict: DataDict) { __data = _dataDict }
 
           public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.VippsDetails }
           public static var __selections: [ApolloAPI.Selection] { [
+            .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
           ] }

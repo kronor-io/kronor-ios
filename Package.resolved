@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apollographql/apollo-ios.git",
       "state" : {
-        "revision" : "e123b5fdbaaf926d98a6833f25cbdff51e22200b",
-        "version" : "1.0.6"
+        "revision" : "c7d618adc40bc20e4f40651b8debbc3c9f6d2b6f",
+        "version" : "1.2.0"
       }
     },
     {
@@ -14,17 +14,17 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/braintree/braintree_ios",
       "state" : {
-        "revision" : "e9c1e58f4c65baa157e264277bc96acbf5335324",
-        "version" : "5.20.0"
+        "revision" : "25a1ca56d5a3ada45ef960dba5525107e335ec15",
+        "version" : "5.21.0"
       }
     },
     {
       "identity" : "fingerprintjs-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/fingerprintjs/fingerprintjs-ios/",
+      "location" : "https://github.com/fingerprintjs/fingerprintjs-ios",
       "state" : {
-        "revision" : "3a0f3cc3968fdd24793e89f79e08a1e334a0ea56",
-        "version" : "1.2.0"
+        "revision" : "b34f55f1c527dc6122a402531ee7d52c61c422a2",
+        "version" : "1.4.0"
       }
     },
     {
@@ -59,8 +59,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/apple/swift-argument-parser.git",
       "state" : {
-        "revision" : "fddd1c00396eed152c45a46bea9f47b98e59301d",
-        "version" : "1.2.0"
+        "revision" : "fee6933f37fde9a5e12a1e4aeaa93fe60116ff2a",
+        "version" : "1.2.2"
       }
     },
     {

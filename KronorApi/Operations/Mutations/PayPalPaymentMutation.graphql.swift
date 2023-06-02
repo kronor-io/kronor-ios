@@ -42,7 +42,7 @@ public extension KronorApi {
 
     public struct Data: KronorApi.SelectionSet {
       public let __data: DataDict
-      public init(data: DataDict) { __data = data }
+      public init(_dataDict: DataDict) { __data = _dataDict }
 
       public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
@@ -60,10 +60,11 @@ public extension KronorApi {
       /// Parent Type: `PayPalPaymentResult`
       public struct NewPayPalPayment: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.PayPalPaymentResult }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("paymentId", String.self),
           .field("amount", String.self),
           .field("currency", String.self),
@@ -85,10 +86,11 @@ public extension KronorApi {
       /// Parent Type: `AddSessionDeviceInformationResult`
       public struct AddSessionDeviceInformation: KronorApi.SelectionSet {
         public let __data: DataDict
-        public init(data: DataDict) { __data = data }
+        public init(_dataDict: DataDict) { __data = _dataDict }
 
         public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
         public static var __selections: [ApolloAPI.Selection] { [
+          .field("__typename", String.self),
           .field("result", Bool.self),
         ] }
 
