@@ -7,46 +7,27 @@
 
 import Foundation
 
-let productionURL = URL(string: "https://kronor.io/v1/graphql")!
-let sandboxURL = URL(string: "https://staging.kronor.io/v1/graphql")!
-
-let productionWsURL = URL(string: "wss://kronor.io/v1/graphql")!
-let sandboxWsURL = URL(string: "wss://staging.kronor.io/v1/graphql")!
-
-
-let productionGatewayURL = URL(string: "https://payment-gateway.kronor.io")!
-let sandboxGatewayURL = URL(string: "https://payment-gateway.staging.kronor.io")!
-
 public extension Kronor {
-    enum Environment {
-        case production
-        case sandbox
+    struct Environment {
+        public let name: String
+        public let apiURL: URL
+        public let websocketURL: URL
+        public let gatewayURL: URL
     }
+}
 
-    static func apiURL(env: Environment) -> URL {
-        switch env {
-        case .production:
-            return productionURL
-        case .sandbox:
-            return sandboxURL
-        }
-    }
-    
-    static func wsApiURL(env: Environment) -> URL {
-        switch env {
-        case .production:
-            return productionWsURL
-        case .sandbox:
-            return sandboxWsURL
-        }
-    }
+public extension Kronor.Environment {
+    static let production = Kronor.Environment(
+        name: "prod",
+        apiURL: URL(string: "https://kronor.io/v1/graphql")!,
+        websocketURL: URL(string: "wss://kronor.io/v1/graphql")!,
+        gatewayURL: URL(string: "https://payment-gateway.kronor.io")!
+    )
 
-    static func gatewayURL(env: Environment) -> URL {
-        switch env {
-        case .production:
-            return productionGatewayURL
-        case .sandbox:
-            return sandboxGatewayURL
-        }
-    }
+    static let sandbox = Kronor.Environment(
+        name: "staging",
+        apiURL: URL(string: "https://staging.kronor.io/v1/graphql")!,
+        websocketURL: URL(string: "wss://staging.kronor.io/v1/graphql")!,
+        gatewayURL: URL(string: "https://payment-gateway.staging.kronor.io")!
+    )
 }
