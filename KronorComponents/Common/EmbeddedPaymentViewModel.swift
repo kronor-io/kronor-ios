@@ -77,14 +77,13 @@ class EmbeddedPaymentViewModel: ObservableObject {
         self.onPaymentFailure = onPaymentFailure
         self.paymentMethod = paymentMethod
 
-
-        let gatewayURL = Kronor.gatewayURL(env: env)
+        let gatewayURL = env.gatewayURL
         var components = URLComponents()
         components.scheme = gatewayURL.scheme
         components.host = gatewayURL.host
         components.path = "/payment"
         components.queryItems = [
-            URLQueryItem(name: "env", value: Self.toEnvName(env: env)),
+            URLQueryItem(name: "env", value: env.name),
             URLQueryItem(name: "paymentMethod", value: paymentMethod.getName()),
             URLQueryItem(name: "token", value: sessionToken),
             URLQueryItem(name: "merchantReturnUrl", value: returnURL.absoluteString)
@@ -92,15 +91,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         self.sessionURL = components.url!
         self.returnURL = returnURL
-    }
-    
-    static func toEnvName(env: Kronor.Environment) -> String {
-        switch env {
-        case .sandbox:
-            return "staging"
-        case .production:
-            return "prod"
-        }
     }
 
     func transition(_ event: EmbeddedPaymentStatechart.Event) async {
