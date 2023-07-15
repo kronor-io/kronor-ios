@@ -7,15 +7,19 @@
 
 import SwiftUI
 
-struct SwishWrapperView: View {
-    var contents: () -> any View
+struct SwishWrapperView<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
 
     var body: some View {
         VStack {
             Spacer()
             SwishHeaderView()
             Spacer()
-            AnyView(contents())
+            content
             Spacer()
         }
     }

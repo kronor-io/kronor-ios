@@ -7,14 +7,19 @@
 
 import SwiftUI
 
-struct PayPalWaitingView: View {
-    var message: () -> any View
+struct PayPalWaitingView<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
     var body: some View {
         HStack {
             Spacer()
             ProgressView()
                 .padding(.trailing, 10.0)
-            AnyView(message())
+            content
             Spacer()
         }
     }

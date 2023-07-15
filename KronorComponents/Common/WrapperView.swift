@@ -7,16 +7,24 @@
 
 import SwiftUI
 
-struct WrapperView: View {
-    var header: any View
-    var contents: () -> any View
+struct WrapperView<Header: View, Content: View>: View {
+    let header: Header
+    let content: Content
+
+    init(
+        header: Header,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.header = header
+        self.content = content()
+    }
 
     var body: some View {
         VStack {
             Spacer()
-            AnyView(self.header)
+            header
             Spacer()
-            AnyView(contents())
+            content
             Spacer()
         }
     }

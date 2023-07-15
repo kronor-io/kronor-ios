@@ -8,153 +8,118 @@
 import SwiftUI
 
 struct SwishPaymentView: View {
-    
     @ObservedObject var viewModel: SwishPaymentViewModel
     
     var body: some View {
+        SwishWrapperView(content: generateContentView)
+    }
+
+    @ViewBuilder func generateContentView() -> some View {
         switch viewModel.state {
         case .promptingMethod:
-            return SwishWrapperView {
-                SwishPromptMethodView(viewModel: viewModel)
-            }
-            
-            
+            SwishPromptMethodView(viewModel: viewModel)
         case .insertingPhoneNumber:
-            return SwishWrapperView {
-                SwishInsertPhoneNumberView(viewModel: viewModel)
-            }
-
-            
+            SwishInsertPhoneNumberView(viewModel: viewModel)
         case .creatingPaymentRequest, .waitingForPaymentRequest:
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "hourglass.circle")
-                    Text(
-                        "Creating secure Swish transaction",
-                        bundle: .module,
-                        comment:  "A waiting message that indicates that the app is communicating with the server"
-                    )
-                        .font(.subheadline)
-                    Spacer()
-                }
+            HStack {
+                Spacer()
+                Image(systemName: "hourglass.circle")
+                Text(
+                    "Creating secure Swish transaction",
+                    bundle: .module,
+                    comment:  "A waiting message that indicates that the app is communicating with the server"
+                )
+                .font(.subheadline)
+                Spacer()
             }
-
-            
         case .paymentRequestInitialized(.swishApp):
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "arrow.up.forward.app")
-                    Text(
-                        "Opening the swish app",
-                        bundle: .module,
-                        comment:  "Indicates that this app is prompting the user to open the Swish app in the same device"
-                    )
-                        .font(.subheadline)
-                        
-                    Spacer()
-                }
-            }
+            HStack {
+                Spacer()
+                Image(systemName: "arrow.up.forward.app")
+                Text(
+                    "Opening the swish app",
+                    bundle: .module,
+                    comment:  "Indicates that this app is prompting the user to open the Swish app in the same device"
+                )
+                .font(.subheadline)
 
-            
+                Spacer()
+            }
         case .paymentRequestInitialized(.qrCode):
-            return SwishWrapperView {
-                if let qrCode = viewModel.qrCode {
-                    return AnyView(SwishQRView(qrCode: qrCode))
-                } else {
-                    return HStack {
-                        Spacer()
-                        Image(systemName: "qrcode.viewfinder")
-                        Text(
-                            "Generating QR code",
-                            bundle: .module,
-                            comment:  "A waiting message indicating that a new QR code image is being generated"
-                        )
-                            .font(.subheadline)
-                            
-                        Spacer()
-                    }
+            if let qrCode = viewModel.qrCode {
+                SwishQRView(qrCode: qrCode)
+            } else {
+                HStack {
+                    Spacer()
+                    Image(systemName: "qrcode.viewfinder")
+                    Text(
+                        "Generating QR code",
+                        bundle: .module,
+                        comment:  "A waiting message indicating that a new QR code image is being generated"
+                    )
+                    .font(.subheadline)
+
+                    Spacer()
                 }
             }
-
-            
         case .paymentRequestInitialized(.phoneNumber):
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "arrow.up.forward.app")
-                    Text(
-                        "You can pay with the Swish app now",
-                        bundle: .module,
-                        comment:  "A waiting message indicating that the customer should open the Swish app in another phone"
-                    )
-                        .font(.headline)
-                        
-                    Spacer()
-                }
+            HStack {
+                Spacer()
+                Image(systemName: "arrow.up.forward.app")
+                Text(
+                    "You can pay with the Swish app now",
+                    bundle: .module,
+                    comment:  "A waiting message indicating that the customer should open the Swish app in another phone"
+                )
+                .font(.headline)
+
+                Spacer()
             }
-
-
         case .waitingForPayment:
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "hourglass.circle")
-                    Text(
-                        "Completing payment",
-                        bundle: .module,
-                        comment:  "A waiting message indicating that the customer should complete the payment in the Swish app"
-                    )
-                        .font(.subheadline)
-                    Spacer()
-                }
+            HStack {
+                Spacer()
+                Image(systemName: "hourglass.circle")
+                Text(
+                    "Completing payment",
+                    bundle: .module,
+                    comment:  "A waiting message indicating that the customer should complete the payment in the Swish app"
+                )
+                .font(.subheadline)
+                Spacer()
             }
-
-
         case .paymentRejected:
-            return SwishWrapperView {
-                PaymentRejectedView(viewModel: self.viewModel)
-            }
-
-            
+            PaymentRejectedView(viewModel: self.viewModel)
         case .paymentCompleted:
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "checkmark.circle")
-                        .foregroundColor(Color.green)
-                        
-                    Text(
-                        "Payment completed",
-                        bundle: .module,
-                        comment:  "A success message indicating that the payment was completed and the payment session will end"
-                    )
-                        .font(.headline)
-                        .foregroundColor(Color.green)
-                        
-                    Spacer()
-                }
-            }
+            HStack {
+                Spacer()
+                Image(systemName: "checkmark.circle")
+                    .foregroundColor(Color.green)
 
-            
+                Text(
+                    "Payment completed",
+                    bundle: .module,
+                    comment:  "A success message indicating that the payment was completed and the payment session will end"
+                )
+                .font(.headline)
+                .foregroundColor(Color.green)
+
+                Spacer()
+            }
         case .errored(_):
-            return SwishWrapperView {
-                HStack {
-                    Spacer()
-                    Image(systemName: "xmark.circle")
-                        .foregroundColor(Color.red)
-                        
-                    Text(
-                        "Could not complete the payment due to an error. Please try again after a short time",
-                        bundle: .module,
-                        comment:  "An error message indicating there was an unexpected error with the payment"
-                    )
-                        .font(.headline)
-                        .foregroundColor(Color.red)
-                        
-                    Spacer()
-                }
+            HStack {
+                Spacer()
+                Image(systemName: "xmark.circle")
+                    .foregroundColor(Color.red)
+
+                Text(
+                    "Could not complete the payment due to an error. Please try again after a short time",
+                    bundle: .module,
+                    comment:  "An error message indicating there was an unexpected error with the payment"
+                )
+                .font(.headline)
+                .foregroundColor(Color.red)
+
+                Spacer()
             }
         }
     }
