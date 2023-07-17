@@ -15,6 +15,7 @@ public extension KronorApi {
     public init(
       additionalData: GraphQLNullable<PaymentSessionAdditionalData> = nil,
       amount: Int,
+      country: GraphQLNullable<GraphQLEnum<Country>> = nil,
       currency: GraphQLNullable<GraphQLEnum<SupportedCurrencyEnum>> = nil,
       expiresAt: String,
       idempotencyKey: String,
@@ -24,6 +25,7 @@ public extension KronorApi {
       __data = InputDict([
         "additionalData": additionalData,
         "amount": amount,
+        "country": country,
         "currency": currency,
         "expiresAt": expiresAt,
         "idempotencyKey": idempotencyKey,
@@ -43,6 +45,13 @@ public extension KronorApi {
     public var amount: Int {
       get { __data["amount"] }
       set { __data["amount"] = newValue }
+    }
+
+    /// The country where the payment is taking place.
+    /// Example: `SE`, `DK`, `NO`, `IS`, `FI`
+    public var country: GraphQLNullable<GraphQLEnum<Country>> {
+      get { __data["country"] }
+      set { __data["country"] = newValue }
     }
 
     /// When `currency` is not set, it defaults to the merchant's default currency.

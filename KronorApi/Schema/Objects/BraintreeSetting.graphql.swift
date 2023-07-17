@@ -6,7 +6,7 @@ import ApolloAPI
 public extension KronorApi.Objects {
   /// Settings for using Braintree
   static let BraintreeSetting = Object(
-    typename: "BraintreeSetting",
+    typename: "braintreeSetting",
     implementedInterfaces: []
   )
 }
