@@ -151,6 +151,11 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         returnURL: self.returnURL,
                         device: self.device
                     )
+                case .payPal:
+                    return await networking.createPayPalRequest(
+                        returnURL: self.returnURL,
+                        device: self.device
+                    )
                 case .fallback(_):
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway

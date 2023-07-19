@@ -19,11 +19,16 @@ public struct PayPalComponent: View {
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
+        let networking = KronorEmbeddedPaymentNetworking(
+            env: env,
+            token: sessionToken
+        )
 
         let viewModel = EmbeddedPaymentViewModel(
             env: env,
             sessionToken: sessionToken,
             stateMachine: machine,
+            networking: networking,
             paymentMethod: .payPal,
             returnURL: returnURL,
             device: device,
