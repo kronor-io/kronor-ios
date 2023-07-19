@@ -76,4 +76,22 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
             deviceInfo: deviceInfo!
         )
     }
+
+    func createPayPalRequest(
+        returnURL: URL,
+        device: Kronor.Device?
+    ) async -> Result<String, KronorApi.KronorError> {
+         let input = KronorApi.PayPalPaymentInput(
+             idempotencyKey: UUID().uuidString,
+             returnUrl: returnURL.absoluteString
+         )
+
+         var deviceInfo = device.map(makeDeviceInfo)
+         if deviceInfo == nil {
+             let def = await Kronor.detectDevice()
+             deviceInfo = makeDeviceInfo(device: def)
+         }
+
+         return await KronorApi.createPayPalPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+     }
 }

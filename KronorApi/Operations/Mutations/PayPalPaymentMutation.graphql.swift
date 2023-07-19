@@ -13,8 +13,6 @@ public extension KronorApi {
           newPayPalPayment(pay: $payment) {
             __typename
             paymentId
-            amount
-            currency
           }
           addSessionDeviceInformation(info: $deviceInfo) {
             __typename
@@ -66,19 +64,12 @@ public extension KronorApi {
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("paymentId", String.self),
-          .field("amount", String.self),
-          .field("currency", String.self),
         ] }
 
         /// Once a payment is initialized, we will start the PayPal payment
         /// workflow. You can use this id to query the current status of the
         /// payment.
         public var paymentId: String { __data["paymentId"] }
-        /// The amount the customer pays in minor units.
-        /// So 100,56 kr would be 10056
-        public var amount: String { __data["amount"] }
-        /// The currency of the payment
-        public var currency: String { __data["currency"] }
       }
 
       /// AddSessionDeviceInformation

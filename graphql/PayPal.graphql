@@ -1,27 +1,9 @@
 mutation PayPalPayment($payment: PayPalPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
     newPayPalPayment(pay: $payment) {
       paymentId
-      amount
-      currency
     }
 
     addSessionDeviceInformation(info: $deviceInfo) {
       result
     }
-}
-
-
-query BraintreeSetting {
-  braintreeSetting {
-    tokenizationKey
-    paypalClientId
-    currency
-  }
-}
-
-
-mutation SupplyPayPalPaymentMethodId($payment: SupplyPayPalPaymentMethodIdInput!) {
-  supplyPayPalPaymentMethodId(pay: $payment) {
-    paymentId
-  }
 }

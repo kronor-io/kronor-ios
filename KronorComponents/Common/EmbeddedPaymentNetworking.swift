@@ -24,4 +24,9 @@ protocol EmbeddedPaymentNetworking: PaymentNetworking {
         returnURL: URL,
         device: Kronor.Device?
     ) async -> Result<String, KronorApi.KronorError>
+    
+    func createPayPalRequest(
+        returnURL: URL,
+        device: Kronor.Device?
+    ) async -> Result<String, KronorApi.KronorError>
 }
