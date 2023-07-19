@@ -98,6 +98,40 @@ input BooleanComparisonExp {
   _nin: [Boolean!]
 }
 
+"""Arguments for capturing a new PayPal payment"""
+input CapturePayPalPaymentInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """
+  The payment id of a PayPal payment, this is obtained
+  with `newPayPalPayment`.
+  
+  Max length: 64.
+  """
+  paymentId: String!
+}
+
+"""The result of capturing a PayPal payment."""
+type CapturePayPalPaymentResult {
+  """The result of starting the PayPal payment capture."""
+  paymentId: String!
+}
+
 """Supported countries"""
 enum Country {
   AT
@@ -809,15 +843,6 @@ input PayPalPaymentInput {
 """The result of initiating a PayPal payment."""
 type PayPalPaymentResult {
   """
-  The amount the customer pays in minor units.
-  So 100,56 kr would be 10056
-  """
-  amount: String!
-
-  """The currency of the payment"""
-  currency: String!
-
-  """
   Once a payment is initialized, we will start the PayPal payment
   workflow. You can use this id to query the current status of the
   payment.
@@ -1137,6 +1162,26 @@ type PaymentRequest {
   ): [MobilePayDetails!]
 
   """
+  A computed field, executes function "runtime.get_transaction_paypal_details"
+  """
+  transactionPayPalDetails(
+    """distinct select on columns"""
+    distinctOn: [PaypalDetailsSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [PaypalDetailsOrderBy!]
+
+    """filter the rows returned"""
+    where: PaypalDetailsBoolExp
+  ): [PaypalDetails!]
+
+  """
   A computed field, executes function "runtime.get_transaction_swish_details"
   """
   transactionSwishDetails(
@@ -1203,6 +1248,7 @@ input PaymentRequestBoolExp {
   transactionFinsharkDetails: FinsharkDetailsBoolExp
   transactionId: StringComparisonExp
   transactionMobilePayDetails: MobilePayDetailsBoolExp
+  transactionPayPalDetails: PaypalDetailsBoolExp
   transactionSwishDetails: SwishDetailsBoolExp
   transactionVippsDetails: VippsDetailsBoolExp
   waitToken: UuidComparisonExp
@@ -1228,6 +1274,7 @@ input PaymentRequestOrderBy {
   transactionFinsharkDetailsAggregate: FinsharkDetailsAggregateOrderBy
   transactionId: OrderBy
   transactionMobilePayDetailsAggregate: MobilePayDetailsAggregateOrderBy
+  transactionPayPalDetailsAggregate: PaypalDetailsAggregateOrderBy
   transactionSwishDetailsAggregate: SwishDetailsAggregateOrderBy
   transactionVippsDetailsAggregate: VippsDetailsAggregateOrderBy
   waitToken: OrderBy
@@ -1439,6 +1486,103 @@ input PaymentStatusEnumComparisonExp {
   _isNull: Boolean
   _neq: PaymentStatusEnum
   _nin: [PaymentStatusEnum!]
+}
+
+"""Describes the schema for paypal details"""
+type PaypalDetails {
+  """Order ID as shared by PayPal"""
+  orderId: String
+
+  """PayPal payment URL"""
+  paymentUrl: String
+  paypalMerchantId: String
+}
+
+"""
+order by aggregate values of table "runtime.transaction_paypal_details"
+"""
+input PaypalDetailsAggregateOrderBy {
+  count: OrderBy
+  max: PaypalDetailsMaxOrderBy
+  min: PaypalDetailsMinOrderBy
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.transaction_paypal_details". All fields are combined with a logical 'AND'.
+"""
+input PaypalDetailsBoolExp {
+  _and: [PaypalDetailsBoolExp!]
+  _not: PaypalDetailsBoolExp
+  _or: [PaypalDetailsBoolExp!]
+  orderId: StringComparisonExp
+  paymentUrl: StringComparisonExp
+  paypalMerchantId: StringComparisonExp
+}
+
+"""
+order by max() on columns of table "runtime.transaction_paypal_details"
+"""
+input PaypalDetailsMaxOrderBy {
+  """Order ID as shared by PayPal"""
+  orderId: OrderBy
+
+  """PayPal payment URL"""
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+order by min() on columns of table "runtime.transaction_paypal_details"
+"""
+input PaypalDetailsMinOrderBy {
+  """Order ID as shared by PayPal"""
+  orderId: OrderBy
+
+  """PayPal payment URL"""
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+Ordering options when selecting data from "runtime.transaction_paypal_details".
+"""
+input PaypalDetailsOrderBy {
+  orderId: OrderBy
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+select columns of table "runtime.transaction_paypal_details"
+"""
+enum PaypalDetailsSelectColumn {
+  """column name"""
+  orderId
+
+  """column name"""
+  paymentUrl
+
+  """column name"""
+  paypalMerchantId
+}
+
+enum PaypalIntentEnum {
+  """Authorize to capture funds later."""
+  AUTHORIZE
+
+  """Instant capture funds."""
+  CAPTURE
+}
+
+"""
+Boolean expression to compare columns of type "PaypalIntentEnum". All fields are combined with logical 'AND'.
+"""
+input PaypalIntentEnumComparisonExp {
+  _eq: PaypalIntentEnum
+  _in: [PaypalIntentEnum!]
+  _isNull: Boolean
+  _neq: PaypalIntentEnum
+  _nin: [PaypalIntentEnum!]
 }
 
 """
@@ -2100,6 +2244,9 @@ type mutation_root {
   """Cancel payment request made using newSwishPayment."""
   cancelSwishPayment(pay: SwishPaymentCancelInput!): SwishPaymentCancelResult!
 
+  """Capture PayPal payment"""
+  capturePayPalPayment(pay: CapturePayPalPaymentInput!): CapturePayPalPaymentResult!
+
   """Log information about various stages of the payment component."""
   log(info: LogInput!): LogResult!
 
@@ -2135,6 +2282,86 @@ type mutation_root {
 }
 
 scalar packed_phone_number
+
+"""Table to hold PayPal credentials"""
+type paypalSetting {
+  """
+  '
+        BN code is a character string that uniquely identifies us with PayPal to
+        properly attribute payments. We pass this in all PayPal API calls in the
+        `PayPal-Partner-Attribution-Id` header
+        '
+  """
+  bnCode: String!
+
+  """The client_id of the PayPal app"""
+  clientId: String!
+
+  """The intent of a PayPal order: `AUTHORIZE` or `CAPTURE`"""
+  intent: PaypalIntentEnum!
+}
+
+"""
+Boolean expression to filter rows from the table "tenant.paypal_setting". All fields are combined with a logical 'AND'.
+"""
+input paypalSettingBoolExp {
+  _and: [paypalSettingBoolExp!]
+  _not: paypalSettingBoolExp
+  _or: [paypalSettingBoolExp!]
+  bnCode: StringComparisonExp
+  clientId: StringComparisonExp
+  intent: PaypalIntentEnumComparisonExp
+}
+
+"""Ordering options when selecting data from "tenant.paypal_setting"."""
+input paypalSettingOrderBy {
+  bnCode: OrderBy
+  clientId: OrderBy
+  intent: OrderBy
+}
+
+"""
+select columns of table "tenant.paypal_setting"
+"""
+enum paypalSettingSelectColumn {
+  """column name"""
+  bnCode
+
+  """column name"""
+  clientId
+
+  """column name"""
+  intent
+}
+
+"""
+Streaming cursor of the table "paypalSetting"
+"""
+input paypalSettingStreamCursorInput {
+  """Stream column input with initial value"""
+  initialValue: paypalSettingStreamCursorValueInput!
+
+  """cursor ordering"""
+  ordering: CursorOrdering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input paypalSettingStreamCursorValueInput {
+  """
+  '
+        BN code is a character string that uniquely identifies us with PayPal to
+        properly attribute payments. We pass this in all PayPal API calls in the
+        `PayPal-Partner-Attribution-Id` header
+        '
+  """
+  bnCode: String
+
+  """The client_id of the PayPal app"""
+  clientId: String
+
+  """The intent of a PayPal order: `AUTHORIZE` or `CAPTURE`"""
+  intent: PaypalIntentEnum
+}
 
 type query_root {
   """
@@ -2197,6 +2424,26 @@ type query_root {
     """filter the rows returned"""
     where: PaymentRequestBoolExp
   ): [PaymentRequest!]!
+
+  """
+  fetch data from the table: "tenant.paypal_setting"
+  """
+  paypalSetting(
+    """distinct select on columns"""
+    distinctOn: [paypalSettingSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [paypalSettingOrderBy!]
+
+    """filter the rows returned"""
+    where: paypalSettingBoolExp
+  ): [paypalSetting!]!
   version: String!
 }
 
@@ -2286,6 +2533,40 @@ type subscription_root {
     """filter the rows returned"""
     where: PaymentRequestBoolExp
   ): [PaymentRequest!]!
+
+  """
+  fetch data from the table: "tenant.paypal_setting"
+  """
+  paypalSetting(
+    """distinct select on columns"""
+    distinctOn: [paypalSettingSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [paypalSettingOrderBy!]
+
+    """filter the rows returned"""
+    where: paypalSettingBoolExp
+  ): [paypalSetting!]!
+
+  """
+  fetch data from the table in a streaming manner: "tenant.paypal_setting"
+  """
+  paypalSettingStream(
+    """maximum number of rows returned in a single batch"""
+    batchSize: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [paypalSettingStreamCursorInput]!
+
+    """filter the rows returned"""
+    where: paypalSettingBoolExp
+  ): [paypalSetting!]!
 }
 
 scalar timestamptz

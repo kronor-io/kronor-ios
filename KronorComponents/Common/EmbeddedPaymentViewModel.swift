@@ -15,6 +15,7 @@ enum SupportedEmbeddedMethod {
     case mobilePay
     case creditCard
     case vipps
+    case payPal
     case fallback(name: String)
     
     func getName() -> String {
@@ -25,6 +26,8 @@ enum SupportedEmbeddedMethod {
             return "mobilePay"
         case .vipps:
             return "vipps"
+        case .payPal:
+            return "paypal"
         case .fallback(let name):
             return name
         }

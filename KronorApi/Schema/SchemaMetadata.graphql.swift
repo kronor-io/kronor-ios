@@ -46,9 +46,6 @@ public extension KronorApi {
       case "MobilePayDetails": return KronorApi.Objects.MobilePayDetails
       case "VippsDetails": return KronorApi.Objects.VippsDetails
       case "PayPalPaymentResult": return KronorApi.Objects.PayPalPaymentResult
-      case "query_root": return KronorApi.Objects.Query_root
-      case "braintreeSetting": return KronorApi.Objects.BraintreeSetting
-      case "SupplyPayPalPaymentMethodIdResult": return KronorApi.Objects.SupplyPayPalPaymentMethodIdResult
       case "PaymentCancelResult": return KronorApi.Objects.PaymentCancelResult
       default: return nil
       }

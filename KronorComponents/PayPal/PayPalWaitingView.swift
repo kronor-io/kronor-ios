@@ -7,19 +7,13 @@
 
 import SwiftUI
 
-struct PayPalWaitingView<Content: View>: View {
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
+struct PayPalWaitingView: View {
 
     var body: some View {
         HStack {
             Spacer()
             ProgressView()
                 .padding(.trailing, 10.0)
-            content
             Spacer()
         }
     }
@@ -28,9 +22,7 @@ struct PayPalWaitingView<Content: View>: View {
 struct PayPalWaitingView_Previews: PreviewProvider {
     static var previews: some View {
         WrapperView(header: PayPalHeaderView()) {
-            PayPalWaitingView{
-                Text("Dummy contents")
-            }
+            PayPalWaitingView()
         }
     }
 }

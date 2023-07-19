@@ -9,7 +9,7 @@ import SwiftUI
 import Kronor
 
 public struct PayPalComponent: View {
-    let viewModel: PayPalViewModel
+    let viewModel: EmbeddedPaymentViewModel
     
     public init(env: Kronor.Environment,
                 sessionToken: String,
@@ -18,14 +18,13 @@ public struct PayPalComponent: View {
                 onPaymentFailure: @escaping () -> (),
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
-        let machine = PayPalStatechart.makeStateMachine()
-        let networking = KronorPayPalPaymentNetworking(
+        let machine = EmbeddedPaymentStatechart.makeStateMachine()
+
+        let viewModel = EmbeddedPaymentViewModel(
             env: env,
-            token: sessionToken
-        )
-        let viewModel = PayPalViewModel(
+            sessionToken: sessionToken,
             stateMachine: machine,
-            networking: networking,
+            paymentMethod: .payPal,
             returnURL: returnURL,
             device: device,
             onPaymentFailure: onPaymentFailure,
@@ -41,8 +40,9 @@ public struct PayPalComponent: View {
 
     public var body: some View {
         WrapperView(header: PayPalHeaderView()) {
-            PayPalPaymentView(
-                viewModel: self.viewModel
+            EmbeddedPaymentView(
+                viewModel: self.viewModel,
+                waitingView: PayPalWaitingView()
             )
         }
     }

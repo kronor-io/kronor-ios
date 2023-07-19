@@ -40,10 +40,6 @@ let package = Package(
             url: "https://github.com/fingerprintjs/fingerprintjs-ios",
             .upToNextMajor(from: "1.0.0")
         ),
-        .package(
-            url: "https://github.com/braintree/braintree_ios",
-            .upToNextMajor(from: "5.0.0")
-        ),
     ],
     targets: [
         .target(
@@ -69,8 +65,6 @@ let package = Package(
                 .target(name: "KronorApi"),
                 .product(name: "Apollo", package: "apollo-ios"),
                 .product(name: "StateMachine", package: "StateMachine"),
-                .product(name: "BraintreeCore", package: "braintree_ios"),
-                .product(name: "BraintreePayPal", package: "braintree_ios"),
             ],
             path: "./KronorComponents",
             resources: [.process("Assets")]
