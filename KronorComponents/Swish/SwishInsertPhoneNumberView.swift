@@ -46,12 +46,15 @@ struct SwishInsertPhoneNumberView: View {
 
 struct SwishInsertPhoneNumberView_Previews: PreviewProvider {
     static let machine = SwishStatechart.makeStateMachine()
+    static let networking = KronorSwishPaymentNetworking(
+        env: .sandbox,
+        token: "dummy"
+    )
     
     static var previews: some View {
         let viewModel = SwishPaymentViewModel(
-            env: .sandbox,
-            sessionToken: "dummy",
             stateMachine: machine,
+            networking: networking,
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {},
             onPaymentSuccess: {paymentId in }

@@ -30,6 +30,10 @@ struct CreditCardWaitingView_Previews: PreviewProvider {
             env: .sandbox,
             sessionToken: "dummy",
             stateMachine: machine,
+            networking: KronorEmbeddedPaymentNetworking(
+                env: .sandbox,
+                token: "dummy"
+            ),
             paymentMethod: .mobilePay,
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {},

@@ -19,10 +19,13 @@ public struct SwishComponent: View {
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = SwishStatechart.makeStateMachine()
-        self.viewModel = SwishPaymentViewModel(
+        let networking = KronorSwishPaymentNetworking(
             env: env,
-            sessionToken: sessionToken,
+            token: sessionToken
+        )
+        self.viewModel = SwishPaymentViewModel(
             stateMachine: machine,
+            networking: networking,
             returnURL: returnURL,
             device: device,
             onPaymentFailure: onPaymentFailure,

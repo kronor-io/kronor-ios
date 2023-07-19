@@ -22,7 +22,7 @@ class PayPalViewModel: ObservableObject {
     )
 
     private let stateMachine: PayPalStatechart.PayPalStateMachine
-    private var client: ApolloClient
+    private let networking: any PayPalPaymentNetworking
     private var paypalData: KronorApi.PayPalData?
     private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
     private var subscription: Cancellable?
@@ -34,16 +34,15 @@ class PayPalViewModel: ObservableObject {
 
     @Published var state: PayPalStatechart.State
     
-    init(env: Kronor.Environment,
-         sessionToken: String,
-         stateMachine: PayPalStatechart.PayPalStateMachine,
+    init(stateMachine: PayPalStatechart.PayPalStateMachine,
+         networking: some PayPalPaymentNetworking,
          returnURL: URL,
          device: Kronor.Device? = nil,
          onPaymentFailure: @escaping () -> (),
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
-        self.client = KronorApi.makeGraphQLClient(env: env, token: sessionToken)
+        self.networking = networking
         self.state = stateMachine.state
         self.device = device
         self.onPaymentSuccess = onPaymentSuccess
@@ -78,9 +77,10 @@ class PayPalViewModel: ObservableObject {
         case .createPaymentRequest:
             Self.logger.debug("creating payment request")
             
-            let paypalResult = await createPayPalPaymentRequest(client: self.client,
-                                                                returnURL: self.returnURL,
-                                                                device: self.device)
+            let paypalResult = await networking.createPayPalPaymentRequest(
+                returnURL: self.returnURL,
+                device: self.device
+            )
             
             switch paypalResult {
             case .failure(let error):
@@ -96,7 +96,7 @@ class PayPalViewModel: ObservableObject {
             Task { [weak self] in
                 if let self {
                     Self.logger.notice("cancelling payment request")
-                    let _ = await cancelSessionPayments(client: self.client)
+                    let _ = await self.networking.cancelSessionPayments()
                 }
             }
 
@@ -131,7 +131,7 @@ class PayPalViewModel: ObservableObject {
             self.subscription = nil
             
             if let _ = self.paymenRequest {
-                let _ = await cancelSessionPayments(client: client)
+                let _ = await self.networking.cancelSessionPayments()
             }
 
             self.paymenRequest = nil
@@ -151,7 +151,7 @@ class PayPalViewModel: ObservableObject {
 
                 do {
                     let tokenized = try await payPalDriver.tokenizePayPalAccount(with: checkoutRequest)
-                    let result = await KronorApi.sendPayPalNonce(client: self.client, input: KronorApi.SupplyPayPalPaymentMethodIdInput(
+                    let result = await networking.sendPayPalNonce(input: KronorApi.SupplyPayPalPaymentMethodIdInput(
                         idempotencyKey: UUID().uuidString,
                         paymentId: data.paymentData.paymentId,
                         paymentMethodId: tokenized.nonce
@@ -181,7 +181,7 @@ class PayPalViewModel: ObservableObject {
     }
     
     private func subscribeToPaymentStatus(waitToken: String) {
-        self.subscription = self.client.subscribe(subscription: KronorApi.PaymentStatusSubscription()) { [weak self] result in
+        self.subscription = networking.subscribeToPaymentStatus() { [weak self] result in
             switch result {
                 
             case .failure(let error):
@@ -226,11 +226,9 @@ class PayPalViewModel: ObservableObject {
     deinit {
         switch self.state {
         case .waitingForPayment, .paymentRequestInitialized:
-            Task { [weak self] in
-                if let self {
-                    Self.logger.debug("[deinit] cancelling payment request")
-                    let _ = await cancelSessionPayments(client: self.client)
-                }
+            Task { [networking] in
+                Self.logger.debug("[deinit] cancelling payment request")
+                let _ = await networking.cancelSessionPayments()
             }
         default:
             break

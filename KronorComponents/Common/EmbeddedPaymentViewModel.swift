@@ -46,7 +46,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     )
 
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
-    private var client: ApolloClient
+    private let networking: any EmbeddedPaymentNetworking
     private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
     private var subscription: Cancellable?
 
@@ -63,6 +63,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     init(env: Kronor.Environment,
          sessionToken: String,
          stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine,
+         networking: some EmbeddedPaymentNetworking,
          paymentMethod: SupportedEmbeddedMethod,
          returnURL: URL,
          device: Kronor.Device? = nil,
@@ -70,7 +71,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
-        self.client = KronorApi.makeGraphQLClient(env: env, token: sessionToken)
+        self.networking = networking
         self.state = stateMachine.state
         self.device = device
         self.onPaymentSuccess = onPaymentSuccess
@@ -133,17 +134,20 @@ class EmbeddedPaymentViewModel: ObservableObject {
             let rWaitToken = await {
                 switch self.paymentMethod {
                 case .mobilePay:
-                    return await createMobilePayPaymentRequest(client: self.client,
-                                                               returnURL: self.returnURL,
-                                                               device: self.device)
+                    return await networking.createMobilePayPaymentRequest(
+                        returnURL: self.returnURL,
+                        device: self.device
+                    )
                 case .creditCard:
-                    return await createCreditCardPaymentRequest(client: self.client,
-                                                               returnURL: self.returnURL,
-                                                               device: self.device)
+                    return await networking.createCreditCardPaymentRequest(
+                        returnURL: self.returnURL,
+                        device: self.device
+                    )
                 case .vipps:
-                    return await createVippsRequest(client: self.client,
-                                                    returnURL: self.returnURL,
-                                                    device: self.device)
+                    return await networking.createVippsRequest(
+                        returnURL: self.returnURL,
+                        device: self.device
+                    )
                 case .fallback(_):
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway
@@ -165,7 +169,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             Task { [weak self] in
                 if let self {
                     Self.logger.notice("cancelling payment request")
-                    let _ = await cancelSessionPayments(client: self.client)
+                    let _ = await self.networking.cancelSessionPayments()
                 }
             }
 
@@ -183,7 +187,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             Task { [weak self] in
                 if let self {
                     Self.logger.notice("cancelling payment request")
-                    let _ = await cancelSessionPayments(client: self.client)
+                    let _ = await self.networking.cancelSessionPayments()
                 }
             }
             
@@ -219,7 +223,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             self.subscription = nil
             
             if let _ = self.paymenRequest {
-                let _ = await cancelSessionPayments(client: client)
+                let _ = await networking.cancelSessionPayments()
             }
 
             self.paymenRequest = nil
@@ -255,7 +259,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
     
     private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) {
-        self.subscription = self.client.subscribe(subscription: KronorApi.PaymentStatusSubscription()) { [weak self] result in
+        self.subscription = networking.subscribeToPaymentStatus { [weak self] result in
             switch result {
                 
             case .failure(let error):
@@ -309,11 +313,9 @@ class EmbeddedPaymentViewModel: ObservableObject {
     deinit {
         switch self.state {
         case .waitingForPayment, .paymentRequestInitialized, .creatingPaymentRequest, .waitingForPaymentRequest:
-            Task { [weak self] in
-                if let self {
-                    Self.logger.debug("[deinit] cancelling payment request")
-                    let _ = await cancelSessionPayments(client: self.client)
-                }
+            Task { [networking] in
+                Self.logger.debug("[deinit] cancelling payment request")
+                let _ = await networking.cancelSessionPayments()
             }
         default:
             break
@@ -334,49 +336,4 @@ extension EmbeddedPaymentViewModel: RetryableModel {
             await self.transition(.retry)
         }
     }
-}
-
-func createMobilePayPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.MobilePayPaymentInput(
-        idempotencyKey: UUID().uuidString,
-        returnUrl: returnURL.absoluteString
-    )
-    
-    var deviceInfo = device.map(makeDeviceInfo)
-    if deviceInfo == nil {
-        let def = await Kronor.detectDevice()
-        deviceInfo = makeDeviceInfo(device: def)
-    }
-
-    return await KronorApi.createMobilePayPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
-}
-
-func createCreditCardPaymentRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.CreditCardPaymentInput(
-        idempotencyKey: UUID().uuidString,
-        returnUrl: returnURL.absoluteString
-    )
-    
-    var deviceInfo = device.map(makeDeviceInfo)
-    if deviceInfo == nil {
-        let def = await Kronor.detectDevice()
-        deviceInfo = makeDeviceInfo(device: def)
-    }
-
-    return await KronorApi.createCreditCardPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
-}
-
-func createVippsRequest(client: ApolloClient, returnURL: URL, device: Kronor.Device?) async -> Result<String, KronorApi.KronorError> {
-    let input = KronorApi.VippsPaymentInput(
-        idempotencyKey: UUID().uuidString,
-        returnUrl: returnURL.absoluteString
-    )
-    
-    var deviceInfo = device.map(makeDeviceInfo)
-    if deviceInfo == nil {
-        let def = await Kronor.detectDevice()
-        deviceInfo = makeDeviceInfo(device: def)
-    }
-
-    return await KronorApi.createVippsPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
 }
