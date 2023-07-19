@@ -19,11 +19,15 @@ public struct MobilePayComponent: View {
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
-
+        let networking = KronorEmbeddedPaymentNetworking(
+            env: env,
+            token: sessionToken
+        )
         let viewModel = EmbeddedPaymentViewModel(
             env: env,
             sessionToken: sessionToken,
             stateMachine: machine,
+            networking: networking,
             paymentMethod: .mobilePay,
             returnURL: returnURL,
             device: device,

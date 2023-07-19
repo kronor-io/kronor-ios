@@ -73,10 +73,13 @@ struct PayPalPaymentView: View {
 struct PayPalPaymentView_Previews: PreviewProvider {
     static var previews: some View {
         let machine = PayPalStatechart.makeStateMachine()
-        let viewModel = PayPalViewModel(
+        let networking = KronorPayPalPaymentNetworking(
             env: .sandbox,
-            sessionToken: "dummy",
+            token: "dummy"
+        )
+        let viewModel = PayPalViewModel(
             stateMachine: machine,
+            networking: networking,
             returnURL: URL(string: "io.kronortest://")!,
             onPaymentFailure: {},
             onPaymentSuccess: {paymentId in }
