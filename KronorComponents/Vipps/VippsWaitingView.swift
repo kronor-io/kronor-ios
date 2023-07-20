@@ -13,7 +13,7 @@ struct VippsWaitingView: View {
             Spacer()
             Image(systemName: "hourglass.circle")
             Text(
-                "Creating secure Vipps transaction",
+                "creating_vipps",
                 bundle: .module,
                 comment:  "A waiting message that indicates the app is communicating with the server"
             )

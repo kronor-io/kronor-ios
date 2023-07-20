@@ -13,7 +13,7 @@ struct MobilePayWaitingView: View {
             Spacer()
             Image(systemName: "hourglass.circle")
             Text(
-                "Creating secure MobilePay transaction",
+                "creating_mobilepay",
                 bundle: .module,
                 comment:  "A waiting message that indicates the app is communicating with the server"
             )

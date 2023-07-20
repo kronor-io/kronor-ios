@@ -1,62 +1,26 @@
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                     
-
-"Could not complete the payment due to an error. Please try again after a short time" = "Nepavyko atlikti mokėjimo dėl techninės klaidos. Bandykite dar kartą vėliau.";
-
-"Payment completed" = "                                                                                                                                                
-Mokėjimas atliktas";                                                                                                                                                   
-
-"cancel" = "atšaukti";                                                                                                                                                 
-
-"or" = "ar";                                                                                                                                                           
-
-"Payment failed" = "Mokėjimas nepavyko";                                                                                                                               
-
-"try again?" = "Bandyti dar kartą?";                                                                                                                                   
-
-"Establishing secure connection" = "Saugaus ryšio užmezgimas";                                                                                                         
-
-"Completing payment" = "Mokėjimas užbaigiamas";                                                                                                                        
-
-"Could not complete the payment due to an error. Please try again after a short time" = "Nepavyko atlikti mokėjimo dėl techninės klaidos. Bandykite dar kartą vėliau.";
-
-"Creating secure Swish transaction" = "Creating secure Swish transaction";                                                                                             
-
-"Creating secure PayPal transaction" = "Inicijuojamas saugus mokėjimas su Paypal ";                                                                                    
-
-"Generating QR code" = "Generuojamas QR kodas";                                                                                                                        
-
-"Opening the swish app" = "Opening the swish app";                                                                                                                     
-
-"Payment completed" = "Mokėjimas atliktas";                                                                                                                            
-
-"You can pay with the Swish app now" = "You can pay with the Swish app now";                                                                                           
-
-"Enter phone number" = "Įveskite telefono numerį";                                                                                                                     
-
-"Open Swish App" = "Open Swish App";                                                                                                                                   
-
-"or pay using another phone" = "arba mokėkite naudodami kitą telefoną";                                                                                                
-
-"Scan QR Code" = "Nuskenuoti QR kodą";                                                                                                                                 
-
-"Scan this code with the Swish app" = "Scan this code with the Swish app";                                                                                             
-
-"Pay Now" = "Pay Now";                                                                                                                                                 
-
-"Creating secure Vipps transaction" = "Creating secure Vipps transaction";                                                                                             
-
-"Completing your payment, please wait" = "Mokėjimas užbaigiamas, prašome palaukti";                                                                                    
-
-"Creating secure MobilePay transaction" = "Creating secure MobilePay transaction";                                                                                     
-
-"Cancel Payment?" = "Atšaukti mokėjimą?";                                                                                                                              
-
-"Continue" = "Tęsti";                                                                                                                                                  
-
-"Yes, cancel" = "Taip, atšaukti";                                                                                                                                      
-
-"Completing your payment, please wait" = "Mokėjimas užbaigiamas, prašome palaukti";                                                                                    
-
-"Creating secure PayPal transaction" = "Inicijuojamas saugus mokėjimas su Paypal ";                                                                                    
-
-"Creating secure transaction" = "Inicijuojamas saugus mokėjimas";                                                                                                      
+"creating_mobilepay" = "Creating secure MobilePay transaction";
+"payment_error_retry_later" = "Nepavyko atlikti mokėjimo dėl techninės klaidos. Bandykite dar kartą vėliau.";
+"payment_completed" = "Mokėjimas atliktas";
+"cancel" = "atšaukti";
+"or" = "ar";
+"payment_rejected" = "Mokėjimas nepavyko";
+"try_again" = "Bandyti dar kartą?";
+"secure_connection" = "Saugaus ryšio užmezgimas";
+"completing_payment" = "Mokėjimas užbaigiamas";
+"creating_swish" = "Creating secure Swish transaction";
+"creating_paypal" = "Inicijuojamas saugus mokėjimas su Paypal ";
+"generate_qr" = "Generuojamas QR kodas";
+"opening_swish" = "Opening the swish app";
+"pay_with_swish" = "You can pay with the Swish app now";
+"enter_phone" = "Įveskite telefono numerį";
+"open_swish" = "Open Swish App";
+"pay_another_phone" = "arba mokėkite naudodami kitą telefoną";
+"scan_qr_code" = "Nuskenuoti QR kodą";
+"scan_with_swish" = "Scan this code with the Swish app";
+"pay_now" = "Pay Now";
+"creating_vipps" = "Creating secure Vipps transaction";
+"waiting_for_payment" = "Mokėjimas užbaigiamas, prašome palaukti";
+"cancel_payment" = "Atšaukti mokėjimą?";
+"continue" = "Tęsti";
+"confirm_cancellation" = "Taip, atšaukti";
+"creating_secure_transaction" = "Inicijuojamas saugus mokėjimas";

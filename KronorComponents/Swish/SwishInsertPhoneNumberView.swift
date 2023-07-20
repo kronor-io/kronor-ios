@@ -32,7 +32,7 @@ struct SwishInsertPhoneNumberView: View {
                 }
             }) {
                 Text(
-                    "Pay Now",
+                    "pay_now",
                     bundle: .module,
                     comment: "Call to action after entering the Swish phone number to make a payment"
                 )
