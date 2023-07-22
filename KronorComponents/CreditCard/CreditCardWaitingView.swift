@@ -24,21 +24,9 @@ struct CreditCardWaitingView: View {
 }
 
 struct CreditCardWaitingView_Previews: PreviewProvider {
+    static let viewModel = Preview.makeEmbeddedPaymentViewModel(paymentMethod: .mobilePay)
+
     static var previews: some View {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let viewModel = EmbeddedPaymentViewModel(
-            env: .sandbox,
-            sessionToken: "dummy",
-            stateMachine: machine,
-            networking: KronorEmbeddedPaymentNetworking(
-                env: .sandbox,
-                token: "dummy"
-            ),
-            paymentMethod: .mobilePay,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
         WrapperView(header: CreditCardHeaderView(viewModel: viewModel)) {
             CreditCardWaitingView()
         }

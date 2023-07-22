@@ -126,119 +126,60 @@ struct SwishPaymentView: View {
 }
 
 struct SwishPaymentView_Previews: PreviewProvider {
-    static let networking = KronorSwishPaymentNetworking(
-        env: .sandbox,
-        token: "dummy"
-    )
-
     static var previews: some View {
-        
         // prompt
-        let machine = SwishStatechart.makeStateMachine()
-        let viewModel = SwishPaymentViewModel(
-            stateMachine: machine,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        SwishPaymentView(viewModel: viewModel)
+        let promptViewModel = Preview.makeSwishPaymentViewModel()
+        SwishPaymentView(viewModel: promptViewModel)
             .previewDisplayName("prompt")
         
         // creatingPaymentRequest
-        let machine2 = SwishStatechart.makeStateMachineWithInitialState(initial: .creatingPaymentRequest(selected: .swishApp))
-        let viewModel2 = SwishPaymentViewModel(
-            stateMachine: machine2,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
+        let creatingPaymentRequestViewModel = Preview.makeSwishPaymentViewModel(
+            state: .creatingPaymentRequest(selected: .swishApp)
         )
-        SwishPaymentView(viewModel: viewModel2)
+        SwishPaymentView(viewModel: creatingPaymentRequestViewModel)
             .previewDisplayName("creatingPaymentRequest")
         
-        // creatingPaymentRequest
-        let machine3 = SwishStatechart.makeStateMachineWithInitialState(initial: .waitingForPaymentRequest(selected: .swishApp))
-        let viewModel3 = SwishPaymentViewModel(
-            stateMachine: machine3,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
+        // waitingForPaymentRequest
+        let waitingForPaymentRequestViewModel = Preview.makeSwishPaymentViewModel(
+            state: .waitingForPaymentRequest(selected: .swishApp)
         )
-        SwishPaymentView(viewModel: viewModel3)
+        SwishPaymentView(viewModel: waitingForPaymentRequestViewModel)
             .previewDisplayName("waitingForPaymentRequest")
         
         // waitingForPayment
-        let machine4 = SwishStatechart.makeStateMachineWithInitialState(initial: .waitingForPayment)
-        let viewModel4 = SwishPaymentViewModel(
-            stateMachine: machine4,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        SwishPaymentView(viewModel: viewModel4)
+        let waitingForPaymentViewModel = Preview.makeSwishPaymentViewModel(state: .waitingForPayment)
+        SwishPaymentView(viewModel: waitingForPaymentViewModel)
             .previewDisplayName("waitingForPayment")
         
         // paymentRequestInitialized (app)
-        let machine5 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .swishApp))
-        let viewModel5 = SwishPaymentViewModel(
-            stateMachine: machine5,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
+        let paymentRequestInitializedAppViewModel = Preview.makeSwishPaymentViewModel(
+            state: .paymentRequestInitialized(selected: .swishApp)
         )
-        SwishPaymentView(viewModel: viewModel5)
+        SwishPaymentView(viewModel: paymentRequestInitializedAppViewModel)
             .previewDisplayName("paymentRequestInitialized (app)")
 
         // paymentRequestInitialized (qr)
-        let machine6 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .qrCode))
-        let viewModel6 = SwishPaymentViewModel(
-            stateMachine: machine6,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
+        let paymentRequestInitializedQrViewModel = Preview.makeSwishPaymentViewModel(
+            state: .paymentRequestInitialized(selected: .qrCode)
         )
-        SwishPaymentView(viewModel: viewModel6)
+        SwishPaymentView(viewModel: paymentRequestInitializedQrViewModel)
             .previewDisplayName("paymentRequestInitialized (qr)")
         
         // paymentRequestInitialized (phone)
-        let machine7 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRequestInitialized(selected: .phoneNumber))
-        let viewModel7 = SwishPaymentViewModel(
-            stateMachine: machine7,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
+        let paymentRequestInitializedPhoneViewModel = Preview.makeSwishPaymentViewModel(
+            state: .paymentRequestInitialized(selected: .phoneNumber)
         )
-        SwishPaymentView(viewModel: viewModel7)
+        SwishPaymentView(viewModel: paymentRequestInitializedPhoneViewModel)
             .previewDisplayName("paymentRequestInitialized (phone)")
         
         // paymentRejected
-        let machine8 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentRejected)
-        let viewModel8 = SwishPaymentViewModel(
-            stateMachine: machine8,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        SwishPaymentView(viewModel: viewModel8)
+        let paymentRejectedViewModel = Preview.makeSwishPaymentViewModel(state: .paymentRejected)
+        SwishPaymentView(viewModel: paymentRejectedViewModel)
             .previewDisplayName("paymentRejected")
         
         // paymentCompleted
-        let machine9 = SwishStatechart.makeStateMachineWithInitialState(initial: .paymentCompleted)
-        let viewModel9 = SwishPaymentViewModel(
-            stateMachine: machine9,
-            networking: networking,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        SwishPaymentView(viewModel: viewModel9)
+        let paymentCompletedViewModel = Preview.makeSwishPaymentViewModel(state: .paymentCompleted)
+        SwishPaymentView(viewModel: paymentCompletedViewModel)
             .previewDisplayName("paymentCompleted")
     }
 }

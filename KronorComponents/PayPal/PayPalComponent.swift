@@ -56,13 +56,13 @@ public struct PayPalComponent: View {
 struct PayPalComponent_Previews: PreviewProvider {
     static var previews: some View {
         PayPalComponent(
-            env: .sandbox,
-            sessionToken: "dummy",
-            returnURL: URL(string: "io.kronortest://")!,
+            env: Preview.env,
+            sessionToken: Preview.token,
+            returnURL: Preview.returnURL,
             onPaymentFailure: {
                 print("failed!")
             }
-        ) {paymentId in
+        ) { paymentId in
             print("done: \(paymentId)")
         }
     }
