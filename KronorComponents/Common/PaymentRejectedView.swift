@@ -21,7 +21,7 @@ struct PaymentRejectedView: View {
                     .foregroundColor(Color.red)
                     
                 Text(
-                    "Payment failed",
+                    "payment_rejected",
                     bundle: .module,
                      comment: "indicates that the payment resulted in error, cancelled by the customer or declined by the provider"
                 )
@@ -56,7 +56,7 @@ struct PaymentRejectedView: View {
                     clickedOnSomething = true
                 }) {
                     Text(
-                        "try again?",
+                        "try_again",
                         bundle: .module,
                         comment: "Indicates that the user wants to continue the payment session and try another payment"
                     )

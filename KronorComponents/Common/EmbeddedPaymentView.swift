@@ -66,7 +66,7 @@ struct EmbeddedPaymentView<Content: View>: View {
                     .foregroundColor(Color.green)
                 
                 Text(
-                    "Payment completed",
+                    "payment_completed",
                     bundle: .module,
                     comment:  "A success message indicating that the payment was completed and the payment session will end"
                 )
@@ -82,7 +82,7 @@ struct EmbeddedPaymentView<Content: View>: View {
                     .foregroundColor(Color.red)
                 
                 Text(
-                    "Could not complete the payment due to an error. Please try again after a short time",
+                    "payment_error_retry_later",
                     bundle: .module,
                     comment:  "An error message indicating there was an unexpected error with the payment"
                 )

@@ -20,7 +20,7 @@ struct SwishPromptMethodView: View {
                 }
             }) {
                 Text(
-                    "Open Swish App",
+                    "open_swish",
                     bundle: .module,
                     comment: "A button label that indicates the customer wants to pay with the Swish app in the same device"
                 )
@@ -31,7 +31,7 @@ struct SwishPromptMethodView: View {
             
             
             Text(
-                "or pay using another phone",
+                "pay_another_phone",
                 bundle: .module,
                 comment: ""
             )
@@ -45,7 +45,7 @@ struct SwishPromptMethodView: View {
                 }
             }) {
                 Text(
-                    "Scan QR Code",
+                    "scan_qr_code",
                     bundle: .module,
                     comment: "A button label that indicates the customer wants to pay by scanning a QR code in another device"
                 )
@@ -58,7 +58,7 @@ struct SwishPromptMethodView: View {
                 }
             }) {
                 Text(
-                    "Enter phone number",
+                    "enter_phone",
                     bundle: .module,
                     comment: "A button label that indicates the customer wants to pay getting a notification in another device"
                 )

@@ -25,7 +25,7 @@ struct SwishPaymentView: View {
                 Spacer()
                 Image(systemName: "hourglass.circle")
                 Text(
-                    "Creating secure Swish transaction",
+                    "creating_swish",
                     bundle: .module,
                     comment:  "A waiting message that indicates that the app is communicating with the server"
                 )
@@ -37,7 +37,7 @@ struct SwishPaymentView: View {
                 Spacer()
                 Image(systemName: "arrow.up.forward.app")
                 Text(
-                    "Opening the swish app",
+                    "opening_swish",
                     bundle: .module,
                     comment:  "Indicates that this app is prompting the user to open the Swish app in the same device"
                 )
@@ -53,7 +53,7 @@ struct SwishPaymentView: View {
                     Spacer()
                     Image(systemName: "qrcode.viewfinder")
                     Text(
-                        "Generating QR code",
+                        "generate_qr",
                         bundle: .module,
                         comment:  "A waiting message indicating that a new QR code image is being generated"
                     )
@@ -67,7 +67,7 @@ struct SwishPaymentView: View {
                 Spacer()
                 Image(systemName: "arrow.up.forward.app")
                 Text(
-                    "You can pay with the Swish app now",
+                    "pay_with_swish",
                     bundle: .module,
                     comment:  "A waiting message indicating that the customer should open the Swish app in another phone"
                 )
@@ -80,7 +80,7 @@ struct SwishPaymentView: View {
                 Spacer()
                 Image(systemName: "hourglass.circle")
                 Text(
-                    "Completing payment",
+                    "completing_payment",
                     bundle: .module,
                     comment:  "A waiting message indicating that the customer should complete the payment in the Swish app"
                 )
@@ -96,7 +96,7 @@ struct SwishPaymentView: View {
                     .foregroundColor(Color.green)
 
                 Text(
-                    "Payment completed",
+                    "payment_completed",
                     bundle: .module,
                     comment:  "A success message indicating that the payment was completed and the payment session will end"
                 )

@@ -23,7 +23,7 @@ struct SwishQRView: View {
                 .padding(.all, 20)
 
             Text(
-                "Scan this code with the Swish app",
+                "scan_with_swish",
                 bundle: .module,
                 comment: "The caption for a QR code image prompting the user to scan it with another device"
             )

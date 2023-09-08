@@ -21,22 +21,25 @@ struct EmbeddedSiteView: View {
                         alertIsPresenting = true
                     }) {
                         Text(
-                            "Cancel",
-                            bundle: .module,
-                            comment:  "Abort the payment"
+                            NSLocalizedString(
+                                "cancel",
+                                bundle: .module,
+                                comment: "Abort the payment"
+                            )
+                            .capitalized
                         )
                         .bold()
                     })
                 .alert(isPresented: $alertIsPresenting) {
                     Alert(
                         title: Text(
-                            "Cancel Payment?",
+                            "cancel_payment",
                             bundle: .module,
                             comment:  "Alert message to ask the user if they want to cancel the payment"
                         ),
                         primaryButton: .default(
                             Text(
-                                "Continue",
+                                "continue",
                                 bundle: .module,
                                 comment:  "Continue in the same payment session"
                             ),
@@ -44,7 +47,7 @@ struct EmbeddedSiteView: View {
                         ),
                         secondaryButton: .destructive(
                             Text(
-                                "Yes, cancel",
+                                "confirm_cancellation",
                                 bundle: .module,
                                 comment:  "Abort the payment"
                             ),
