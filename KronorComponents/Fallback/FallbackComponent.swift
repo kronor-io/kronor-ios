@@ -56,14 +56,14 @@ public struct FallbackComponent: View {
 struct FallbackComponent_Previews: PreviewProvider {
     static var previews: some View {
         FallbackComponent(
-            env: .sandbox,
-            sessionToken: "dummy",
+            env: Preview.env,
+            sessionToken: Preview.token,
             paymentMethodName: "swish",
-            returnURL: URL(string: "io.kronortest://")!,
+            returnURL: Preview.returnURL,
             onPaymentFailure: {
                 print("failed!")
             }
-        ) {paymentId in
+        ) { paymentId in
             print("done: \(paymentId)")
         }
     }

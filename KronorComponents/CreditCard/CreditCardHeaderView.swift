@@ -34,45 +34,26 @@ struct CreditCardHeaderView: View {
 }
 
 struct CreditCardHeaderView_Previews: PreviewProvider {
-    static var previews: some View {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let env = Kronor.Environment.sandbox
-        let token = "dummy"
-        let networking = KronorEmbeddedPaymentNetworking(
-            env: env,
-            token: token
+    static let viewModel = Preview.makeEmbeddedPaymentViewModel(paymentMethod: .mobilePay)
+    static let errorViewModel = Preview.makeEmbeddedPaymentViewModel(
+        paymentMethod: .mobilePay,
+        state: .errored(
+            error: .usageError(
+                error: KronorApi.APIError(
+                    errors: [],
+                    extensions: [:]
+                )
+            )
         )
-        let viewModel = EmbeddedPaymentViewModel(
-            env: env,
-            sessionToken: token,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .mobilePay,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
+    )
 
+    static var previews: some View {
         WrapperView(header: CreditCardHeaderView(viewModel: viewModel)) {
             Text("Dummy contents")
         }
         .previewDisplayName("Header")
-        
-        let machine2 = EmbeddedPaymentStatechart.makeStateMachineWithInitialState(
-            initial: .errored(error: .usageError(error: KronorApi.APIError(errors: [], extensions: [:])))
-        )
-        let viewModel2 = EmbeddedPaymentViewModel(
-            env: env,
-            sessionToken: token,
-            stateMachine: machine2,
-            networking: networking,
-            paymentMethod: .mobilePay,
-            returnURL: URL(string: "io.kronortest://")!,
-            onPaymentFailure: {},
-            onPaymentSuccess: {paymentId in }
-        )
-        
-        WrapperView(header: CreditCardHeaderView(viewModel: viewModel2)) {
+
+        WrapperView(header: CreditCardHeaderView(viewModel: errorViewModel)) {
             Text("Dummy contents")
         }
         .previewDisplayName("Header Error")
