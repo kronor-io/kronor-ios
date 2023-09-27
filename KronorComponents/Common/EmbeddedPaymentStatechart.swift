@@ -39,7 +39,6 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
     enum SideEffect {
         case createPaymentRequest
         case openEmbeddedSite
-        case cancelPaymentRequest
         case subscribeToPaymentStatus (waitToken: String)
         case notifyPaymentSuccess
         case notifyPaymentFailure

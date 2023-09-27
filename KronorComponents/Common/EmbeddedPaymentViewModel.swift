@@ -171,15 +171,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
             case .success(let waitToken):
                 let _ = await transition(.paymentRequestCreated(waitToken: waitToken))
             }
-            
-            
-        case .cancelPaymentRequest:
-            Task { [weak self] in
-                if let self {
-                    Self.logger.notice("cancelling payment request")
-                    let _ = await self.networking.cancelSessionPayments()
-                }
-            }
 
 
         case .notifyPaymentFailure:
@@ -192,13 +183,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         case .cancelAndNotifyFailure:
             Self.logger.trace("performing cancelAndNotifyFailure")
-            Task { [weak self] in
-                if let self {
-                    Self.logger.notice("cancelling payment request")
-                    let _ = await self.networking.cancelSessionPayments()
-                }
-            }
-            
             self.subscription?.cancel()
             await MainActor.run {
                 self.onPaymentFailure()
@@ -245,6 +229,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             }
 
         case .cancelAfterDeadline:
+            Self.logger.info("attempting to cancel payment after deadline")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 Task { [weak self] in
                     if let state = self?.state, state == .waitingForPaymentRequest {
@@ -319,15 +304,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
     
     deinit {
-        switch self.state {
-        case .waitingForPayment, .paymentRequestInitialized, .creatingPaymentRequest, .waitingForPaymentRequest:
-            Task { [networking] in
-                Self.logger.debug("[deinit] cancelling payment request")
-                let _ = await networking.cancelSessionPayments()
-            }
-        default:
-            break
-        }
         self.subscription?.cancel()
     }
 }
