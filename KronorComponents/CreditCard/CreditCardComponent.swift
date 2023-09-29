@@ -15,7 +15,7 @@ public struct CreditCardComponent: View {
                 sessionToken: String,
                 returnURL: URL,
                 device: Kronor.Device? = nil,
-                onPaymentFailure: @escaping () -> (),
+                onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
@@ -55,8 +55,8 @@ struct CreditCardComponent_Previews: PreviewProvider {
             env: Preview.env,
             sessionToken: Preview.token,
             returnURL: Preview.returnURL,
-            onPaymentFailure: {
-                print("failed!")
+            onPaymentFailure: { reason in
+                print("failed: \(reason)")
             }
         ) { paymentId in
             print("done: \(paymentId)")

@@ -55,7 +55,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
     private var paymentMethod: SupportedEmbeddedMethod
     private var device: Kronor.Device?
-    private var onPaymentFailure: () -> ()
+    private var onPaymentFailure: (_ reason: FailureReason) -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     internal let sessionURL: URL
     internal let returnURL: URL
@@ -70,7 +70,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
          paymentMethod: SupportedEmbeddedMethod,
          returnURL: URL,
          device: Kronor.Device? = nil,
-         onPaymentFailure: @escaping () -> (),
+         onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
@@ -177,7 +177,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             Self.logger.trace("performing notifyPaymentFailure")
             self.subscription?.cancel()
             await MainActor.run {
-                self.onPaymentFailure()
+                self.onPaymentFailure(.declined)
             }
 
 
@@ -185,7 +185,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
             await MainActor.run {
-                self.onPaymentFailure()
+                self.onPaymentFailure(.cancelled)
             }
 
             

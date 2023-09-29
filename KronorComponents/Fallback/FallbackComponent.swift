@@ -16,7 +16,7 @@ public struct FallbackComponent: View {
                 paymentMethodName: String,
                 returnURL: URL,
                 device: Kronor.Device? = nil,
-                onPaymentFailure: @escaping () -> (),
+                onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
                 onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
@@ -60,8 +60,8 @@ struct FallbackComponent_Previews: PreviewProvider {
             sessionToken: Preview.token,
             paymentMethodName: "swish",
             returnURL: Preview.returnURL,
-            onPaymentFailure: {
-                print("failed!")
+            onPaymentFailure: { reason in
+                print("failed: \(reason)")
             }
         ) { paymentId in
             print("done: \(paymentId)")

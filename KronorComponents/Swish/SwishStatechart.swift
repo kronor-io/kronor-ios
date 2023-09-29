@@ -41,12 +41,12 @@ final class SwishStatechart : StateMachineBuilder {
     enum SideEffect {
         case createEcomPaymentRequest (phoneNumber: String)
         case createMcomPaymentRequest
-        case cancelPaymentRequest
         case openSwishApp
         case subscribeToPaymentStatus (waitToken: String)
         case notifyPaymentSuccess
         case notifyPaymentFailure
         case resetState
+        case cancelFlow
     }
     
     enum SelectedMethod : Equatable {
@@ -156,7 +156,7 @@ final class SwishStatechart : StateMachineBuilder {
             
             state(.paymentRejected) {
                 on(.cancelFlow) {
-                    dontTransition(emit: .notifyPaymentFailure)
+                    dontTransition(emit: .cancelFlow)
                 }
                 
                 on(.retry) {
