@@ -35,7 +35,7 @@ enum Preview {
             networking: networking,
             paymentMethod: paymentMethod,
             returnURL: returnURL,
-            onPaymentFailure: {reason in },
+            onPaymentFailure: { reason in },
             onPaymentSuccess: { paymentId in }
         )
     }
@@ -57,7 +57,7 @@ enum Preview {
             stateMachine: machine,
             networking: networking,
             returnURL: returnURL,
-            onPaymentFailure: {reason in },
+            onPaymentFailure: { reason in },
             onPaymentSuccess: { paymentId in }
         )
     }
