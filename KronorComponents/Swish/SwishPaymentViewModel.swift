@@ -42,7 +42,7 @@ class SwishPaymentViewModel: ObservableObject {
     
     private var returnURL: URL
     private var device: Kronor.Device?
-    private var onPaymentFailure: () -> ()
+    private var onPaymentFailure: (_ reason: FailureReason) -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     
     @Published var state: SwishStatechart.State
@@ -58,7 +58,7 @@ class SwishPaymentViewModel: ObservableObject {
         networking: some SwishPaymentNetworking,
         returnURL: URL,
         device: Kronor.Device? = nil,
-        onPaymentFailure: @escaping () -> (),
+        onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
         onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
@@ -129,16 +129,19 @@ class SwishPaymentViewModel: ObservableObject {
                 let _ = await transition(.paymentRequestCreated(waitToken: waitToken))
             }
 
-            
-        case .cancelPaymentRequest:
-            Self.logger.notice("[UNIMMPLEMENTED]: cancelPaymentRequest")
-
 
         case .notifyPaymentFailure:
             Self.logger.trace("performing notifyPaymentFailure")
             self.subscription?.cancel()
             await MainActor.run {
-                self.onPaymentFailure()
+                self.onPaymentFailure(.declined)
+            }
+        
+        case .cancelFlow:
+            Self.logger.trace("performing cancelFlow")
+            self.subscription?.cancel()
+            await MainActor.run {
+                self.onPaymentFailure(.cancelled)
             }
 
             
