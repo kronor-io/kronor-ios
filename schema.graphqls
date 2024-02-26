@@ -132,39 +132,6 @@ type CapturePayPalPaymentResult {
   paymentId: String!
 }
 
-"""Supported countries"""
-enum Country {
-  AT
-  BE
-  CH
-  CY
-  CZ
-  DE
-  DK
-  EE
-  ES
-  FI
-  FR
-  GR
-  HR
-  HU
-  IE
-  IS
-  IT
-  LT
-  LU
-  LV
-  MT
-  NL
-  NO
-  PL
-  PT
-  RO
-  SE
-  SI
-  SK
-}
-
 """
 Boolean expression to compare columns of type "country". All fields are combined with logical 'AND'.
 """
@@ -597,35 +564,6 @@ input JsonbComparisonExp {
   _lte: jsonb
   _neq: jsonb
   _nin: [jsonb!]
-}
-
-"""Supported languages"""
-enum Language {
-  CS
-  DA
-  DE
-  EL
-  EN
-  ES
-  ET
-  FI
-  FR
-  HR
-  HU
-  IS
-  IT
-  LB
-  LT
-  LV
-  MT
-  NL
-  NO
-  PL
-  PT
-  RO
-  SK
-  SL
-  SV
 }
 
 """Arguments for sending a log"""
@@ -1603,124 +1541,6 @@ enum PaymentRequestSelectColumn {
   waitToken
 }
 
-"""Arguments for adding additional data to a payment."""
-input PaymentSessionAdditionalData {
-  """The E-mail address of the customer."""
-  email: String!
-
-  """IP address of the customer attempting the payment."""
-  ip: String!
-
-  """
-  Language in which the payment is being handled
-  Only languages in two-letter `ISO-639-1` format are recognized.
-  Example: `SV`, `DA`, `NO`, `IS`, `EN`.
-  """
-  language: Language!
-
-  """
-  The name of the customer that the payment is associated with.
-  
-  Max length: 100.
-  """
-  name: String!
-
-  """
-  Phone number
-  Max length: 100.
-  """
-  phoneNumber: String
-}
-
-"""Arguments for creating a new payment session."""
-input PaymentSessionInput {
-  """Additional data about the customer attempting the payment."""
-  additionalData: PaymentSessionAdditionalData
-
-  """
-  The amount the customer pays in minor units.
-  So 100,56 kr would be 10056
-  """
-  amount: Int!
-
-  """
-  The country where the payment is taking place.
-  Example: `SE`, `DK`, `NO`, `IS`, `FI`
-  """
-  country: Country
-
-  """
-  When `currency` is not set, it defaults to the merchant's default currency.
-  
-  When no payment method is available for the given currency, then
-  `newPaymentSession` fails with an error. Similarly, attempting to
-  create a payment with a payment method that is not available for
-  the given currency also results in an error.
-  """
-  currency: SupportedCurrencyEnum
-
-  """
-  Session expiry timestamp in ISO8601 format.
-  E.g. '1970-01-01T00:00:00Z'
-  Max is 24 hrs from creation of session.
-  """
-  expiresAt: String!
-
-  """
-  Idempotency key is required to prevent double processing a request.
-  It is recommended to use a deterministic unique value, such as the combination of
-  the order id and the customer id. Avoid using time-based values.
-  Only alphanumeric character and the following are allowed:
-  - "-"
-  - "_"
-  - "."
-  - ","
-  - "["
-  - "]"
-  - "+"
-  
-  Max length: 64.
-  """
-  idempotencyKey: String!
-
-  """
-  Merchant's own internal reference that may help the
-  merchant in identifying this payment. These have to
-  be globally unique but they should be reused for retrying
-  a payment.
-  
-  Max length: 64.
-  """
-  merchantReference: String!
-
-  """
-  A message to show to the customer. It could be an order id or a reference.
-  Only alphanumeric, Swedish characters, and the following are allowed:
-  - ':'
-  - ';'
-  - '.'
-  - ','
-  - '?'
-  - '!'
-  - '('
-  - ')'
-  - '”'
-  - '"'
-  - ' '
-  
-  Max length: 50.
-  """
-  message: String!
-}
-
-"""The result of starting a new payment session."""
-type PaymentSessionResult {
-  """
-  Once a payment session is initialized, you can use this token to start the payment flow.
-  """
-  token: String!
-}
-
 enum PaymentStatusEnum {
   """Payment is authorized. Can be captured now."""
   AUTHORIZED
@@ -1774,84 +1594,6 @@ input PaymentStatusEnumComparisonExp {
   _isNull: Boolean
   _neq: PaymentStatusEnum
   _nin: [PaymentStatusEnum!]
-}
-
-"""Describes the schema for paypal details"""
-type PaypalDetails {
-  """Order ID as shared by PayPal"""
-  orderId: String
-
-  """PayPal payment URL"""
-  paymentUrl: String
-  paypalMerchantId: String
-}
-
-"""
-order by aggregate values of table "runtime.transaction_paypal_details"
-"""
-input PaypalDetailsAggregateOrderBy {
-  count: OrderBy
-  max: PaypalDetailsMaxOrderBy
-  min: PaypalDetailsMinOrderBy
-}
-
-"""
-Boolean expression to filter rows from the table "runtime.transaction_paypal_details". All fields are combined with a logical 'AND'.
-"""
-input PaypalDetailsBoolExp {
-  _and: [PaypalDetailsBoolExp!]
-  _not: PaypalDetailsBoolExp
-  _or: [PaypalDetailsBoolExp!]
-  orderId: StringComparisonExp
-  paymentUrl: StringComparisonExp
-  paypalMerchantId: StringComparisonExp
-}
-
-"""
-order by max() on columns of table "runtime.transaction_paypal_details"
-"""
-input PaypalDetailsMaxOrderBy {
-  """Order ID as shared by PayPal"""
-  orderId: OrderBy
-
-  """PayPal payment URL"""
-  paymentUrl: OrderBy
-  paypalMerchantId: OrderBy
-}
-
-"""
-order by min() on columns of table "runtime.transaction_paypal_details"
-"""
-input PaypalDetailsMinOrderBy {
-  """Order ID as shared by PayPal"""
-  orderId: OrderBy
-
-  """PayPal payment URL"""
-  paymentUrl: OrderBy
-  paypalMerchantId: OrderBy
-}
-
-"""
-Ordering options when selecting data from "runtime.transaction_paypal_details".
-"""
-input PaypalDetailsOrderBy {
-  orderId: OrderBy
-  paymentUrl: OrderBy
-  paypalMerchantId: OrderBy
-}
-
-"""
-select columns of table "runtime.transaction_paypal_details"
-"""
-enum PaypalDetailsSelectColumn {
-  """column name"""
-  orderId
-
-  """column name"""
-  paymentUrl
-
-  """column name"""
-  paypalMerchantId
 }
 
 enum PaypalIntentEnum {
@@ -2575,11 +2317,6 @@ type mutation_root {
 
   """Create a new payment request to receive money via PayPal"""
   newPayPalPayment(pay: PayPalPaymentInput!): PayPalPaymentResult!
-
-  """
-  Create a new payment session to start a new stand alone payment. The token from the session can be used in subsequent calls for the payment flow.
-  """
-  newPaymentSession(payment: PaymentSessionInput!): PaymentSessionResult!
 
   """Create a new payment request to receive money via swish"""
   newSwishPayment(pay: SwishPaymentInput!): SwishPaymentResult!
