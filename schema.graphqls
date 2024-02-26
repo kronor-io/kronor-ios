@@ -269,6 +269,9 @@ input CreditCardPaymentInput {
   """
   idempotencyKey: String!
 
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
   """
   The url to return to after the payment is done. If the payment
   screen is opened on a separate window, customer will be redirected
@@ -412,6 +415,26 @@ enum CursorOrdering {
 
   """descending ordering of the cursor"""
   DESC
+}
+
+"""Additional payment data"""
+type CustomerPaymentData {
+  locale: spoken_lang!
+}
+
+"""
+Boolean expression to filter rows from the table "dna.customer_payment_data". All fields are combined with a logical 'AND'.
+"""
+input CustomerPaymentDataBoolExp {
+  _and: [CustomerPaymentDataBoolExp!]
+  _not: CustomerPaymentDataBoolExp
+  _or: [CustomerPaymentDataBoolExp!]
+  locale: SpokenLangComparisonExp
+}
+
+"""Ordering options when selecting data from "dna.customer_payment_data"."""
+input CustomerPaymentDataOrderBy {
+  locale: OrderBy
 }
 
 """Arguments for cancelling a direct debit payment"""
@@ -763,6 +786,9 @@ input MobilePayPaymentInput {
   """
   idempotencyKey: String!
 
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
   """
   The url to return to after the payment is done. If the payment
   screen is opened on a separate window, customer will be redirected
@@ -802,6 +828,116 @@ enum OrderBy {
   DESC_NULLS_LAST
 }
 
+"""Describes the schema for P24 details"""
+type P24Details {
+  """Session id"""
+  sessionId: String
+
+  """Session url"""
+  sessionUrl: String
+}
+
+"""
+order by aggregate values of table "runtime.transaction_p24_details"
+"""
+input P24DetailsAggregateOrderBy {
+  count: OrderBy
+  max: P24DetailsMaxOrderBy
+  min: P24DetailsMinOrderBy
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.transaction_p24_details". All fields are combined with a logical 'AND'.
+"""
+input P24DetailsBoolExp {
+  _and: [P24DetailsBoolExp!]
+  _not: P24DetailsBoolExp
+  _or: [P24DetailsBoolExp!]
+  sessionId: StringComparisonExp
+  sessionUrl: StringComparisonExp
+}
+
+"""
+order by max() on columns of table "runtime.transaction_p24_details"
+"""
+input P24DetailsMaxOrderBy {
+  """Session id"""
+  sessionId: OrderBy
+
+  """Session url"""
+  sessionUrl: OrderBy
+}
+
+"""
+order by min() on columns of table "runtime.transaction_p24_details"
+"""
+input P24DetailsMinOrderBy {
+  """Session id"""
+  sessionId: OrderBy
+
+  """Session url"""
+  sessionUrl: OrderBy
+}
+
+"""
+Ordering options when selecting data from "runtime.transaction_p24_details".
+"""
+input P24DetailsOrderBy {
+  sessionId: OrderBy
+  sessionUrl: OrderBy
+}
+
+"""
+select columns of table "runtime.transaction_p24_details"
+"""
+enum P24DetailsSelectColumn {
+  """column name"""
+  sessionId
+
+  """column name"""
+  sessionUrl
+}
+
+"""Arguments for creating a new P24 payment"""
+input P24PaymentInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
+  """
+  The url to return to after the payment is done. If the payment
+  screen is opened on a separate window, customer will be redirected
+  here on payment success or error.
+  """
+  returnUrl: String!
+}
+
+"""The result of initiating a P24 payment."""
+type P24PaymentResult {
+  """
+  Once a payment is initialized, we will start the P24 payment
+  workflow. You can use this token to query the current status
+  of the payment, with paymentRequests query.
+  """
+  paymentId: String!
+}
+
 """
 Boolean expression to compare columns of type "packed_phone_number". All fields are combined with logical 'AND'.
 """
@@ -815,6 +951,112 @@ input PackedPhoneNumberComparisonExp {
   _lte: packed_phone_number
   _neq: packed_phone_number
   _nin: [packed_phone_number!]
+}
+
+"""Describes the schema for paypal details"""
+type PayPalDetails {
+  """Error code from PayPal"""
+  errorCode: String
+
+  """Error message from PayPal"""
+  errorMessage: String
+
+  """Order ID as shared by PayPal"""
+  orderId: String
+
+  """PayPal payment URL"""
+  paymentUrl: String
+  paypalMerchantId: String
+}
+
+"""
+order by aggregate values of table "runtime.transaction_paypal_details"
+"""
+input PayPalDetailsAggregateOrderBy {
+  count: OrderBy
+  max: PayPalDetailsMaxOrderBy
+  min: PayPalDetailsMinOrderBy
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.transaction_paypal_details". All fields are combined with a logical 'AND'.
+"""
+input PayPalDetailsBoolExp {
+  _and: [PayPalDetailsBoolExp!]
+  _not: PayPalDetailsBoolExp
+  _or: [PayPalDetailsBoolExp!]
+  errorCode: StringComparisonExp
+  errorMessage: StringComparisonExp
+  orderId: StringComparisonExp
+  paymentUrl: StringComparisonExp
+  paypalMerchantId: StringComparisonExp
+}
+
+"""
+order by max() on columns of table "runtime.transaction_paypal_details"
+"""
+input PayPalDetailsMaxOrderBy {
+  """Error code from PayPal"""
+  errorCode: OrderBy
+
+  """Error message from PayPal"""
+  errorMessage: OrderBy
+
+  """Order ID as shared by PayPal"""
+  orderId: OrderBy
+
+  """PayPal payment URL"""
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+order by min() on columns of table "runtime.transaction_paypal_details"
+"""
+input PayPalDetailsMinOrderBy {
+  """Error code from PayPal"""
+  errorCode: OrderBy
+
+  """Error message from PayPal"""
+  errorMessage: OrderBy
+
+  """Order ID as shared by PayPal"""
+  orderId: OrderBy
+
+  """PayPal payment URL"""
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+Ordering options when selecting data from "runtime.transaction_paypal_details".
+"""
+input PayPalDetailsOrderBy {
+  errorCode: OrderBy
+  errorMessage: OrderBy
+  orderId: OrderBy
+  paymentUrl: OrderBy
+  paypalMerchantId: OrderBy
+}
+
+"""
+select columns of table "runtime.transaction_paypal_details"
+"""
+enum PayPalDetailsSelectColumn {
+  """column name"""
+  errorCode
+
+  """column name"""
+  errorMessage
+
+  """column name"""
+  orderId
+
+  """column name"""
+  paymentUrl
+
+  """column name"""
+  paypalMerchantId
 }
 
 """Arguments for creating a new PayPal payment"""
@@ -835,6 +1077,9 @@ input PayPalPaymentInput {
   Max length: 64.
   """
   idempotencyKey: String!
+
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
 
   """The url to return to after the payment is done."""
   returnUrl: String!
@@ -892,6 +1137,9 @@ enum PaymentMethodEnum {
   """Pay with MobilePay Online"""
   MOBILEPAY
 
+  """Pay with Przelewy24"""
+  P24
+
   """Pay with PayPal"""
   PAYPAL
 
@@ -920,6 +1168,7 @@ type PaymentMethodStatus {
   enabled: Boolean
   gateway: String!
   gatewayPaymentMethod: String
+  id: bigint!
 
   """The payment method supported / available for this merchant.."""
   paymentMethod: PaymentMethodEnum!
@@ -937,6 +1186,7 @@ input PaymentMethodStatusBoolExp {
   enabled: BooleanComparisonExp
   gateway: StringComparisonExp
   gatewayPaymentMethod: StringComparisonExp
+  id: BigintComparisonExp
   paymentMethod: PaymentMethodEnumComparisonExp
 }
 
@@ -949,6 +1199,7 @@ input PaymentMethodStatusOrderBy {
   enabled: OrderBy
   gateway: OrderBy
   gatewayPaymentMethod: OrderBy
+  id: OrderBy
   paymentMethod: OrderBy
 }
 
@@ -972,6 +1223,9 @@ enum PaymentMethodStatusSelectColumn {
   gatewayPaymentMethod
 
   """column name"""
+  id
+
+  """column name"""
   paymentMethod
 }
 
@@ -993,6 +1247,7 @@ input PaymentMethodStatusStreamCursorValueInput {
   enabled: Boolean
   gateway: String
   gatewayPaymentMethod: String
+  id: bigint
 
   """The payment method supported / available for this merchant.."""
   paymentMethod: PaymentMethodEnum
@@ -1003,6 +1258,9 @@ type PaymentRequest {
   amount: bigint!
   createdAt: timestamptz!
   currency: SupportedCurrencyEnum!
+
+  """An object relationship"""
+  customer: CustomerPaymentData
 
   """Additional information specific to the payment"""
   detail(
@@ -1042,6 +1300,7 @@ type PaymentRequest {
 
   """An object relationship"""
   merchant: Merchant!
+  merchantReturnUrl: String
   message: String!
   paymentFlow: String
   paymentProvider: PaymentMethodEnum
@@ -1162,11 +1421,11 @@ type PaymentRequest {
   ): [MobilePayDetails!]
 
   """
-  A computed field, executes function "runtime.get_transaction_paypal_details"
+  A computed field, executes function "runtime.get_transaction_p24_details"
   """
-  transactionPayPalDetails(
+  transactionP24Details(
     """distinct select on columns"""
-    distinctOn: [PaypalDetailsSelectColumn!]
+    distinctOn: [P24DetailsSelectColumn!]
 
     """limit the number of rows returned"""
     limit: Int
@@ -1175,11 +1434,31 @@ type PaymentRequest {
     offset: Int
 
     """sort the rows by one or more columns"""
-    orderBy: [PaypalDetailsOrderBy!]
+    orderBy: [P24DetailsOrderBy!]
 
     """filter the rows returned"""
-    where: PaypalDetailsBoolExp
-  ): [PaypalDetails!]
+    where: P24DetailsBoolExp
+  ): [P24Details!]
+
+  """
+  A computed field, executes function "runtime.get_transaction_paypal_details"
+  """
+  transactionPayPalDetails(
+    """distinct select on columns"""
+    distinctOn: [PayPalDetailsSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [PayPalDetailsOrderBy!]
+
+    """filter the rows returned"""
+    where: PayPalDetailsBoolExp
+  ): [PayPalDetails!]
 
   """
   A computed field, executes function "runtime.get_transaction_swish_details"
@@ -1233,9 +1512,11 @@ input PaymentRequestBoolExp {
   amount: BigintComparisonExp
   createdAt: TimestamptzComparisonExp
   currency: SupportedCurrencyEnumComparisonExp
+  customer: CustomerPaymentDataBoolExp
   detail: CurrentPaymentDetailBoolExp
   latestStatus: CurrentPaymentStatusBoolExp
   merchant: MerchantBoolExp
+  merchantReturnUrl: StringComparisonExp
   message: StringComparisonExp
   paymentFlow: StringComparisonExp
   paymentProvider: PaymentMethodEnumComparisonExp
@@ -1248,7 +1529,8 @@ input PaymentRequestBoolExp {
   transactionFinsharkDetails: FinsharkDetailsBoolExp
   transactionId: StringComparisonExp
   transactionMobilePayDetails: MobilePayDetailsBoolExp
-  transactionPayPalDetails: PaypalDetailsBoolExp
+  transactionP24Details: P24DetailsBoolExp
+  transactionPayPalDetails: PayPalDetailsBoolExp
   transactionSwishDetails: SwishDetailsBoolExp
   transactionVippsDetails: VippsDetailsBoolExp
   waitToken: UuidComparisonExp
@@ -1259,9 +1541,11 @@ input PaymentRequestOrderBy {
   amount: OrderBy
   createdAt: OrderBy
   currency: OrderBy
+  customer: CustomerPaymentDataOrderBy
   detailAggregate: CurrentPaymentDetailAggregateOrderBy
   latestStatusAggregate: CurrentPaymentStatusAggregateOrderBy
   merchant: MerchantOrderBy
+  merchantReturnUrl: OrderBy
   message: OrderBy
   paymentFlow: OrderBy
   paymentProvider: OrderBy
@@ -1274,7 +1558,8 @@ input PaymentRequestOrderBy {
   transactionFinsharkDetailsAggregate: FinsharkDetailsAggregateOrderBy
   transactionId: OrderBy
   transactionMobilePayDetailsAggregate: MobilePayDetailsAggregateOrderBy
-  transactionPayPalDetailsAggregate: PaypalDetailsAggregateOrderBy
+  transactionP24DetailsAggregate: P24DetailsAggregateOrderBy
+  transactionPayPalDetailsAggregate: PayPalDetailsAggregateOrderBy
   transactionSwishDetailsAggregate: SwishDetailsAggregateOrderBy
   transactionVippsDetailsAggregate: VippsDetailsAggregateOrderBy
   waitToken: OrderBy
@@ -1292,6 +1577,9 @@ enum PaymentRequestSelectColumn {
 
   """column name"""
   currency
+
+  """column name"""
+  merchantReturnUrl
 
   """column name"""
   message
@@ -1583,6 +1871,21 @@ input PaypalIntentEnumComparisonExp {
   _isNull: Boolean
   _neq: PaypalIntentEnum
   _nin: [PaypalIntentEnum!]
+}
+
+"""
+Boolean expression to compare columns of type "spoken_lang". All fields are combined with logical 'AND'.
+"""
+input SpokenLangComparisonExp {
+  _eq: spoken_lang
+  _gt: spoken_lang
+  _gte: spoken_lang
+  _in: [spoken_lang!]
+  _isNull: Boolean
+  _lt: spoken_lang
+  _lte: spoken_lang
+  _neq: spoken_lang
+  _nin: [spoken_lang!]
 }
 
 """
@@ -2013,6 +2316,9 @@ input SwishPaymentInput {
   """
   idempotencyKey: String!
 
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
   """The url to return to after the payment is done."""
   returnUrl: String!
 }
@@ -2146,6 +2452,9 @@ input VippsPaymentInput {
   """
   idempotencyKey: String!
 
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
   """
   The url to return to after the payment is done. If the payment
   screen is opened on a separate window, customer will be redirected
@@ -2260,6 +2569,9 @@ type mutation_root {
   Create a new payment request to receive money via MobilePay, available only in Denmark and Finland.
   """
   newMobilePayPayment(pay: MobilePayPaymentInput!): MobilePayPaymentResult!
+
+  """Create a new payment request to receive money via P24"""
+  newP24Payment(pay: P24PaymentInput!): P24PaymentResult!
 
   """Create a new payment request to receive money via PayPal"""
   newPayPalPayment(pay: PayPalPaymentInput!): PayPalPaymentResult!
@@ -2446,6 +2758,8 @@ type query_root {
   ): [paypalSetting!]!
   version: String!
 }
+
+scalar spoken_lang
 
 type subscription_root {
   """
