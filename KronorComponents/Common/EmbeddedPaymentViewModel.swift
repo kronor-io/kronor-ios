@@ -59,6 +59,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     internal let sessionURL: URL
     internal let returnURL: URL
+    internal let intermediateRedirectURL: URL
     
     @Published var state: EmbeddedPaymentStatechart.State
     @Published var embeddedSiteURL: URL?
@@ -95,6 +96,9 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         self.sessionURL = components.url!
         self.returnURL = returnURL
+        
+        components.path = "/" + paymentMethod.getName().lowercased() + "-redirect"
+        self.intermediateRedirectURL = components.url!
     }
 
     func transition(_ event: EmbeddedPaymentStatechart.Event) async {
@@ -153,7 +157,8 @@ class EmbeddedPaymentViewModel: ObservableObject {
                     )
                 case .payPal:
                     return await networking.createPayPalRequest(
-                        returnURL: self.returnURL,
+                        returnURL: self.intermediateRedirectURL,
+                        merchantReturnURL: self.returnURL,
                         device: self.device
                     )
                 case .fallback(_):

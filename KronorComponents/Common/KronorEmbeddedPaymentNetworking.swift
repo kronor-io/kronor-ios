@@ -79,10 +79,12 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
 
     func createPayPalRequest(
         returnURL: URL,
+        merchantReturnURL: URL,
         device: Kronor.Device?
     ) async -> Result<String, KronorApi.KronorError> {
          let input = KronorApi.PayPalPaymentInput(
              idempotencyKey: UUID().uuidString,
+             merchantReturnUrl: .some(merchantReturnURL.absoluteString),
              returnUrl: returnURL.absoluteString
          )
 

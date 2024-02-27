@@ -16,12 +16,14 @@ public extension KronorApi {
       customerSwishNumber: GraphQLNullable<String> = nil,
       flow: String,
       idempotencyKey: String,
+      merchantReturnUrl: GraphQLNullable<String> = nil,
       returnUrl: String
     ) {
       __data = InputDict([
         "customerSwishNumber": customerSwishNumber,
         "flow": flow,
         "idempotencyKey": idempotencyKey,
+        "merchantReturnUrl": merchantReturnUrl,
         "returnUrl": returnUrl
       ])
     }
@@ -56,6 +58,12 @@ public extension KronorApi {
     public var idempotencyKey: String {
       get { __data["idempotencyKey"] }
       set { __data["idempotencyKey"] = newValue }
+    }
+
+    /// The original return url as provided by the merchant.
+    public var merchantReturnUrl: GraphQLNullable<String> {
+      get { __data["merchantReturnUrl"] }
+      set { __data["merchantReturnUrl"] = newValue }
     }
 
     /// The url to return to after the payment is done.

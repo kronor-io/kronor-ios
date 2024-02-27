@@ -37,7 +37,6 @@ public extension KronorApi {
       case "MobilePayPaymentResult": return KronorApi.Objects.MobilePayPaymentResult
       case "SwishPaymentResult": return KronorApi.Objects.SwishPaymentResult
       case "CreditCardPaymentResult": return KronorApi.Objects.CreditCardPaymentResult
-      case "PaymentSessionResult": return KronorApi.Objects.PaymentSessionResult
       case "subscription_root": return KronorApi.Objects.Subscription_root
       case "PaymentRequest": return KronorApi.Objects.PaymentRequest
       case "CurrentPaymentStatus": return KronorApi.Objects.CurrentPaymentStatus
