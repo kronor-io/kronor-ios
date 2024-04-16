@@ -10,15 +10,6 @@
       }
     },
     {
-      "identity" : "braintree_ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/braintree/braintree_ios",
-      "state" : {
-        "revision" : "25a1ca56d5a3ada45ef960dba5525107e335ec15",
-        "version" : "5.21.0"
-      }
-    },
-    {
       "identity" : "fingerprintjs-ios",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/fingerprintjs/fingerprintjs-ios",

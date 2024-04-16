@@ -5,6 +5,8 @@ import ApolloAPI
 
 public extension KronorApi {
   enum PaymentStatusEnum: String, EnumType {
+    /// Payment is ACCEPTED. Money is likely debited from the customer now. Wait for the PAID status before shipping the order
+    case accepted = "ACCEPTED"
     /// Payment is authorized. Can be captured now.
     case authorized = "AUTHORIZED"
     /// Payment was cancelled.
@@ -17,6 +19,8 @@ public extension KronorApi {
     case declined = "DECLINED"
     /// Payment errored.
     case error = "ERROR"
+    /// Completed the frontend flow of a direct debit payment.
+    case flowCompleted = "FLOW_COMPLETED"
     /// Payment is initialising.
     case initializing = "INITIALIZING"
     /// Payment is paid.
@@ -29,6 +33,8 @@ public extension KronorApi {
     case released = "RELEASED"
     /// Payment is requested and waiting for confirmation.
     case waitingForPayment = "WAITING_FOR_PAYMENT"
+    /// The payment request is being promoted to a payment
+    case waitingForPromotion = "WAITING_FOR_PROMOTION"
   }
 
 }

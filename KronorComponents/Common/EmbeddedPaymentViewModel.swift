@@ -16,6 +16,7 @@ enum SupportedEmbeddedMethod {
     case creditCard
     case vipps
     case payPal
+    case bankTransfer
     case fallback(name: String)
     
     func getName() -> String {
@@ -28,6 +29,8 @@ enum SupportedEmbeddedMethod {
             return "vipps"
         case .payPal:
             return "paypal"
+        case .bankTransfer:
+            return "bankTransfer"
         case .fallback(let name):
             return name
         }
@@ -35,6 +38,7 @@ enum SupportedEmbeddedMethod {
     
     func isFallback() -> Bool {
         switch self {
+        case .bankTransfer: return true
         case .fallback(_): return true
         default: return false
         }
@@ -161,6 +165,10 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         merchantReturnURL: self.returnURL,
                         device: self.device
                     )
+                case .bankTransfer:
+                    // cannot create the payment request as we don't know how.
+                    // it will be created by the web version of the payment gateway
+                    fatalError("impossible")
                 case .fallback(_):
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway
@@ -282,7 +290,12 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         }
                     }
                     
-                    if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
+                    if (request.status?.contains {
+                        $0.status == KronorApi.PaymentStatusEnum.paid
+                        || $0.status == KronorApi.PaymentStatusEnum.authorized
+                        || $0.status == KronorApi.PaymentStatusEnum.accepted
+                        || $0.status == KronorApi.PaymentStatusEnum.flowCompleted
+                    }) ?? false {
                         Task { [weak self] in
                             await self?.transition(.paymentAuthorized)
                         }
