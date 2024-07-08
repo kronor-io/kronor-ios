@@ -68,6 +68,126 @@ type AddSessionDeviceInformationResult {
   result: Boolean!
 }
 
+"""Arguments for finalizing bank transfer payment flow"""
+input BankTransferFlowInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """The Payment Request Id whose flow should be marked as completed"""
+  paymentRequestId: String!
+}
+
+"""The result of updateBankTransferFlow"""
+type BankTransferFlowResult {
+  """This token can be used to fetch status of payment"""
+  waitToken: String!
+}
+
+"""Arguments for cancelling a direct debit payment"""
+input BankTransferPaymentCancelInput {
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """
+  The payment id to cancel, this is obtained when a payment
+  request is made. As opposed to a payment_reference which is
+  the same across multiple payment attempts, this is unique only
+  for each specific payment.
+  
+  Max length: 64.
+  """
+  paymentId: String!
+}
+
+"""The result of cancelling a direct debit payment request."""
+type BankTransferPaymentCancelResult {
+  """
+  The returned token can be used to query whether the payment has
+  been cancelled or not.
+  """
+  waitToken: String!
+}
+
+"""Arguments for creating a new direct debit payment"""
+input BankTransferPaymentInput {
+  """The ID of the ASPSP to use for this payment."""
+  aspspId: bigint!
+
+  """
+  A date in yyyy-mm-dd format, nullable, determines the date to execute this payment.
+  Has to be past today's date, up to 90 days in the future.
+  """
+  executionDate: String
+
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+  
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String!
+
+  """State string passed back as a parameter in the return URL."""
+  requestRedirectState: String!
+
+  """
+  The url to return to after the payment is done. If the payment
+  screen is opened on a separate window, customer will be redirected
+  here on payment success or error.
+  """
+  returnUrl: String!
+}
+
+"""The result of initiating a direct debit payment."""
+type BankTransferPaymentResult {
+  """
+  Once a payment is initialized, we will start the open banking
+  payment workflow. You can use this token to query the current status
+  of the payment, with paymentRequests query.
+  """
+  paymentRequestId: String!
+}
+
 """
 Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'.
 """
@@ -404,76 +524,131 @@ input CustomerPaymentDataOrderBy {
   locale: OrderBy
 }
 
-"""Arguments for cancelling a direct debit payment"""
-input DirectDebitPaymentCancelInput {
-  """
-  Idempotency key is required to prevent double processing a request.
-  It is recommended to use a deterministic unique value, such as the combination of
-  the order id and the customer id. Avoid using time-based values.
-  Only alphanumeric character and the following are allowed:
-  - "-"
-  - "_"
-  - "."
-  - ","
-  - "["
-  - "]"
-  - "+"
-  
-  Max length: 64.
-  """
-  idempotencyKey: String!
-
-  """
-  The payment id to cancel, this is obtained when a payment
-  request is made. As opposed to a payment_reference which is
-  the same across multiple payment attempts, this is unique only
-  for each specific payment.
-  
-  Max length: 64.
-  """
-  paymentId: String!
+"""
+Describes the schema for the EnableBanking PIS payment transaction details to be used by Hasura
+"""
+type EnableBankingPISDetails {
+  aspspId: bigint!
+  authorizationUrl: String
 }
 
-"""The result of cancelling a direct debit payment request."""
-type DirectDebitPaymentCancelResult {
-  """
-  The returned token can be used to query whether the payment has
-  been cancelled or not.
-  """
-  waitToken: String!
+"""
+order by aggregate values of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsAggregateOrderBy {
+  avg: EnableBankingPISDetailsAvgOrderBy
+  count: OrderBy
+  max: EnableBankingPISDetailsMaxOrderBy
+  min: EnableBankingPISDetailsMinOrderBy
+  stddev: EnableBankingPISDetailsStddevOrderBy
+  stddevPop: EnableBankingPISDetailsStddevPopOrderBy
+  stddevSamp: EnableBankingPISDetailsStddevSampOrderBy
+  sum: EnableBankingPISDetailsSumOrderBy
+  varPop: EnableBankingPISDetailsVarPopOrderBy
+  varSamp: EnableBankingPISDetailsVarSampOrderBy
+  variance: EnableBankingPISDetailsVarianceOrderBy
 }
 
-"""Arguments for creating a new direct debit payment"""
-input DirectDebitPaymentInput {
-  """
-  Idempotency key is required to prevent double processing a request.
-  It is recommended to use a deterministic unique value, such as the combination of
-  the order id and the customer id. Avoid using time-based values.
-  Only alphanumeric character and the following are allowed:
-  - "-"
-  - "_"
-  - "."
-  - ","
-  - "["
-  - "]"
-  - "+"
-  
-  Max length: 64.
-  """
-  idempotencyKey: String!
-
-  """The url to return to after the payment is done."""
-  returnUrl: String!
+"""
+order by avg() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsAvgOrderBy {
+  aspspId: OrderBy
 }
 
-"""The result of initiating a direct debit payment."""
-type DirectDebitPaymentResult {
-  """
-  Once a payment is initialized, we will start the direct debit payment
-  workflow. You can use this token to query the current status
-  of the payment.
-  """
-  waitToken: String!
+"""
+Boolean expression to filter rows from the table "runtime.transaction_enable_banking_pis_details". All fields are combined with a logical 'AND'.
+"""
+input EnableBankingPISDetailsBoolExp {
+  _and: [EnableBankingPISDetailsBoolExp!]
+  _not: EnableBankingPISDetailsBoolExp
+  _or: [EnableBankingPISDetailsBoolExp!]
+  aspspId: BigintComparisonExp
+  authorizationUrl: StringComparisonExp
+}
+
+"""
+order by max() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsMaxOrderBy {
+  aspspId: OrderBy
+  authorizationUrl: OrderBy
+}
+
+"""
+order by min() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsMinOrderBy {
+  aspspId: OrderBy
+  authorizationUrl: OrderBy
+}
+
+"""
+Ordering options when selecting data from "runtime.transaction_enable_banking_pis_details".
+"""
+input EnableBankingPISDetailsOrderBy {
+  aspspId: OrderBy
+  authorizationUrl: OrderBy
+}
+
+"""
+select columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+enum EnableBankingPISDetailsSelectColumn {
+  """column name"""
+  aspspId
+
+  """column name"""
+  authorizationUrl
+}
+
+"""
+order by stddev() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsStddevOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by stddevPop() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsStddevPopOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by stddevSamp() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsStddevSampOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by sum() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsSumOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by varPop() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsVarPopOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by varSamp() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsVarSampOrderBy {
+  aspspId: OrderBy
+}
+
+"""
+order by variance() on columns of table "runtime.transaction_enable_banking_pis_details"
+"""
+input EnableBankingPISDetailsVarianceOrderBy {
+  aspspId: OrderBy
 }
 
 """
@@ -529,6 +704,21 @@ select columns of table "runtime.transaction_finshark_details"
 enum FinsharkDetailsSelectColumn {
   """column name"""
   paymentFlowsUrl
+}
+
+"""
+Boolean expression to compare columns of type "Int". All fields are combined with logical 'AND'.
+"""
+input IntComparisonExp {
+  _eq: Int
+  _gt: Int
+  _gte: Int
+  _in: [Int!]
+  _isNull: Boolean
+  _lt: Int
+  _lte: Int
+  _neq: Int
+  _nin: [Int!]
 }
 
 input JsonbCastExp {
@@ -859,11 +1049,82 @@ input P24PaymentInput {
   merchantReturnUrl: String
 
   """
+  true - consent for p24 regulations given
+  false - consent not given, consent dialog will be shown on p24 website
+  Default value is false. When paymentMethodId is null, this will always default to false
+  """
+  p24RegulationAccept: Boolean
+
+  """
+  The p24 id of the payment method selected from the list of payment methods displayed.
+  When not passed, all the payment methods are displayed on p24 website
+  """
+  paymentMethodId: bigint
+
+  """
   The url to return to after the payment is done. If the payment
   screen is opened on a separate window, customer will be redirected
   here on payment success or error.
   """
   returnUrl: String!
+}
+
+"""Store various payment methods (usually) banks for a decoupled flow"""
+type P24PaymentMethod {
+  id: bigint!
+  imgUrl: String!
+  mobileImgUrl: String!
+  name: String!
+
+  """
+  The id for this payment method that we have to pass to p24 when creating a payment
+  """
+  p24Id: bigint!
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.p24_payment_method". All fields are combined with a logical 'AND'.
+"""
+input P24PaymentMethodBoolExp {
+  _and: [P24PaymentMethodBoolExp!]
+  _not: P24PaymentMethodBoolExp
+  _or: [P24PaymentMethodBoolExp!]
+  id: BigintComparisonExp
+  imgUrl: StringComparisonExp
+  mobileImgUrl: StringComparisonExp
+  name: StringComparisonExp
+  p24Id: BigintComparisonExp
+}
+
+"""
+Ordering options when selecting data from "runtime.p24_payment_method".
+"""
+input P24PaymentMethodOrderBy {
+  id: OrderBy
+  imgUrl: OrderBy
+  mobileImgUrl: OrderBy
+  name: OrderBy
+  p24Id: OrderBy
+}
+
+"""
+select columns of table "runtime.p24_payment_method"
+"""
+enum P24PaymentMethodSelectColumn {
+  """column name"""
+  id
+
+  """column name"""
+  imgUrl
+
+  """column name"""
+  mobileImgUrl
+
+  """column name"""
+  name
+
+  """column name"""
+  p24Id
 }
 
 """The result of initiating a P24 payment."""
@@ -1063,8 +1324,14 @@ type PaymentCancelResult {
 }
 
 enum PaymentMethodEnum {
+  """Pay with Enable Banking PIS"""
+  BANK_TRANSFER
+
   """Credit or Debit cards"""
   CREDIT_CARD
+
+  """Pay with direct debit"""
+  DIRECT_DEBIT
 
   """Open Banking direct debit via Finshark"""
   FINSHARK_DIRECT_DEBIT
@@ -1314,6 +1581,26 @@ type PaymentRequest {
   ): [CreditCardDetails!]
 
   """
+  A computed field, executes function "runtime.get_transaction_enable_banking_pis_details"
+  """
+  transactionEnableBankingPISDetails(
+    """distinct select on columns"""
+    distinctOn: [EnableBankingPISDetailsSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [EnableBankingPISDetailsOrderBy!]
+
+    """filter the rows returned"""
+    where: EnableBankingPISDetailsBoolExp
+  ): [EnableBankingPISDetails!]
+
+  """
   A computed field, executes function "runtime.get_transaction_finshark_details"
   """
   transactionFinsharkDetails(
@@ -1464,6 +1751,7 @@ input PaymentRequestBoolExp {
   status: CurrentPaymentStatusBoolExp
   statusHistory: CurrentPaymentStatusBoolExp
   transactionCreditCardDetails: CreditCardDetailsBoolExp
+  transactionEnableBankingPISDetails: EnableBankingPISDetailsBoolExp
   transactionFinsharkDetails: FinsharkDetailsBoolExp
   transactionId: StringComparisonExp
   transactionMobilePayDetails: MobilePayDetailsBoolExp
@@ -1493,6 +1781,7 @@ input PaymentRequestOrderBy {
   statusAggregate: CurrentPaymentStatusAggregateOrderBy
   statusHistoryAggregate: CurrentPaymentStatusAggregateOrderBy
   transactionCreditCardDetailsAggregate: CreditCardDetailsAggregateOrderBy
+  transactionEnableBankingPISDetailsAggregate: EnableBankingPISDetailsAggregateOrderBy
   transactionFinsharkDetailsAggregate: FinsharkDetailsAggregateOrderBy
   transactionId: OrderBy
   transactionMobilePayDetailsAggregate: MobilePayDetailsAggregateOrderBy
@@ -1542,6 +1831,11 @@ enum PaymentRequestSelectColumn {
 }
 
 enum PaymentStatusEnum {
+  """
+  Payment is ACCEPTED. Money is likely debited from the customer now. Wait for the PAID status before shipping the order
+  """
+  ACCEPTED
+
   """Payment is authorized. Can be captured now."""
   AUTHORIZED
 
@@ -1561,6 +1855,9 @@ enum PaymentStatusEnum {
 
   """Payment errored."""
   ERROR
+
+  """Completed the frontend flow of a direct debit payment."""
+  FLOW_COMPLETED
 
   """Payment is initialising."""
   INITIALIZING
@@ -1583,6 +1880,9 @@ enum PaymentStatusEnum {
 
   """Payment is requested and waiting for confirmation."""
   WAITING_FOR_PAYMENT
+
+  """The payment request is being promoted to a payment"""
+  WAITING_FOR_PROMOTION
 }
 
 """
@@ -2215,6 +2515,88 @@ type VippsPaymentResult {
   waitToken: String!
 }
 
+"""
+Account Servicing Payment Service Providers. Typically banks. They are used to do Payment Initiation Service (PIS)
+"""
+type aspsp {
+  country: country!
+  id: bigint!
+  logoUrl: String!
+  name: String!
+
+  """
+  A measure on how likely this ASPSP is to be chosen. Used to sort the list of ASPSPs
+  """
+  relevance: Int!
+}
+
+"""
+Boolean expression to filter rows from the table "payment_gateway.aspsp". All fields are combined with a logical 'AND'.
+"""
+input aspspBoolExp {
+  _and: [aspspBoolExp!]
+  _not: aspspBoolExp
+  _or: [aspspBoolExp!]
+  country: CountryComparisonExp
+  id: BigintComparisonExp
+  logoUrl: StringComparisonExp
+  name: StringComparisonExp
+  relevance: IntComparisonExp
+}
+
+"""Ordering options when selecting data from "payment_gateway.aspsp"."""
+input aspspOrderBy {
+  country: OrderBy
+  id: OrderBy
+  logoUrl: OrderBy
+  name: OrderBy
+  relevance: OrderBy
+}
+
+"""
+select columns of table "payment_gateway.aspsp"
+"""
+enum aspspSelectColumn {
+  """column name"""
+  country
+
+  """column name"""
+  id
+
+  """column name"""
+  logoUrl
+
+  """column name"""
+  name
+
+  """column name"""
+  relevance
+}
+
+"""
+Streaming cursor of the table "aspsp"
+"""
+input aspspStreamCursorInput {
+  """Stream column input with initial value"""
+  initialValue: aspspStreamCursorValueInput!
+
+  """cursor ordering"""
+  ordering: CursorOrdering
+}
+
+"""Initial value of the column from where the streaming should start"""
+input aspspStreamCursorValueInput {
+  country: country
+  id: bigint
+  logoUrl: String
+  name: String
+
+  """
+  A measure on how likely this ASPSP is to be chosen. Used to sort the list of ASPSPs
+  """
+  relevance: Int
+}
+
 scalar bigint
 
 """Settings for using Braintree"""
@@ -2286,8 +2668,8 @@ type mutation_root {
   """Set customer device information for a given payment session."""
   addSessionDeviceInformation(info: AddSessionDeviceInformationInput!): AddSessionDeviceInformationResult!
 
-  """Cancel payment request made using newDirectDebitPayment."""
-  cancelDirectDebitPayment(pay: DirectDebitPaymentCancelInput!): DirectDebitPaymentCancelResult!
+  """Cancel payment request made using newBankTransferPayment."""
+  cancelBankTransferPayment(pay: BankTransferPaymentCancelInput!): BankTransferPaymentCancelResult!
 
   """Cancel payment request."""
   cancelPayment(cancel: PaymentCancelInput!): PaymentCancelResult!
@@ -2301,11 +2683,11 @@ type mutation_root {
   """Log information about various stages of the payment component."""
   log(info: LogInput!): LogResult!
 
+  """Create a new payment request via bank transfer"""
+  newBankTransferPayment(pay: BankTransferPaymentInput!): BankTransferPaymentResult!
+
   """Create a new payment request to receive money via credit card"""
   newCreditCardPayment(pay: CreditCardPaymentInput!): CreditCardPaymentResult!
-
-  """Create a new payment request to receive money via Finshark"""
-  newDirectDebitPayment(pay: DirectDebitPaymentInput!): DirectDebitPaymentResult!
 
   """
   Create a new payment request to receive money via MobilePay, available only in Denmark and Finland.
@@ -2328,6 +2710,9 @@ type mutation_root {
 
   """Supply PaymentMethodId (nonce) to progress PayPal paymeent"""
   supplyPayPalPaymentMethodId(pay: SupplyPayPalPaymentMethodIdInput!): SupplyPayPalPaymentMethodIdResult!
+
+  """Update the frontend flow state of a bank transfer"""
+  updateBankTransferFlow(flow: BankTransferFlowInput!): BankTransferFlowResult!
 }
 
 scalar packed_phone_number
@@ -2413,6 +2798,60 @@ input paypalSettingStreamCursorValueInput {
 }
 
 type query_root {
+  """Get payment methods available for P24 in a payment session"""
+  AvailableP24PaymentMethods(
+    """distinct select on columns"""
+    distinctOn: [P24PaymentMethodSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [P24PaymentMethodOrderBy!]
+
+    """filter the rows returned"""
+    where: P24PaymentMethodBoolExp
+  ): [P24PaymentMethod!]!
+
+  """Get the list of available payment methods for P24"""
+  P24PaymentMethods(
+    """distinct select on columns"""
+    distinctOn: [P24PaymentMethodSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [P24PaymentMethodOrderBy!]
+
+    """filter the rows returned"""
+    where: P24PaymentMethodBoolExp
+  ): [P24PaymentMethod!]!
+
+  """Get the list of ASPSPs"""
+  aspsps(
+    """distinct select on columns"""
+    distinctOn: [aspspSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [aspspOrderBy!]
+
+    """filter the rows returned"""
+    where: aspspBoolExp
+  ): [aspsp!]!
+
   """
   fetch data from the table: "tenant.braintree_setting"
   """
@@ -2435,6 +2874,24 @@ type query_root {
 
   """Select a single merchant by Id"""
   merchant(id: bigint!): Merchant
+
+  """Get ASPSPs for the country in a payment session"""
+  paymentGatewayGetAspspsForPaymentSession(
+    """distinct select on columns"""
+    distinctOn: [aspspSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [aspspOrderBy!]
+
+    """filter the rows returned"""
+    where: aspspBoolExp
+  ): [aspsp!]!
 
   """
   fetch data from the table: "tenant.payment_method_available"
@@ -2499,6 +2956,42 @@ type query_root {
 scalar spoken_lang
 
 type subscription_root {
+  """Get payment methods available for P24 in a payment session"""
+  AvailableP24PaymentMethods(
+    """distinct select on columns"""
+    distinctOn: [P24PaymentMethodSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [P24PaymentMethodOrderBy!]
+
+    """filter the rows returned"""
+    where: P24PaymentMethodBoolExp
+  ): [P24PaymentMethod!]!
+
+  """Get the list of available payment methods for P24"""
+  P24PaymentMethods(
+    """distinct select on columns"""
+    distinctOn: [P24PaymentMethodSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [P24PaymentMethodOrderBy!]
+
+    """filter the rows returned"""
+    where: P24PaymentMethodBoolExp
+  ): [P24PaymentMethod!]!
+
   """
   fetch data from the table in a streaming manner: "tenant.payment_method_available"
   """
@@ -2512,6 +3005,43 @@ type subscription_root {
     """filter the rows returned"""
     where: PaymentMethodStatusBoolExp
   ): [PaymentMethodStatus!]!
+
+  """
+  fetch data from the table: "payment_gateway.aspsp" using primary key columns
+  """
+  aspspByPk(id: bigint!): aspsp
+
+  """
+  fetch data from the table in a streaming manner: "payment_gateway.aspsp"
+  """
+  aspspStream(
+    """maximum number of rows returned in a single batch"""
+    batchSize: Int!
+
+    """cursor to stream the results returned by the query"""
+    cursor: [aspspStreamCursorInput]!
+
+    """filter the rows returned"""
+    where: aspspBoolExp
+  ): [aspsp!]!
+
+  """Get the list of ASPSPs"""
+  aspsps(
+    """distinct select on columns"""
+    distinctOn: [aspspSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [aspspOrderBy!]
+
+    """filter the rows returned"""
+    where: aspspBoolExp
+  ): [aspsp!]!
 
   """
   fetch data from the table: "tenant.braintree_setting"
@@ -2546,6 +3076,24 @@ type subscription_root {
     """filter the rows returned"""
     where: braintreeSettingBoolExp
   ): [braintreeSetting!]!
+
+  """Get ASPSPs for the country in a payment session"""
+  paymentGatewayGetAspspsForPaymentSession(
+    """distinct select on columns"""
+    distinctOn: [aspspSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [aspspOrderBy!]
+
+    """filter the rows returned"""
+    where: aspspBoolExp
+  ): [aspsp!]!
 
   """
   fetch data from the table: "tenant.payment_method_available"
