@@ -195,6 +195,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
         case .cancelAndNotifyFailure:
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
+            _ = await self.networking.cancelSessionPayments()
             await MainActor.run {
                 self.onPaymentFailure(.cancelled)
             }
