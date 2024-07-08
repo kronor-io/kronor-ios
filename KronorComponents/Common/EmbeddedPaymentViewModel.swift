@@ -16,6 +16,8 @@ enum SupportedEmbeddedMethod {
     case creditCard
     case vipps
     case payPal
+    case bankTransfer
+    case p24
     case fallback(name: String)
     
     func getName() -> String {
@@ -28,6 +30,10 @@ enum SupportedEmbeddedMethod {
             return "vipps"
         case .payPal:
             return "paypal"
+        case .bankTransfer:
+            return "bankTransfer"
+        case .p24:
+            return "p24"
         case .fallback(let name):
             return name
         }
@@ -35,7 +41,7 @@ enum SupportedEmbeddedMethod {
     
     func isFallback() -> Bool {
         switch self {
-        case .fallback(_): return true
+        case .bankTransfer, .p24, .fallback: return true
         default: return false
         }
     }
@@ -161,7 +167,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         merchantReturnURL: self.returnURL,
                         device: self.device
                     )
-                case .fallback(_):
+                case .bankTransfer, .p24, .fallback:
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway
                     fatalError("impossible")
@@ -282,7 +288,12 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         }
                     }
                     
-                    if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
+                    if (request.status?.contains {
+                        $0.status == KronorApi.PaymentStatusEnum.paid
+                        || $0.status == KronorApi.PaymentStatusEnum.authorized
+                        || $0.status == KronorApi.PaymentStatusEnum.accepted
+                        || $0.status == KronorApi.PaymentStatusEnum.flowCompleted
+                    }) ?? false {
                         Task { [weak self] in
                             await self?.transition(.paymentAuthorized)
                         }
