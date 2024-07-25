@@ -17,6 +17,7 @@ enum SupportedEmbeddedMethod {
     case vipps
     case payPal
     case bankTransfer
+    case p24
     case fallback(name: String)
     
     func getName() -> String {
@@ -31,6 +32,8 @@ enum SupportedEmbeddedMethod {
             return "paypal"
         case .bankTransfer:
             return "bankTransfer"
+        case .p24:
+            return "p24"
         case .fallback(let name):
             return name
         }
@@ -38,7 +41,7 @@ enum SupportedEmbeddedMethod {
     
     func isFallback() -> Bool {
         switch self {
-        case .bankTransfer, .fallback: return true
+        case .bankTransfer, .p24, .fallback: return true
         default: return false
         }
     }
@@ -164,7 +167,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
                         merchantReturnURL: self.returnURL,
                         device: self.device
                     )
-                case .bankTransfer, .fallback:
+                case .bankTransfer, .p24, .fallback:
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway
                     fatalError("impossible")
@@ -269,6 +272,9 @@ class EmbeddedPaymentViewModel: ObservableObject {
                 }
             case .success(let selectionSet):
                 let request = selectionSet.data?.paymentRequests
+                    .sorted(by: { itemA, itemB in
+                        itemA.createdAt > itemB.createdAt
+                    })
                     .first(where: { paymentRequest in
                         matcher(paymentRequest) &&
                         (paymentRequest.status?.contains { status in
@@ -307,6 +313,13 @@ class EmbeddedPaymentViewModel: ObservableObject {
                             await self?.transition(.paymentRejected)
                         }
                     }
+
+                    if case .initializing = self?.stateMachine.state {
+                        Task { [weak self] in
+                            await self?.transition(.initialize)
+                        }
+                    }
+
                 } else {
                     Task { [weak self] in
                         await self?.transition(.initialize)
