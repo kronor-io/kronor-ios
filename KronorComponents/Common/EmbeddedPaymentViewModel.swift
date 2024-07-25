@@ -195,7 +195,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
         case .cancelAndNotifyFailure:
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
-            _ = await self.networking.cancelSessionPayments()
             await MainActor.run {
                 self.onPaymentFailure(.cancelled)
             }
@@ -273,6 +272,9 @@ class EmbeddedPaymentViewModel: ObservableObject {
                 }
             case .success(let selectionSet):
                 let request = selectionSet.data?.paymentRequests
+                    .sorted(by: { itemA, itemB in
+                        itemA.createdAt > itemB.createdAt
+                    })
                     .first(where: { paymentRequest in
                         matcher(paymentRequest) &&
                         (paymentRequest.status?.contains { status in
@@ -311,6 +313,13 @@ class EmbeddedPaymentViewModel: ObservableObject {
                             await self?.transition(.paymentRejected)
                         }
                     }
+
+                    if case .initializing = self?.stateMachine.state {
+                        Task { [weak self] in
+                            await self?.transition(.initialize)
+                        }
+                    }
+
                 } else {
                     Task { [weak self] in
                         await self?.transition(.initialize)

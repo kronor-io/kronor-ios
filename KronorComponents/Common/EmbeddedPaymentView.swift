@@ -36,9 +36,7 @@ struct EmbeddedPaymentView<Content: View>: View {
     @ViewBuilder
     private func innerBody() -> some View {
         switch embeddedPayViewModel.state {
-        case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest:
-            self.waitingView
-        case .paymentRequestInitialized, .waitingForPayment:
+        case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest, .paymentRequestInitialized, .waitingForPayment:
             self.waitingView
                 .transition(.slide)
                 .onReceive(embeddedPayViewModel.$embeddedSiteURL.combineLatest(webViewModel.$link)) { (embeddedSiteURL, link) in
