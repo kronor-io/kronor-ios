@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a MobilePay payment.
-  static let MobilePayPaymentResult = Object(
+  static let MobilePayPaymentResult = ApolloAPI.Object(
     typename: "MobilePayPaymentResult",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a swish payment.
-  static let SwishPaymentResult = Object(
+  static let SwishPaymentResult = ApolloAPI.Object(
     typename: "SwishPaymentResult",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

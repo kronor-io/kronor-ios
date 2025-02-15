@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// Describe the schema for mobilepay details.
-  static let MobilePayDetails = Object(
+  static let MobilePayDetails = ApolloAPI.Object(
     typename: "MobilePayDetails",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

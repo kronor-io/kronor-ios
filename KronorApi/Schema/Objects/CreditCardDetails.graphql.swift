@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// Describes the schema for credit card details
-  static let CreditCardDetails = Object(
+  static let CreditCardDetails = ApolloAPI.Object(
     typename: "CreditCardDetails",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of adding information on the device related to a payment session.
-  static let AddSessionDeviceInformationResult = Object(
+  static let AddSessionDeviceInformationResult = ApolloAPI.Object(
     typename: "AddSessionDeviceInformationResult",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

@@ -6,16 +6,9 @@
 public extension KronorApi {
   class CancelSessionPaymentsMutation: GraphQLMutation {
     public static let operationName: String = "CancelSessionPayments"
-    public static let document: ApolloAPI.DocumentType = .notPersisted(
+    public static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"""
-        mutation CancelSessionPayments($idempotencyKey: String!) {
-          cancelPayment(cancel: {idempotencyKey: $idempotencyKey}) {
-            __typename
-            waitToken
-          }
-        }
-        """#
+        #"mutation CancelSessionPayments($idempotencyKey: String!) { cancelPayment(cancel: { idempotencyKey: $idempotencyKey }) { __typename waitToken } }"#
       ))
 
     public var idempotencyKey: String
@@ -30,7 +23,7 @@ public extension KronorApi {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
+      public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("cancelPayment", CancelPayment.self, arguments: ["cancel": ["idempotencyKey": .variable("idempotencyKey")]]),
       ] }
@@ -45,7 +38,7 @@ public extension KronorApi {
         public let __data: DataDict
         public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.PaymentCancelResult }
+        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.PaymentCancelResult }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("waitToken", String?.self),
