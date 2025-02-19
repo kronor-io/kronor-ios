@@ -21,13 +21,13 @@ public struct SwishComponent: View {
         let machine = SwishStatechart.makeStateMachine()
         let networking = KronorSwishPaymentNetworking(
             env: env,
-            token: sessionToken
+            token: sessionToken,
+            device: device
         )
         self.viewModel = SwishPaymentViewModel(
             stateMachine: machine,
             networking: networking,
             returnURL: returnURL,
-            device: device,
             onPaymentFailure: onPaymentFailure,
             onPaymentSuccess: onPaymentSuccess
         )

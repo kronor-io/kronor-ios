@@ -21,7 +21,8 @@ public struct PayPalComponent: View {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
         let networking = KronorEmbeddedPaymentNetworking(
             env: env,
-            token: sessionToken
+            token: sessionToken,
+            device: device
         )
 
         let viewModel = EmbeddedPaymentViewModel(
@@ -31,7 +32,6 @@ public struct PayPalComponent: View {
             networking: networking,
             paymentMethod: .payPal,
             returnURL: returnURL,
-            device: device,
             onPaymentFailure: onPaymentFailure,
             onPaymentSuccess: onPaymentSuccess
         )

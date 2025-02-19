@@ -13,7 +13,7 @@ let  fingerprinter = FingerprinterFactory.getInstance()
 
 public extension Kronor {
     
-    struct Device {
+    struct Device: Sendable {
         public var fingerprint: String
         public var appName: String
         public var appVersion: String

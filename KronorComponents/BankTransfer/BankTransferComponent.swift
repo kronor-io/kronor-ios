@@ -21,7 +21,8 @@ public struct BankTransferComponent: View {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
         let networking = KronorEmbeddedPaymentNetworking(
             env: env,
-            token: sessionToken
+            token: sessionToken,
+            device: device
         )
         let viewModel = EmbeddedPaymentViewModel(
             env: env,
@@ -30,7 +31,6 @@ public struct BankTransferComponent: View {
             networking: networking,
             paymentMethod: .bankTransfer,
             returnURL: returnURL,
-            device: device,
             onPaymentFailure: onPaymentFailure,
             onPaymentSuccess: onPaymentSuccess
         )

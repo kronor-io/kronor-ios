@@ -41,7 +41,6 @@ class SwishPaymentViewModel: ObservableObject {
     }
     
     private var returnURL: URL
-    private var device: Kronor.Device?
     private var onPaymentFailure: (_ reason: FailureReason) -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     
@@ -57,7 +56,6 @@ class SwishPaymentViewModel: ObservableObject {
         stateMachine: SwishStatechart.SwishStateMachine,
         networking: some SwishPaymentNetworking,
         returnURL: URL,
-        device: Kronor.Device? = nil,
         onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
         onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
@@ -65,7 +63,6 @@ class SwishPaymentViewModel: ObservableObject {
         self.networking = networking
         self.state = stateMachine.state
         self.returnURL = returnURL
-        self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
     }
@@ -98,8 +95,7 @@ class SwishPaymentViewModel: ObservableObject {
             Self.logger.debug("creating swish mcom request")
 
             let rWaitToken = await networking.createMcomPaymentRequest(
-                returnURL: self.returnURL,
-                device: self.device
+                returnURL: self.returnURL
             )
             
             switch rWaitToken {
@@ -116,8 +112,7 @@ class SwishPaymentViewModel: ObservableObject {
             Self.logger.debug("creating swish ecom request")
             let rWaitToken = await networking.createEcomPaymentRequest(
                 phoneNumber: phoneNumber,
-                returnURL: self.returnURL,
-                device: self.device
+                returnURL: self.returnURL
             )
             
             switch rWaitToken {
@@ -289,15 +284,4 @@ extension SwishPaymentViewModel: RetryableModel {
             await self.transition(.retry)
         }
     }
-}
-
-func makeDeviceInfo(device: Kronor.Device) -> KronorApi.AddSessionDeviceInformationInput {
-    KronorApi.AddSessionDeviceInformationInput(
-        browserName: device.appName,
-        browserVersion: device.appVersion,
-        fingerprint: device.fingerprint,
-        osName: device.osName,
-        osVersion: device.osVersion,
-        userAgent: "\(device.appName)/\(device.appVersion) (\(device.deviceModel))"
-    )
 }

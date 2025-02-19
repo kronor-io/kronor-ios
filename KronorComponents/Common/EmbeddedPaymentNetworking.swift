@@ -11,23 +11,19 @@ import KronorApi
 
 protocol EmbeddedPaymentNetworking: PaymentNetworking {
     func createMobilePayPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
 
     func createCreditCardPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
     
     func createVippsRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
     
     func createPayPalRequest(
         returnURL: URL,
-        merchantReturnURL: URL,
-        device: Kronor.Device?
+        merchantReturnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
 }

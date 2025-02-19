@@ -13,6 +13,7 @@ enum Preview {
     static let env = Kronor.Environment.sandbox
     static let token = "dummy"
     static let returnURL = URL(string: "io.kronortest://")!
+    static let device: Kronor.Device? = nil
 
     static func makeEmbeddedPaymentViewModel(
         paymentMethod: SupportedEmbeddedMethod,
@@ -26,7 +27,8 @@ enum Preview {
         }
         let networking = KronorEmbeddedPaymentNetworking(
             env: env,
-            token: token
+            token: token,
+            device: device
         )
         return EmbeddedPaymentViewModel(
             env: env,
@@ -51,7 +53,8 @@ enum Preview {
         }
         let networking = KronorSwishPaymentNetworking(
             env: env,
-            token: token
+            token: token,
+            device: device
         )
         return SwishPaymentViewModel(
             stateMachine: machine,
