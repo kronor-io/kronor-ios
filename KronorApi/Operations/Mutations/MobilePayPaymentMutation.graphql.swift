@@ -6,20 +6,9 @@
 public extension KronorApi {
   class MobilePayPaymentMutation: GraphQLMutation {
     public static let operationName: String = "MobilePayPayment"
-    public static let document: ApolloAPI.DocumentType = .notPersisted(
+    public static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
-        #"""
-        mutation MobilePayPayment($payment: MobilePayPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
-          newMobilePayPayment(pay: $payment) {
-            __typename
-            waitToken
-          }
-          addSessionDeviceInformation(info: $deviceInfo) {
-            __typename
-            result
-          }
-        }
-        """#
+        #"mutation MobilePayPayment($payment: MobilePayPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) { newMobilePayPayment(pay: $payment) { __typename waitToken } addSessionDeviceInformation(info: $deviceInfo) { __typename result } }"#
       ))
 
     public var payment: MobilePayPaymentInput
@@ -42,7 +31,7 @@ public extension KronorApi {
       public let __data: DataDict
       public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
+      public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
       public static var __selections: [ApolloAPI.Selection] { [
         .field("newMobilePayPayment", NewMobilePayPayment.self, arguments: ["pay": .variable("payment")]),
         .field("addSessionDeviceInformation", AddSessionDeviceInformation.self, arguments: ["info": .variable("deviceInfo")]),
@@ -60,7 +49,7 @@ public extension KronorApi {
         public let __data: DataDict
         public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.MobilePayPaymentResult }
+        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.MobilePayPaymentResult }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("waitToken", String.self),
@@ -79,7 +68,7 @@ public extension KronorApi {
         public let __data: DataDict
         public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
+        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
         public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("result", Bool.self),

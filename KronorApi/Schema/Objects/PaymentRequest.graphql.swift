@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// A payment requested
-  static let PaymentRequest = Object(
+  static let PaymentRequest = ApolloAPI.Object(
     typename: "PaymentRequest",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

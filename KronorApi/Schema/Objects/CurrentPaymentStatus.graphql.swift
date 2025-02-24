@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// columns and relationships of "runtime.current_payment_status"
-  static let CurrentPaymentStatus = Object(
+  static let CurrentPaymentStatus = ApolloAPI.Object(
     typename: "CurrentPaymentStatus",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

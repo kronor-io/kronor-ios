@@ -4,8 +4,9 @@
 import ApolloAPI
 
 public extension KronorApi.Objects {
-  static let Subscription_root = Object(
+  static let Subscription_root = ApolloAPI.Object(
     typename: "subscription_root",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

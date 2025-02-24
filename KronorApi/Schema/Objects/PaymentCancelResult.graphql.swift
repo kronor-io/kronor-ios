@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of cancelling a payment request.
-  static let PaymentCancelResult = Object(
+  static let PaymentCancelResult = ApolloAPI.Object(
     typename: "PaymentCancelResult",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }

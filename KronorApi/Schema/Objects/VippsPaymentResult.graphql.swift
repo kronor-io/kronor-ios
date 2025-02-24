@@ -5,8 +5,9 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a Vipps payment.
-  static let VippsPaymentResult = Object(
+  static let VippsPaymentResult = ApolloAPI.Object(
     typename: "VippsPaymentResult",
-    implementedInterfaces: []
+    implementedInterfaces: [],
+    keyFields: nil
   )
 }
