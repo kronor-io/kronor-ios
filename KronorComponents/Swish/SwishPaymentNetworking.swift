@@ -11,13 +11,11 @@ import KronorApi
 
 protocol SwishPaymentNetworking: PaymentNetworking {
     func createMcomPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
 
     func createEcomPaymentRequest(
         phoneNumber: String,
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError>
 }

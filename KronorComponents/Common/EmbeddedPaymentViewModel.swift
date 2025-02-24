@@ -60,7 +60,6 @@ class EmbeddedPaymentViewModel: ObservableObject {
     private var subscription: Cancellable?
 
     private var paymentMethod: SupportedEmbeddedMethod
-    private var device: Kronor.Device?
     private var onPaymentFailure: (_ reason: FailureReason) -> ()
     private var onPaymentSuccess: (_ paymentId: String) -> ()
     internal let sessionURL: URL
@@ -76,14 +75,12 @@ class EmbeddedPaymentViewModel: ObservableObject {
          networking: some EmbeddedPaymentNetworking,
          paymentMethod: SupportedEmbeddedMethod,
          returnURL: URL,
-         device: Kronor.Device? = nil,
          onPaymentFailure: @escaping (_ reason: FailureReason) -> (),
          onPaymentSuccess: @escaping (_ paymentId: String) -> ()
     ) {
         self.stateMachine = stateMachine
         self.networking = networking
         self.state = stateMachine.state
-        self.device = device
         self.onPaymentSuccess = onPaymentSuccess
         self.onPaymentFailure = onPaymentFailure
         self.paymentMethod = paymentMethod
@@ -148,24 +145,20 @@ class EmbeddedPaymentViewModel: ObservableObject {
                 switch self.paymentMethod {
                 case .mobilePay:
                     return await networking.createMobilePayPaymentRequest(
-                        returnURL: self.returnURL,
-                        device: self.device
+                        returnURL: self.returnURL
                     )
                 case .creditCard:
                     return await networking.createCreditCardPaymentRequest(
-                        returnURL: self.returnURL,
-                        device: self.device
+                        returnURL: self.returnURL
                     )
                 case .vipps:
                     return await networking.createVippsRequest(
-                        returnURL: self.returnURL,
-                        device: self.device
+                        returnURL: self.returnURL
                     )
                 case .payPal:
                     return await networking.createPayPalRequest(
                         returnURL: self.intermediateRedirectURL,
-                        merchantReturnURL: self.returnURL,
-                        device: self.device
+                        merchantReturnURL: self.returnURL
                     )
                 case .bankTransfer, .p24, .fallback:
                     // cannot create the payment request as we don't know how.

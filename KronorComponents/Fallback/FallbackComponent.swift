@@ -22,7 +22,8 @@ public struct FallbackComponent: View {
         let machine = EmbeddedPaymentStatechart.makeStateMachine()
         let networking = KronorEmbeddedPaymentNetworking(
             env: env,
-            token: sessionToken
+            token: sessionToken,
+            device: device
         )
         let viewModel = EmbeddedPaymentViewModel(
             env: env,
@@ -31,7 +32,6 @@ public struct FallbackComponent: View {
             networking: networking,
             paymentMethod: .fallback(name: paymentMethodName),
             returnURL: returnURL,
-            device: device,
             onPaymentFailure: onPaymentFailure,
             onPaymentSuccess: onPaymentSuccess
         )

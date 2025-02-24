@@ -11,8 +11,7 @@ import KronorApi
 
 final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentNetworking {
     func createMcomPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.SwishPaymentInput(
             flow: "mcom",
@@ -20,23 +19,16 @@ final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentN
             returnUrl: returnURL.absoluteString
         )
 
-        var deviceInfo = device.map(makeDeviceInfo)
-        if deviceInfo == nil {
-            let def = await Kronor.detectDevice()
-            deviceInfo = makeDeviceInfo(device: def)
-        }
-
         return await KronorApi.createSwishPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo!
+            deviceInfo: deviceInfo
         )
     }
 
     func createEcomPaymentRequest(
         phoneNumber: String,
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.SwishPaymentInput(
             customerSwishNumber: .some(phoneNumber),
@@ -45,16 +37,10 @@ final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentN
             returnUrl: returnURL.absoluteString
         )
 
-        var deviceInfo = device.map(makeDeviceInfo)
-        if deviceInfo == nil {
-            let def = await Kronor.detectDevice()
-            deviceInfo = makeDeviceInfo(device: def)
-        }
-
         return await KronorApi.createSwishPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo!
+            deviceInfo: deviceInfo
         )
     }
 }

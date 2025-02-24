@@ -12,75 +12,53 @@ import Apollo
 
 final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPaymentNetworking {
     func createMobilePayPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.MobilePayPaymentInput(
             idempotencyKey: UUID().uuidString,
             returnUrl: returnURL.absoluteString
         )
 
-        var deviceInfo = device.map(makeDeviceInfo)
-        if deviceInfo == nil {
-            let def = await Kronor.detectDevice()
-            deviceInfo = makeDeviceInfo(device: def)
-        }
-
         return await KronorApi.createMobilePayPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo!
+            deviceInfo: deviceInfo
         )
     }
 
     func createCreditCardPaymentRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.CreditCardPaymentInput(
             idempotencyKey: UUID().uuidString,
             returnUrl: returnURL.absoluteString
         )
 
-        var deviceInfo = device.map(makeDeviceInfo)
-        if deviceInfo == nil {
-            let def = await Kronor.detectDevice()
-            deviceInfo = makeDeviceInfo(device: def)
-        }
-
         return await KronorApi.createCreditCardPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo!
+            deviceInfo: deviceInfo
         )
     }
 
     func createVippsRequest(
-        returnURL: URL,
-        device: Kronor.Device?
+        returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.VippsPaymentInput(
             idempotencyKey: UUID().uuidString,
             returnUrl: returnURL.absoluteString
         )
 
-        var deviceInfo = device.map(makeDeviceInfo)
-        if deviceInfo == nil {
-            let def = await Kronor.detectDevice()
-            deviceInfo = makeDeviceInfo(device: def)
-        }
-
         return await KronorApi.createVippsPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo!
+            deviceInfo: deviceInfo
         )
     }
 
     func createPayPalRequest(
         returnURL: URL,
-        merchantReturnURL: URL,
-        device: Kronor.Device?
+        merchantReturnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {
          let input = KronorApi.PayPalPaymentInput(
              idempotencyKey: UUID().uuidString,
@@ -88,12 +66,10 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
              returnUrl: returnURL.absoluteString
          )
 
-         var deviceInfo = device.map(makeDeviceInfo)
-         if deviceInfo == nil {
-             let def = await Kronor.detectDevice()
-             deviceInfo = makeDeviceInfo(device: def)
-         }
-
-         return await KronorApi.createPayPalPaymentRequest(client: client, input: input, deviceInfo: deviceInfo!)
+         return await KronorApi.createPayPalPaymentRequest(
+            client: client,
+            input: input,
+            deviceInfo: deviceInfo
+         )
      }
 }
