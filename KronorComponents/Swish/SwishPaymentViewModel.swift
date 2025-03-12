@@ -179,7 +179,7 @@ class SwishPaymentViewModel: ObservableObject {
 
 
         case .subscribeToPaymentStatus(let waitToken):
-            subscribeToPaymentStatus(waitToken: waitToken)
+            await subscribeToPaymentStatus(waitToken: waitToken)
             
         case .resetState:
             self.subscription?.cancel()
@@ -197,16 +197,16 @@ class SwishPaymentViewModel: ObservableObject {
         let _ = await transition(.error(error: error))
     }
     
-    private func subscribeToPaymentStatus(waitToken: String) {
-        self.subscription = networking.subscribeToPaymentStatus() { [weak self] result in
+    private func subscribeToPaymentStatus(waitToken: String) async {
+        self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, apiError in
             switch result {
                 
             case .failure(let error):
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let selectionSet):
-                let request = selectionSet.data?.paymentRequests
+            case .success(let paymentStatusData):
+                let request = paymentStatusData.paymentRequests
                     .first(where: { paymentRequest in
                         paymentRequest.waitToken == waitToken &&
                         
@@ -243,14 +243,13 @@ class SwishPaymentViewModel: ObservableObject {
                     }
                 }
                 
-                if let errors = selectionSet.errors {
+                if let error = apiError {
                     Task { [weak self] in
-                        await self?.handleError(error: .usageError(
-                            error: KronorApi.APIError(
-                                errors: errors,
-                                extensions: selectionSet.extensions ?? [:]
+                        await self?.handleError(
+                            error: .usageError(
+                                error: error
                             )
-                        ))
+                        )
                     }
                 }
 

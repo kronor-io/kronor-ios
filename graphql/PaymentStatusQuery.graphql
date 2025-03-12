@@ -1,0 +1,28 @@
+query PaymentStatusQuery {
+        paymentRequests(orderBy: {createdAt: ASC}) {
+            waitToken
+            amount
+            status {
+                status
+            }
+            createdAt
+            resultingPaymentId
+            transactionSwishDetails {
+                errorCode
+                returnUrl
+                qrCode
+            }
+            transactionCreditCardDetails {
+                sessionId
+                sessionUrl
+            }
+            transactionMobilePayDetails {
+                sessionId
+                sessionUrl
+            }
+            transactionVippsDetails {
+                sessionId
+                sessionUrl
+            }
+        }
+}
