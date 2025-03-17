@@ -11,8 +11,6 @@ import KronorApi
 import Kronor
 import Network
 
-struct TimeoutError: Error, Equatable {}
-
 class KronorPaymentNetworking: PaymentNetworking {
     private actor State {
         var device: Kronor.Device?
@@ -79,30 +77,53 @@ class KronorPaymentNetworking: PaymentNetworking {
             connection.stateUpdateHandler = { state in
                 switch state {
                 case .ready:
+                    connection.stateUpdateHandler = nil
                     continuation.resume(returning: connection)
                 case .failed(let error):
+                    connection.stateUpdateHandler = nil
                     continuation.resume(throwing: error)
                 case .cancelled:
+                    connection.stateUpdateHandler = nil
                     continuation.resume(throwing: CancellationError())
+                case .waiting(let error):
+                    connection.stateUpdateHandler = nil
+                    continuation.resume(throwing: error)
                 default:
-                    break
-                }
-            }
-            
-            connection.start(queue: .main)
+                   break
+               }
+           }
+                
+           connection.start(queue: .main)
         }
     }
     
     func subscribeToPaymentStatus(
         resultHandler: @escaping (Result<KronorApi.PaymentStatusSubscription.Data, Error>, KronorApi.APIError?) -> Void
     ) async -> Cancellable {
-        let evalTask = Task {
+        do {
             try await self.establishWebSocketConnection()
-        }
-            
-        let timeoutTask = Task {
-            try await Task.sleep(nanoseconds: UInt64(1 * NSEC_PER_SEC))
-            evalTask.cancel()
+            return client.subscribe(
+                subscription: KronorApi.PaymentStatusSubscription(),
+                resultHandler: { result in
+                    resultHandler(
+                        result.flatMap({ graphQLData in
+                            switch graphQLData.data {
+                            case .some(let data):
+                                return .success(data)
+                            case .none:
+                                return .failure(
+                                    KronorApi.APIError(
+                                        errors: [],
+                                        extensions: [:]
+                                    )
+                                )
+                            }
+                        }),
+                        nil
+                    )
+                }
+            )
+        } catch {
             return self.pollingManager.startPolling {
                 self.client.fetch(query: KronorApi.PaymentStatusQuery()) { result in
                     resultHandler(
@@ -127,30 +148,6 @@ class KronorPaymentNetworking: PaymentNetworking {
                 }
             }
         }
-            
-        try? await evalTask.value
-        timeoutTask.cancel()
-        return client.subscribe(
-            subscription: KronorApi.PaymentStatusSubscription(),
-            resultHandler: { result in
-                resultHandler(
-                    result.flatMap({ graphQLData in
-                        switch graphQLData.data {
-                        case .some(let data):
-                            return .success(data)
-                        case .none:
-                            return .failure(
-                                KronorApi.APIError(
-                                    errors: [],
-                                    extensions: [:]
-                                )
-                            )
-                        }
-                    }),
-                    nil
-                )
-            }
-        )
     }
 
     func cancelSessionPayments() async -> Result<(), Never> {
