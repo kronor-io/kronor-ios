@@ -2,30 +2,30 @@ import SwiftUI
 import Apollo
 
 class PollingManager: Cancellable {
-    let pollingInterval: TimeInterval
-    private var pollingTimer: Timer?
+    let pollingInterval: UInt64
+    private var task: Task<(), Never>?
     private var pollingAction: (() -> Void)?
 
-    init(pollingInterval: TimeInterval) {
+    init(pollingInterval: UInt64) {
         self.pollingInterval = pollingInterval
     }
 
     func startPolling(pollingAction: @escaping () -> Void) -> Cancellable {
         self.pollingAction = pollingAction
-        DispatchQueue.main.async {
-            self.pollingTimer = Timer.scheduledTimer(
-                withTimeInterval: self.pollingInterval,
-                repeats: true
-            ) { _ in
-                pollingAction()
-            }
+        self.task = Task {
+           while(true) {
+               try? await Task.sleep(nanoseconds: self.pollingInterval * NSEC_PER_SEC)
+               if Task.isCancelled {
+                   break
+               }
+               pollingAction()
+           }
         }
-        return self
+       return self
     }
 
     func cancel() {
-        pollingTimer?.invalidate()
-        pollingTimer = nil
+        self.task?.cancel()
         pollingAction = nil
     }
 }
