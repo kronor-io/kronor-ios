@@ -50,8 +50,8 @@ enum SupportedEmbeddedMethod {
 class EmbeddedPaymentViewModel: ObservableObject {
     
     private static let logger = Logger(
-            subsystem: Bundle.main.bundleIdentifier!,
-            category: String(describing: EmbeddedPaymentViewModel.self)
+        subsystem: Bundle.main.bundleIdentifier!,
+        category: String(describing: EmbeddedPaymentViewModel.self)
     )
 
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
@@ -126,7 +126,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
     
     func initialize() async {
-        subscribeToPaymentStatusMatcher(matcher: {_ in true })
+        await subscribeToPaymentStatusMatcher(matcher: {_ in true })
     }
 
     private func handleSideEffect(sideEffect: EmbeddedPaymentStatechart.SideEffect) async {
@@ -206,7 +206,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
 
         case .subscribeToPaymentStatus(let waitToken):
-            subscribeToPaymentStatus(waitToken: waitToken)
+            await subscribeToPaymentStatus(waitToken: waitToken)
      
         case .openEmbeddedSite:
             await MainActor.run {
@@ -249,22 +249,24 @@ class EmbeddedPaymentViewModel: ObservableObject {
         let _ = await transition(.error(error: error))
     }
     
-    private func subscribeToPaymentStatus(waitToken: String) {
-        subscribeToPaymentStatusMatcher { paymentRequest in
-            paymentRequest.waitToken == waitToken
-        }
+    private func subscribeToPaymentStatus(waitToken: String) async {
+        await subscribeToPaymentStatusMatcher(
+            matcher: { paymentRequest in
+                paymentRequest.waitToken == waitToken
+            }
+        )
     }
-    
-    private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) {
-        self.subscription = networking.subscribeToPaymentStatus { [weak self] result in
+
+    private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) async {
+        self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, _ in
             switch result {
                 
             case .failure(let error):
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let selectionSet):
-                let request = selectionSet.data?.paymentRequests
+            case .success(let paymentStatusData):                
+                let request = paymentStatusData.paymentRequests
                     .sorted(by: { itemA, itemB in
                         itemA.createdAt > itemB.createdAt
                     })

@@ -11,8 +11,8 @@ import KronorApi
 
 protocol PaymentNetworking {
     func subscribeToPaymentStatus(
-        resultHandler: @escaping GraphQLResultHandler<KronorApi.PaymentStatusSubscription.Data>
-    ) -> Cancellable
+        resultHandler: @escaping (Result<KronorApi.PaymentStatusSubscription.Data, Error>, KronorApi.APIError?) -> Void
+    ) async -> Cancellable
 
     func cancelSessionPayments() async -> Result<(), Never>
 }

@@ -43,6 +43,7 @@ public extension KronorApi {
       case "VippsDetails": return KronorApi.Objects.VippsDetails
       case "VippsPaymentResult": return KronorApi.Objects.VippsPaymentResult
       case "mutation_root": return KronorApi.Objects.Mutation_root
+      case "query_root": return KronorApi.Objects.Query_root
       case "subscription_root": return KronorApi.Objects.Subscription_root
       default: return nil
       }
