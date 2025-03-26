@@ -93,8 +93,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
         components.queryItems = [
             URLQueryItem(name: "env", value: env.name),
             URLQueryItem(name: "paymentMethod", value: paymentMethod.getName()),
-            URLQueryItem(name: "token", value: sessionToken),
-            URLQueryItem(name: "merchantReturnUrl", value: returnURL.absoluteString)
+            URLQueryItem(name: "token", value: sessionToken)
         ]
 
         self.sessionURL = components.url!
