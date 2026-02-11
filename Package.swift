@@ -1,4 +1,4 @@
-// swift-tools-version: 5.7
+// swift-tools-version: 5.9
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -7,7 +7,7 @@ let package = Package(
     name: "Kronor",
     defaultLocalization: "en",
     platforms: [
-      .iOS(.v15),
+        .iOS(.v17),
     ],
     products: [
         // Products define the executables and libraries a package produces, and make them visible to other packages.
@@ -29,19 +29,19 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/apollographql/apollo-ios.git",
-            .upToNextMinor(from: "1.21.0")
+            url: "git@github.com:portolans/apollo-ios.git",
+            branch: "release--1.23.0"
         ),
         .package(
-            url: "https://github.com/Tinder/StateMachine",
+            url: "git@github.com:Tinder/StateMachine.git",
             .upToNextMajor(from: "0.3.0")
         ),
         .package(
-            url: "https://github.com/fingerprintjs/fingerprintjs-ios",
+            url: "git@github.com:fingerprintjs/fingerprintjs-ios.git",
             .upToNextMajor(from: "1.0.0")
         ),
         .package(
-            url: "https://github.com/trustly/TrustlyIosSdk",
+            url: "git@github.com:trustly/TrustlyIosSdk.git",
             .upToNextMajor(from: "4.0.1")
         ),
     ],

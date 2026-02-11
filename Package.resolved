@@ -3,25 +3,25 @@
     {
       "identity" : "apollo-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/apollographql/apollo-ios.git",
+      "location" : "git@github.com:portolans/apollo-ios.git",
       "state" : {
-        "revision" : "6ecc75281dab2fa231cb0d5fed3a3713826fecae",
-        "version" : "1.21.0"
+        "branch" : "release--1.23.0",
+        "revision" : "ac25139dcc6db72d18182069e91694c027d82b6f"
       }
     },
     {
       "identity" : "fingerprintjs-ios",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/fingerprintjs/fingerprintjs-ios",
+      "location" : "git@github.com:fingerprintjs/fingerprintjs-ios.git",
       "state" : {
-        "revision" : "b34f55f1c527dc6122a402531ee7d52c61c422a2",
-        "version" : "1.4.0"
+        "revision" : "2e2ead3d02c46736d9b4a66373700489113e293a",
+        "version" : "1.6.0"
       }
     },
     {
       "identity" : "statemachine",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/Tinder/StateMachine",
+      "location" : "git@github.com:Tinder/StateMachine.git",
       "state" : {
         "revision" : "0f7964206bd8dbc70f5a30fed0b1db76bfcc1b24",
         "version" : "0.3.0"
@@ -30,7 +30,7 @@
     {
       "identity" : "trustlyiossdk",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/trustly/TrustlyIosSdk",
+      "location" : "git@github.com:trustly/TrustlyIosSdk.git",
       "state" : {
         "revision" : "2ee7e7d2e9dff110415b369da3bcd3af24e8c368",
         "version" : "4.0.1"
