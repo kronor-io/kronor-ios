@@ -2,9 +2,10 @@
 // This file was automatically generated and should not be edited.
 
 @_exported import ApolloAPI
+@_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 public extension KronorApi {
-  class PaymentStatusSubscription: GraphQLSubscription {
+  nonisolated struct PaymentStatusSubscription: GraphQLSubscription {
     public static let operationName: String = "PaymentStatus"
     public static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -13,13 +14,16 @@ public extension KronorApi {
 
     public init() {}
 
-    public struct Data: KronorApi.SelectionSet {
-      public let __data: DataDict
-      public init(_dataDict: DataDict) { __data = _dataDict }
+    nonisolated public struct Data: KronorApi.SelectionSet {
+      @_spi(Unsafe) public let __data: DataDict
+      @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Subscription_root }
-      public static var __selections: [ApolloAPI.Selection] { [
+      @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Subscription_root }
+      @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
         .field("paymentRequests", [PaymentRequest].self, arguments: ["orderBy": ["createdAt": "ASC"]]),
+      ] }
+      @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+        PaymentStatusSubscription.Data.self
       ] }
 
       /// Get the list of payment requests
@@ -28,12 +32,12 @@ public extension KronorApi {
       /// PaymentRequest
       ///
       /// Parent Type: `PaymentRequest`
-      public struct PaymentRequest: KronorApi.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
+      nonisolated public struct PaymentRequest: KronorApi.SelectionSet {
+        @_spi(Unsafe) public let __data: DataDict
+        @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.PaymentRequest }
-        public static var __selections: [ApolloAPI.Selection] { [
+        @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.PaymentRequest }
+        @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("waitToken", KronorApi.Uuid.self),
           .field("amount", KronorApi.Bigint.self),
@@ -45,6 +49,9 @@ public extension KronorApi {
           .field("transactionMobilePayDetails", [TransactionMobilePayDetail]?.self),
           .field("transactionVippsDetails", [TransactionVippsDetail]?.self),
           .field("transactionBankTransferDetails", [TransactionBankTransferDetail]?.self),
+        ] }
+        @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+          PaymentStatusSubscription.Data.PaymentRequest.self
         ] }
 
         public var waitToken: KronorApi.Uuid { __data["waitToken"] }
@@ -68,14 +75,17 @@ public extension KronorApi {
         /// PaymentRequest.Status
         ///
         /// Parent Type: `CurrentPaymentStatus`
-        public struct Status: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct Status: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CurrentPaymentStatus }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CurrentPaymentStatus }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("status", GraphQLEnum<KronorApi.PaymentStatusEnum>.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.Status.self
           ] }
 
           public var status: GraphQLEnum<KronorApi.PaymentStatusEnum> { __data["status"] }
@@ -84,16 +94,19 @@ public extension KronorApi {
         /// PaymentRequest.TransactionSwishDetail
         ///
         /// Parent Type: `SwishDetails`
-        public struct TransactionSwishDetail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct TransactionSwishDetail: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.SwishDetails }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.SwishDetails }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("errorCode", String?.self),
             .field("returnUrl", String?.self),
             .field("qrCode", String?.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.TransactionSwishDetail.self
           ] }
 
           /// Error code from swish
@@ -105,15 +118,18 @@ public extension KronorApi {
         /// PaymentRequest.TransactionCreditCardDetail
         ///
         /// Parent Type: `CreditCardDetails`
-        public struct TransactionCreditCardDetail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct TransactionCreditCardDetail: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CreditCardDetails }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CreditCardDetails }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.TransactionCreditCardDetail.self
           ] }
 
           /// Session id
@@ -125,15 +141,18 @@ public extension KronorApi {
         /// PaymentRequest.TransactionMobilePayDetail
         ///
         /// Parent Type: `MobilePayDetails`
-        public struct TransactionMobilePayDetail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct TransactionMobilePayDetail: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.MobilePayDetails }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.MobilePayDetails }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.TransactionMobilePayDetail.self
           ] }
 
           /// Session id
@@ -145,15 +164,18 @@ public extension KronorApi {
         /// PaymentRequest.TransactionVippsDetail
         ///
         /// Parent Type: `VippsDetails`
-        public struct TransactionVippsDetail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct TransactionVippsDetail: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.VippsDetails }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.VippsDetails }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("sessionId", String?.self),
             .field("sessionUrl", String?.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.TransactionVippsDetail.self
           ] }
 
           /// Session id
@@ -165,14 +187,17 @@ public extension KronorApi {
         /// PaymentRequest.TransactionBankTransferDetail
         ///
         /// Parent Type: `BankTransferDetails`
-        public struct TransactionBankTransferDetail: KronorApi.SelectionSet {
-          public let __data: DataDict
-          public init(_dataDict: DataDict) { __data = _dataDict }
+        nonisolated public struct TransactionBankTransferDetail: KronorApi.SelectionSet {
+          @_spi(Unsafe) public let __data: DataDict
+          @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-          public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.BankTransferDetails }
-          public static var __selections: [ApolloAPI.Selection] { [
+          @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.BankTransferDetails }
+          @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
             .field("__typename", String.self),
             .field("payUrl", String?.self),
+          ] }
+          @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+            PaymentStatusSubscription.Data.PaymentRequest.TransactionBankTransferDetail.self
           ] }
 
           public var payUrl: String? { __data["payUrl"] }

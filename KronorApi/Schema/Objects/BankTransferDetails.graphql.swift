@@ -5,7 +5,7 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// Describes the schema for bank transfer details
-  static let BankTransferDetails = ApolloAPI.Object(
+  nonisolated static let BankTransferDetails = ApolloAPI.Object(
     typename: "BankTransferDetails",
     implementedInterfaces: [],
     keyFields: nil

@@ -5,7 +5,7 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a PayPal payment.
-  static let PayPalPaymentResult = ApolloAPI.Object(
+  nonisolated static let PayPalPaymentResult = ApolloAPI.Object(
     typename: "PayPalPaymentResult",
     implementedInterfaces: [],
     keyFields: nil

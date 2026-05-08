@@ -1,14 +1,14 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import ApolloAPI
+@_spi(Internal) @_spi(Unsafe) import ApolloAPI
 
 public extension KronorApi {
   /// Aguments for adding device information on a device related to a payment session.
-  struct AddSessionDeviceInformationInput: InputObject {
-    public private(set) var __data: InputDict
+  nonisolated struct AddSessionDeviceInformationInput: InputObject {
+    @_spi(Unsafe) public private(set) var __data: InputDict
 
-    public init(_ data: InputDict) {
+    @_spi(Unsafe) public init(_ data: InputDict) {
       __data = data
     }
 

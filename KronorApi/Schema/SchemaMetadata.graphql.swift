@@ -3,16 +3,16 @@
 
 import ApolloAPI
 
-public protocol KronorApi_SelectionSet: ApolloAPI.SelectionSet & ApolloAPI.RootSelectionSet
+nonisolated public protocol KronorApi_SelectionSet: ApolloAPI.SelectionSet & ApolloAPI.RootSelectionSet
 where Schema == KronorApi.SchemaMetadata {}
 
-public protocol KronorApi_InlineFragment: ApolloAPI.SelectionSet & ApolloAPI.InlineFragment
+nonisolated public protocol KronorApi_InlineFragment: ApolloAPI.SelectionSet & ApolloAPI.InlineFragment
 where Schema == KronorApi.SchemaMetadata {}
 
-public protocol KronorApi_MutableSelectionSet: ApolloAPI.MutableRootSelectionSet
+nonisolated public protocol KronorApi_MutableSelectionSet: ApolloAPI.MutableRootSelectionSet
 where Schema == KronorApi.SchemaMetadata {}
 
-public protocol KronorApi_MutableInlineFragment: ApolloAPI.MutableSelectionSet & ApolloAPI.InlineFragment
+nonisolated public protocol KronorApi_MutableInlineFragment: ApolloAPI.MutableSelectionSet & ApolloAPI.InlineFragment
 where Schema == KronorApi.SchemaMetadata {}
 
 public extension KronorApi {
@@ -24,36 +24,37 @@ public extension KronorApi {
 
   typealias MutableInlineFragment = KronorApi_MutableInlineFragment
 
-  enum SchemaMetadata: ApolloAPI.SchemaMetadata {
+  nonisolated enum SchemaMetadata: ApolloAPI.SchemaMetadata {
     public static let configuration: any ApolloAPI.SchemaConfiguration.Type = SchemaConfiguration.self
 
-    public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
-      switch typename {
-      case "AddSessionDeviceInformationResult": return KronorApi.Objects.AddSessionDeviceInformationResult
-      case "BankTransferDetails": return KronorApi.Objects.BankTransferDetails
-      case "BankTransferPaymentResult": return KronorApi.Objects.BankTransferPaymentResult
-      case "CreditCardDetails": return KronorApi.Objects.CreditCardDetails
-      case "CreditCardPaymentResult": return KronorApi.Objects.CreditCardPaymentResult
-      case "CurrentPaymentStatus": return KronorApi.Objects.CurrentPaymentStatus
-      case "MobilePayDetails": return KronorApi.Objects.MobilePayDetails
-      case "MobilePayPaymentResult": return KronorApi.Objects.MobilePayPaymentResult
-      case "PayPalPaymentResult": return KronorApi.Objects.PayPalPaymentResult
-      case "PaymentCancelResult": return KronorApi.Objects.PaymentCancelResult
-      case "PaymentRequest": return KronorApi.Objects.PaymentRequest
-      case "SwishDetails": return KronorApi.Objects.SwishDetails
-      case "SwishPaymentResult": return KronorApi.Objects.SwishPaymentResult
-      case "VippsDetails": return KronorApi.Objects.VippsDetails
-      case "VippsPaymentResult": return KronorApi.Objects.VippsPaymentResult
-      case "mutation_root": return KronorApi.Objects.Mutation_root
-      case "query_root": return KronorApi.Objects.Query_root
-      case "subscription_root": return KronorApi.Objects.Subscription_root
-      default: return nil
-      }
+    private static let objectTypeMap: [String: ApolloAPI.Object] = [
+      "AddSessionDeviceInformationResult": KronorApi.Objects.AddSessionDeviceInformationResult,
+      "BankTransferDetails": KronorApi.Objects.BankTransferDetails,
+      "BankTransferPaymentResult": KronorApi.Objects.BankTransferPaymentResult,
+      "CreditCardDetails": KronorApi.Objects.CreditCardDetails,
+      "CreditCardPaymentResult": KronorApi.Objects.CreditCardPaymentResult,
+      "CurrentPaymentStatus": KronorApi.Objects.CurrentPaymentStatus,
+      "MobilePayDetails": KronorApi.Objects.MobilePayDetails,
+      "MobilePayPaymentResult": KronorApi.Objects.MobilePayPaymentResult,
+      "PayPalPaymentResult": KronorApi.Objects.PayPalPaymentResult,
+      "PaymentCancelResult": KronorApi.Objects.PaymentCancelResult,
+      "PaymentRequest": KronorApi.Objects.PaymentRequest,
+      "SwishDetails": KronorApi.Objects.SwishDetails,
+      "SwishPaymentResult": KronorApi.Objects.SwishPaymentResult,
+      "VippsDetails": KronorApi.Objects.VippsDetails,
+      "VippsPaymentResult": KronorApi.Objects.VippsPaymentResult,
+      "mutation_root": KronorApi.Objects.Mutation_root,
+      "query_root": KronorApi.Objects.Query_root,
+      "subscription_root": KronorApi.Objects.Subscription_root
+    ]
+
+    @_spi(Execution) public static func objectType(forTypename typename: String) -> ApolloAPI.Object? {
+      objectTypeMap[typename]
     }
   }
 
-  enum Objects {}
-  enum Interfaces {}
-  enum Unions {}
+  nonisolated enum Objects {}
+  nonisolated enum Interfaces {}
+  nonisolated enum Unions {}
 
 }

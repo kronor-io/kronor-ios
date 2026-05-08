@@ -2,9 +2,10 @@
 // This file was automatically generated and should not be edited.
 
 @_exported import ApolloAPI
+@_spi(Execution) @_spi(Unsafe) import ApolloAPI
 
 public extension KronorApi {
-  class CreditCardPaymentMutation: GraphQLMutation {
+  nonisolated struct CreditCardPaymentMutation: GraphQLMutation {
     public static let operationName: String = "CreditCardPayment"
     public static let operationDocument: ApolloAPI.OperationDocument = .init(
       definition: .init(
@@ -22,19 +23,22 @@ public extension KronorApi {
       self.deviceInfo = deviceInfo
     }
 
-    public var __variables: Variables? { [
+    @_spi(Unsafe) public var __variables: Variables? { [
       "payment": payment,
       "deviceInfo": deviceInfo
     ] }
 
-    public struct Data: KronorApi.SelectionSet {
-      public let __data: DataDict
-      public init(_dataDict: DataDict) { __data = _dataDict }
+    nonisolated public struct Data: KronorApi.SelectionSet {
+      @_spi(Unsafe) public let __data: DataDict
+      @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-      public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
-      public static var __selections: [ApolloAPI.Selection] { [
+      @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.Mutation_root }
+      @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
         .field("newCreditCardPayment", NewCreditCardPayment.self, arguments: ["pay": .variable("payment")]),
         .field("addSessionDeviceInformation", AddSessionDeviceInformation.self, arguments: ["info": .variable("deviceInfo")]),
+      ] }
+      @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+        CreditCardPaymentMutation.Data.self
       ] }
 
       /// Create a new payment request to receive money via credit card
@@ -45,14 +49,17 @@ public extension KronorApi {
       /// NewCreditCardPayment
       ///
       /// Parent Type: `CreditCardPaymentResult`
-      public struct NewCreditCardPayment: KronorApi.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
+      nonisolated public struct NewCreditCardPayment: KronorApi.SelectionSet {
+        @_spi(Unsafe) public let __data: DataDict
+        @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CreditCardPaymentResult }
-        public static var __selections: [ApolloAPI.Selection] { [
+        @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.CreditCardPaymentResult }
+        @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("waitToken", String.self),
+        ] }
+        @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+          CreditCardPaymentMutation.Data.NewCreditCardPayment.self
         ] }
 
         /// Once a payment is initialized, we will start the credit card payment
@@ -64,14 +71,17 @@ public extension KronorApi {
       /// AddSessionDeviceInformation
       ///
       /// Parent Type: `AddSessionDeviceInformationResult`
-      public struct AddSessionDeviceInformation: KronorApi.SelectionSet {
-        public let __data: DataDict
-        public init(_dataDict: DataDict) { __data = _dataDict }
+      nonisolated public struct AddSessionDeviceInformation: KronorApi.SelectionSet {
+        @_spi(Unsafe) public let __data: DataDict
+        @_spi(Unsafe) public init(_dataDict: DataDict) { __data = _dataDict }
 
-        public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
-        public static var __selections: [ApolloAPI.Selection] { [
+        @_spi(Execution) public static var __parentType: any ApolloAPI.ParentType { KronorApi.Objects.AddSessionDeviceInformationResult }
+        @_spi(Execution) public static var __selections: [ApolloAPI.Selection] { [
           .field("__typename", String.self),
           .field("result", Bool.self),
+        ] }
+        @_spi(Execution) public static var __fulfilledFragments: [any ApolloAPI.SelectionSet.Type] { [
+          CreditCardPaymentMutation.Data.AddSessionDeviceInformation.self
         ] }
 
         /// True when customer device data has been stored correctly.
