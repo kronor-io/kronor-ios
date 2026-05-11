@@ -24,7 +24,7 @@ class SwishPaymentViewModel: ObservableObject {
 
     private let stateMachine: SwishStatechart.SwishStateMachine
     private let networking: any SwishPaymentNetworking
-    private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
+    private var paymenRequest: KronorApi.PaymentRequestFields?
     private var subscription: Cancellable?
 
     
@@ -203,8 +203,8 @@ class SwishPaymentViewModel: ObservableObject {
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let paymentStatusData):
-                let request = paymentStatusData.paymentRequests
+            case .success(let paymentRequests):
+                let request = paymentRequests
                     .first(where: { paymentRequest in
                         paymentRequest.waitToken == waitToken &&
                         

@@ -13,7 +13,7 @@ class TrustlyPaymentViewModel: ObservableObject {
 
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
     private let networking: KronorTrustlyPaymentNetworking
-    private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
+    private var paymenRequest: KronorApi.PaymentRequestFields?
     private var subscription: Cancellable?
 
     private let returnURL: URL
@@ -139,8 +139,8 @@ class TrustlyPaymentViewModel: ObservableObject {
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let paymentStatusData):
-                let request = paymentStatusData.paymentRequests
+            case .success(let paymentRequests):
+                let request = paymentRequests
                     .sorted(by: { itemA, itemB in
                         itemA.createdAt > itemB.createdAt
                     })

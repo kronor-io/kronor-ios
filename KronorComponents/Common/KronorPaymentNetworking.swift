@@ -55,7 +55,7 @@ class KronorPaymentNetworking: PaymentNetworking {
     }
 
     func subscribeToPaymentStatus(
-        resultHandler: @escaping (Result<KronorApi.PaymentStatusSubscription.Data, Error>, KronorApi.APIError?) -> Void
+        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
     ) async -> Cancellable {
         if isWebSocketsEnabled {
             do {
@@ -127,7 +127,7 @@ extension KronorPaymentNetworking {
     }
 
     private func websocketPaymentStatusSubscription(
-        resultHandler: @escaping (Result<KronorApi.PaymentStatusSubscription.Data, Error>, KronorApi.APIError?) -> Void
+        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
     ) async throws -> Cancellable {
         _ = try await establishWebSocketConnection()
         return client.subscribe(
@@ -137,7 +137,7 @@ extension KronorPaymentNetworking {
                     result.flatMap({ graphQLData in
                         switch graphQLData.data {
                         case .some(let data):
-                            return .success(data)
+                            return .success(data.paymentRequests.map { $0.fragments.paymentRequestFields })
                         case .none:
                             return .failure(
                                 KronorApi.APIError(
@@ -154,7 +154,7 @@ extension KronorPaymentNetworking {
     }
 
     private func pollingPaymentStatusSubscription(
-        resultHandler: @escaping (Result<KronorApi.PaymentStatusSubscription.Data, Error>, KronorApi.APIError?) -> Void
+        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
     ) -> Cancellable {
         pollingManager.startPolling {
             self.client.fetch(query: KronorApi.PaymentStatusQuery(), cachePolicy: .fetchIgnoringCacheCompletely) { result in
@@ -162,7 +162,7 @@ extension KronorPaymentNetworking {
                     result.flatMap({ graphQLData in
                         switch graphQLData.data {
                         case .some(let data):
-                            return .success(KronorApi.PaymentStatusSubscription.Data(_dataDict: data.__data))
+                            return .success(data.paymentRequests.map { $0.fragments.paymentRequestFields })
                         case .none:
                             return .failure(
                                 KronorApi.APIError(
