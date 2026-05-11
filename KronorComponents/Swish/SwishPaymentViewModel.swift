@@ -8,7 +8,6 @@
 import Foundation
 import Kronor
 import KronorApi
-import Apollo
 import os
 
 #if canImport(UIKit)
@@ -25,7 +24,7 @@ class SwishPaymentViewModel: ObservableObject {
     private let stateMachine: SwishStatechart.SwishStateMachine
     private let networking: any SwishPaymentNetworking
     private var paymenRequest: KronorApi.PaymentRequestFields?
-    private var subscription: Cancellable?
+    private var subscription: Task<Void, Never>?
 
     
     var qrCode: String? {

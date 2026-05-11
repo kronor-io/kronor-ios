@@ -8,7 +8,6 @@
 import Foundation
 import Kronor
 import KronorApi
-import Apollo
 import os
 
 enum SupportedEmbeddedMethod {
@@ -60,7 +59,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
     private let networking: any EmbeddedPaymentNetworking
     private var paymenRequest: KronorApi.PaymentRequestFields?
-    private var subscription: Cancellable?
+    private var subscription: Task<Void, Never>?
 
     private let paymentMethod: SupportedEmbeddedMethod
     private let paymentResultHandler: PaymentResultHandler
@@ -236,13 +235,10 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         case .cancelAfterDeadline:
             Self.logger.info("attempting to cancel payment after deadline")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                Task { [weak self] in
-                    if let state = self?.state, state == .waitingForPaymentRequest {
-                        Self.logger.info("attempting to cancel payment after deadline")
-                        await self?.transition(.cancel)
-                    }
-                }
+            Task { [weak self] in
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                Self.logger.info("firing cancel after deadline")
+                await self?.transition(.cancel)
             }
         }
     }

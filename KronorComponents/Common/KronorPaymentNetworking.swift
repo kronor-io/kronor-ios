@@ -7,6 +7,7 @@
 
 import Foundation
 import Apollo
+import ApolloWebSocket
 import KronorApi
 import Kronor
 import Network
@@ -27,6 +28,7 @@ class KronorPaymentNetworking: PaymentNetworking {
     private let state: State
 
     let client: ApolloClient
+    private let webSocketTransport: WebSocketTransport?
     let pollingManager: PollingManager
     let env: Kronor.Environment
     let isWebSocketsEnabled: Bool
@@ -45,18 +47,25 @@ class KronorPaymentNetworking: PaymentNetworking {
 
     init(configuration: ComponentConfiguration) {
         self.env = configuration.env
-        self.client = KronorApi.makeGraphQLClient(
+        let (client, webSocketTransport) = KronorApi.makeGraphQLClient(
             env: configuration.env,
             token: configuration.sessionToken
         )
+        self.client = client
+        self.webSocketTransport = webSocketTransport
         self.isWebSocketsEnabled = configuration.isWebSocketsEnabled
         self.pollingManager = PollingManager(pollingInterval: 1)
         self.state = .init(device: configuration.device)
     }
 
+    deinit {
+        let transport = webSocketTransport
+        Task { await transport?.pause() }
+    }
+
     func subscribeToPaymentStatus(
         resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async -> Cancellable {
+    ) async -> Task<Void, Never> {
         if isWebSocketsEnabled {
             do {
                 return try await websocketPaymentStatusSubscription(resultHandler: resultHandler)
@@ -69,17 +78,12 @@ class KronorPaymentNetworking: PaymentNetworking {
     }
 
     func cancelSessionPayments() async -> Result<(), Never> {
-        await withCheckedContinuation { continuation in
-            client.perform(
-                mutation: KronorApi.CancelSessionPaymentsMutation(
-                    idempotencyKey: UUID().uuidString
-                )
-            ) { data in
-                continuation.resume(
-                    returning: .success(())
-                )
-            }
-        }
+        _ = try? await client.perform(
+            mutation: KronorApi.CancelSessionPaymentsMutation(
+                idempotencyKey: UUID().uuidString
+            )
+        )
+        return .success(())
     }
 }
 
@@ -128,56 +132,64 @@ extension KronorPaymentNetworking {
 
     private func websocketPaymentStatusSubscription(
         resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async throws -> Cancellable {
+    ) async throws -> Task<Void, Never> {
         _ = try await establishWebSocketConnection()
-        return client.subscribe(
-            subscription: KronorApi.PaymentStatusSubscription(),
-            resultHandler: { result in
-                resultHandler(
-                    result.flatMap({ graphQLData in
-                        switch graphQLData.data {
-                        case .some(let data):
-                            return .success(data.paymentRequests.map { $0.fragments.paymentRequestFields })
-                        case .none:
-                            return .failure(
-                                KronorApi.APIError(
-                                    errors: [],
-                                    extensions: [:]
-                                )
-                            )
-                        }
-                    }),
-                    nil
-                )
+        let stream = try client.subscribe(subscription: KronorApi.PaymentStatusSubscription())
+        return Task {
+            do {
+                for try await response in stream {
+                    let apiError = response.extractAPIError()
+                    if let data = response.data {
+                        resultHandler(
+                            .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
+                            apiError
+                        )
+                    } else {
+                        resultHandler(
+                            .failure(apiError ?? KronorApi.APIError.empty),
+                            apiError
+                        )
+                    }
+                }
+            } catch {
+                resultHandler(.failure(error), nil)
             }
-        )
+        }
     }
 
     private func pollingPaymentStatusSubscription(
         resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) -> Cancellable {
+    ) -> Task<Void, Never> {
         pollingManager.startPolling {
-            self.client.fetch(query: KronorApi.PaymentStatusQuery(), cachePolicy: .fetchIgnoringCacheCompletely) { result in
-                resultHandler(
-                    result.flatMap({ graphQLData in
-                        switch graphQLData.data {
-                        case .some(let data):
-                            return .success(data.paymentRequests.map { $0.fragments.paymentRequestFields })
-                        case .none:
-                            return .failure(
-                                KronorApi.APIError(
-                                    errors: [],
-                                    extensions: [:]
-                                )
-                            )
-                        }
-                    }),
-                    KronorApi.APIError(
-                        errors: (try? result.get().errors) ?? [],
-                        extensions: (try? result.get().extensions) ?? [:]
-                    )
+            do {
+                let response = try await self.client.fetch(
+                    query: KronorApi.PaymentStatusQuery(),
+                    cachePolicy: .networkOnly
                 )
+                let apiError = response.extractAPIError()
+                if let data = response.data {
+                    resultHandler(
+                        .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
+                        apiError
+                    )
+                } else {
+                    resultHandler(
+                        .failure(apiError ?? KronorApi.APIError.empty),
+                        apiError
+                    )
+                }
+            } catch {
+                resultHandler(.failure(error), nil)
             }
         }
+    }
+}
+
+private extension GraphQLResponse {
+    func extractAPIError() -> KronorApi.APIError? {
+        let errors = self.errors ?? []
+        let extensions = self.extensions ?? [:]
+        guard !errors.isEmpty || !extensions.isEmpty else { return nil }
+        return KronorApi.APIError(errors: errors, extensions: extensions)
     }
 }

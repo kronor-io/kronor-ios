@@ -1,7 +1,6 @@
 import Foundation
 import Kronor
 import KronorApi
-import Apollo
 import os
 
 class TrustlyPaymentViewModel: ObservableObject {
@@ -14,7 +13,7 @@ class TrustlyPaymentViewModel: ObservableObject {
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
     private let networking: KronorTrustlyPaymentNetworking
     private var paymenRequest: KronorApi.PaymentRequestFields?
-    private var subscription: Cancellable?
+    private var subscription: Task<Void, Never>?
 
     private let returnURL: URL
     private let paymentResultHandler: PaymentResultHandler

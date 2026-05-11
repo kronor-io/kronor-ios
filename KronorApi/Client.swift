@@ -11,15 +11,12 @@ import ApolloAPI
 import Foundation
 import Kronor
 
-let store = ApolloStore(cache: InMemoryNormalizedCache())
-let provider = DefaultInterceptorProvider(store: store)
-
 public extension KronorApi {
     struct APIError: Error {
         public var errors : [GraphQLError]
-        public var extensions : [String : AnyHashable]
-        
-        public init(errors: [GraphQLError], extensions: [String : AnyHashable]) {
+        public var extensions : JSONObject
+
+        public init(errors: [GraphQLError], extensions: JSONObject) {
             self.errors = errors
             self.extensions = extensions
         }
@@ -41,17 +38,40 @@ public extension KronorApi {
         case usageError (error: KronorApi.APIError)
     }
     
-    static func makeGraphQLClient(env: Kronor.Environment, token: String) -> ApolloClient {
-        let webSocketClient = WebSocket(url: env.websocketURL, protocol: .graphql_ws)
-        let payload: JSONEncodableDictionary = ["headers": ["Authorization": "Bearer " + token]]
-        let wsConfig = WebSocketTransport.Configuration(reconnect:true, connectingPayload: payload)
-        let webSocketTransport = WebSocketTransport(websocket: webSocketClient, store: store, config: wsConfig)
-        
-        let httpTransport = RequestChainNetworkTransport(interceptorProvider: provider,
-                                                         endpointURL: env.apiURL,
-                                                         additionalHeaders: ["Authorization": "Bearer " + token])
-        let transport = SplitNetworkTransport(uploadingNetworkTransport: httpTransport, webSocketNetworkTransport: webSocketTransport)
-        return ApolloClient(networkTransport: transport, store: store)
+    static func makeGraphQLClient(
+        env: Kronor.Environment,
+        token: String
+    ) -> (client: ApolloClient, webSocketTransport: WebSocketTransport?) {
+        let bearer = "Bearer " + token
+        let store = ApolloStore(cache: InMemoryNormalizedCache())
+        let payload: JSONEncodableDictionary = ["headers": ["Authorization": bearer]]
+        let httpTransport = RequestChainNetworkTransport(
+            urlSession: URLSession(configuration: .default),
+            interceptorProvider: DefaultInterceptorProvider.shared,
+            store: store,
+            endpointURL: env.apiURL,
+            additionalHeaders: ["Authorization": bearer]
+        )
+
+        let wsConfig = WebSocketTransport.Configuration(
+            reconnectionInterval: 0,
+            connectingPayload: payload
+        )
+        if let webSocketTransport = try? WebSocketTransport(
+            urlSession: URLSession(configuration: .default),
+            store: store,
+            endpointURL: env.websocketURL,
+            configuration: wsConfig
+        ) {
+            let transport = SplitNetworkTransport(
+                queryTransport: httpTransport,
+                mutationTransport: httpTransport,
+                subscriptionTransport: webSocketTransport
+            )
+            return (ApolloClient(networkTransport: transport, store: store), webSocketTransport)
+        }
+
+        return (ApolloClient(networkTransport: httpTransport, store: store), nil)
     }
     
     static func createSwishPaymentRequest(client: ApolloClient,
@@ -106,25 +126,24 @@ public extension KronorApi {
 }
 
 
-func sendMutation<Mutation: GraphQLMutation, OperationResult>(client: ApolloClient,
-                                                     mutation: Mutation,
-                                                     extractData: @escaping (Mutation.Data) -> OperationResult) async -> Result<OperationResult, KronorApi.KronorError> {
-    await withCheckedContinuation {continuation in
-        client.perform(mutation: mutation) {data in
-            switch data {
-            case .failure(let error):
-                continuation.resume(returning: .failure(.networkError(error: error)))
-            case .success(let result):
-                if let data = result.data {
-                    continuation.resume(returning: .success(extractData(data)))
-                } else {
-                    continuation.resume(returning: .failure(
-                        .usageError(error: KronorApi.APIError(
-                            errors: result.errors ?? [], extensions: result.extensions ?? [:])
-                        ))
-                    )
-                }
-            }
+func sendMutation<Mutation: GraphQLMutation, OperationResult>(
+    client: ApolloClient,
+    mutation: Mutation,
+    extractData: @escaping (Mutation.Data) -> OperationResult
+) async -> Result<OperationResult, KronorApi.KronorError>
+where Mutation.ResponseFormat == SingleResponseFormat {
+    do {
+        let result = try await client.perform(mutation: mutation)
+        return if let data = result.data {
+            .success(extractData(data))
+        } else {
+            .failure(
+                .usageError(error: KronorApi.APIError(
+                    errors: result.errors ?? [], extensions: result.extensions ?? [:])
+                )
+            )
         }
+    } catch {
+        return .failure(.networkError(error: error))
     }
 }

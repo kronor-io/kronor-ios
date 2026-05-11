@@ -6,13 +6,12 @@
 //
 
 import Foundation
-import Apollo
 import KronorApi
 
 protocol PaymentNetworking {
     func subscribeToPaymentStatus(
         resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async -> Cancellable
+    ) async -> Task<Void, Never>
 
     func cancelSessionPayments() async -> Result<(), Never>
 }

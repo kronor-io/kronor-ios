@@ -39,10 +39,7 @@ struct CreditCardHeaderView_Previews: PreviewProvider {
         paymentMethod: .mobilePay,
         state: .errored(
             error: .usageError(
-                error: KronorApi.APIError(
-                    errors: [],
-                    extensions: [:]
-                )
+                error: .empty
             )
         )
     )
