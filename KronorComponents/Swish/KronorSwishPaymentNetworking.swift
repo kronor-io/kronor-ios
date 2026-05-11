@@ -9,7 +9,7 @@ import Foundation
 import Kronor
 import KronorApi
 
-final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentNetworking {
+final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentNetworking, @unchecked Sendable {
     func createMcomPaymentRequest(
         returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {

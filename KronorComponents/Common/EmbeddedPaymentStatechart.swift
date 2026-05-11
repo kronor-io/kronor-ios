@@ -11,7 +11,7 @@ import KronorApi
 
 final class EmbeddedPaymentStatechart : StateMachineBuilder {
     
-    enum State : Equatable  {
+    enum State: Equatable, Sendable  {
         case initializing
         case creatingPaymentRequest
         case waitingForPaymentRequest
@@ -22,7 +22,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case errored (error: KronorApi.KronorError)
     }
     
-    enum Event : Equatable  {
+    enum Event: Equatable, Sendable  {
         case initialize
         case paymentRequestCreated (waitToken: String)
         case paymentRequestWillBeCreatedElsewhere
@@ -36,7 +36,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case waitForCancel
     }
     
-    enum SideEffect {
+    enum SideEffect: Sendable {
         case createPaymentRequest
         case openEmbeddedSite
         case subscribeToPaymentStatus (waitToken: String)

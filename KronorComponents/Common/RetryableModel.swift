@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol RetryableModel {
-    func cancel()
-    func retry()
+protocol RetryableModel: Sendable {
+    func cancel() async
+    func retry() async
 }

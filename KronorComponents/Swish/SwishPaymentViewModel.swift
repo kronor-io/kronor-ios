@@ -14,8 +14,8 @@ import os
 import UIKit
 #endif
 
-class SwishPaymentViewModel: ObservableObject {
-    
+@MainActor class SwishPaymentViewModel: ObservableObject {
+
     private static let logger = Logger(
             subsystem: Bundle.main.bundleIdentifier!,
             category: String(describing: SwishPaymentViewModel.self)
@@ -73,10 +73,8 @@ class SwishPaymentViewModel: ObservableObject {
                 self.subscription?.cancel()
             }
 
-            await MainActor.run {
-                self.state = result.toState
-                Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
-            }
+            self.state = result.toState
+            Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
         }
 
         if let sideEffect = result?.sideEffect {
@@ -124,25 +122,19 @@ class SwishPaymentViewModel: ObservableObject {
         case .notifyPaymentFailure:
             Self.logger.trace("performing notifyPaymentFailure")
             self.subscription?.cancel()
-            await MainActor.run {
-                self.paymentResultHandler(.failure(.declined))
-            }
+            await self.paymentResultHandler(.failure(.declined))
         
         case .cancelFlow:
             Self.logger.trace("performing cancelFlow")
             self.subscription?.cancel()
-            await MainActor.run {
-                self.paymentResultHandler(.failure(.cancelled))
-            }
+            await self.paymentResultHandler(.failure(.cancelled))
 
             
         case .notifyPaymentSuccess:
             Self.logger.trace("performing notifyPaymentSuccess")
             self.subscription?.cancel()
             if let paymentId = self.paymenRequest?.resultingPaymentId {
-                await MainActor.run {
-                    self.paymentResultHandler(.success(paymentId))
-                }
+                await self.paymentResultHandler(.success(paymentId))
             } else {
                 Self.logger.error("could not find resultingPaymentId before calling onPaymentSuccess")
             }
@@ -150,24 +142,15 @@ class SwishPaymentViewModel: ObservableObject {
             
         case .openSwishApp:
 #if canImport(UIKit)
-            if self.swishAppInstalled {
-                await MainActor.run {
-                    if let url = self.swishURL {
-                        Self.logger.debug("attempting to open \(url)")
-                        UIApplication.shared.open(url) { [weak self] success in
-                            if success {
-                                Task {
-                                    await self?.transition(.swishAppOpened)
-                                }
-                            } else {
-                                Self.logger.trace("could not open swish app")
-                                self?.swishAppInstalled = false
-                                Task {
-                                    await self?.transition(.retry)
-                                }
-                            }
-                        }
-                    }
+            if self.swishAppInstalled, let url = self.swishURL {
+                Self.logger.debug("attempting to open \(url)")
+                let success = await UIApplication.shared.open(url)
+                if success {
+                    await transition(.swishAppOpened)
+                } else {
+                    Self.logger.trace("could not open swish app")
+                    self.swishAppInstalled = false
+                    await transition(.retry)
                 }
             }
 #endif
@@ -195,66 +178,58 @@ class SwishPaymentViewModel: ObservableObject {
     
     private func subscribeToPaymentStatus(waitToken: String) async {
         self.subscription?.cancel()
-        self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, apiError in
-            switch result {
-                
-            case .failure(let error):
-                Task { [weak self] in
-                    await self?.handleError(error: .networkError(error: error))
-                }
-            case .success(let paymentRequests):
-                let request = paymentRequests
-                    .first(where: { paymentRequest in
-                        paymentRequest.waitToken == waitToken &&
-                        
-                        (paymentRequest.status?.contains { status in
-                            status.status != KronorApi.PaymentStatusEnum.initializing
-                        } ?? false)
-                    })
+        let stream = await networking.subscribeToPaymentStatus()
+        self.subscription = Task { [weak self] in
+            for await (result, apiError) in stream {
+                guard !Task.isCancelled, let self else { return }
 
-                if let request {
-                    self?.paymenRequest = request
-                    
-                    if case .waitingForPaymentRequest(_) = self?.stateMachine.state {
-                        Task { [weak self] in
-                            await self?.transition(.paymentRequestInitialized)
+                switch result {
+                case .failure(let error):
+                    await self.handleError(error: .networkError(error: error))
+
+                case .success(let paymentRequests):
+                    let request = paymentRequests
+                        .first(where: { paymentRequest in
+                            paymentRequest.waitToken == waitToken &&
+
+                            (paymentRequest.status?.contains { status in
+                                status.status != KronorApi.PaymentStatusEnum.initializing
+                            } ?? false)
+                        })
+
+                    if let request {
+                        self.paymenRequest = request
+
+                        if case .waitingForPaymentRequest(_) = self.stateMachine.state {
+                            await self.transition(.paymentRequestInitialized)
                         }
-                    }
-                    
-                    if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
-                        Task { [weak self] in
-                            await self?.transition(.paymentAuthorized)
+
+                        if (request.status?.contains { $0.status == KronorApi.PaymentStatusEnum.paid || $0.status == KronorApi.PaymentStatusEnum.authorized }) ?? false {
+                            await self.transition(.paymentAuthorized)
                         }
-                    }
-                    
-                    let wasRejected = request.status?.contains { status in
-                        [KronorApi.PaymentStatusEnum.error, KronorApi.PaymentStatusEnum.declined, KronorApi.PaymentStatusEnum.cancelled].contains {
-                            $0 == status.status.value
+
+                        let wasRejected = request.status?.contains { status in
+                            [KronorApi.PaymentStatusEnum.error, KronorApi.PaymentStatusEnum.declined, KronorApi.PaymentStatusEnum.cancelled].contains {
+                                $0 == status.status.value
+                            }
+                        }
+
+                        if wasRejected ?? false {
+                            await self.transition(.paymentRejected)
                         }
                     }
 
-                    if wasRejected ?? false {
-                        Task { [weak self] in
-                            await self?.transition(.paymentRejected)
-                        }
-                    }
-                }
-                
-                if let error = apiError {
-                    Task { [weak self] in
-                        await self?.handleError(
-                            error: .usageError(
-                                error: error
-                            )
+                    if let error = apiError {
+                        await self.handleError(
+                            error: .usageError(error: error)
                         )
                     }
                 }
-
             }
         }
     }
     
-    deinit {
+    isolated deinit {
         switch self.state {
         case .waitingForPayment, .paymentRequestInitialized(_), .creatingPaymentRequest(_), .waitingForPaymentRequest(_):
             Task { [networking] in
@@ -269,15 +244,11 @@ class SwishPaymentViewModel: ObservableObject {
 }
 
 extension SwishPaymentViewModel: RetryableModel {
-    func cancel() {
-        Task {
-            await self.transition(.cancelFlow)
-        }
+    func cancel() async {
+        await self.transition(.cancelFlow)
     }
     
-    func retry() {
-        Task {
-            await self.transition(.retry)
-        }
+    func retry() async {
+        await self.transition(.retry)
     }
 }

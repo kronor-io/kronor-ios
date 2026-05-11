@@ -2,7 +2,7 @@ import Foundation
 import Kronor
 import KronorApi
 
-final class KronorTrustlyPaymentNetworking: KronorPaymentNetworking, TrustlyPaymentNetworking {
+final class KronorTrustlyPaymentNetworking: KronorPaymentNetworking, TrustlyPaymentNetworking, @unchecked Sendable {
     func createPaymentRequest(
         returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {

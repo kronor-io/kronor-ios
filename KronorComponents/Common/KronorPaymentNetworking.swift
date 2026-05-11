@@ -12,7 +12,7 @@ import KronorApi
 import Kronor
 import Network
 
-class KronorPaymentNetworking: PaymentNetworking {
+class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
     private actor State {
         var device: Kronor.Device?
 
@@ -63,17 +63,15 @@ class KronorPaymentNetworking: PaymentNetworking {
         Task { await transport?.pause() }
     }
 
-    func subscribeToPaymentStatus(
-        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async -> Task<Void, Never> {
+    func subscribeToPaymentStatus() async -> AsyncStream<PaymentStatusUpdate> {
         if isWebSocketsEnabled {
             do {
-                return try await websocketPaymentStatusSubscription(resultHandler: resultHandler)
+                return try await websocketPaymentStatusStream()
             } catch {
-                return pollingPaymentStatusSubscription(resultHandler: resultHandler)
+                return pollingPaymentStatusStream()
             }
         } else {
-            return pollingPaymentStatusSubscription(resultHandler: resultHandler)
+            return pollingPaymentStatusStream()
         }
     }
 
@@ -134,56 +132,64 @@ extension KronorPaymentNetworking {
         }
     }
 
-    private func websocketPaymentStatusSubscription(
-        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async throws -> Task<Void, Never> {
+    private func websocketPaymentStatusStream() async throws -> AsyncStream<PaymentStatusUpdate> {
         _ = try await establishWebSocketConnection()
-        let stream = try client.subscribe(subscription: KronorApi.PaymentStatusSubscription())
-        return Task {
-            do {
-                for try await response in stream {
-                    let apiError = response.extractAPIError()
-                    if let data = response.data {
-                        resultHandler(
-                            .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
-                            apiError
-                        )
-                    } else {
-                        resultHandler(
-                            .failure(apiError ?? KronorApi.APIError.empty),
-                            apiError
-                        )
+        let subscriptionStream = try client.subscribe(subscription: KronorApi.PaymentStatusSubscription())
+        return AsyncStream { continuation in
+            let task = Task {
+                do {
+                    for try await response in subscriptionStream {
+                        let apiError = response.extractAPIError()
+                        if let data = response.data {
+                            continuation.yield((
+                                result: .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
+                                apiError: apiError
+                            ))
+                        } else {
+                            continuation.yield((
+                                result: .failure(apiError ?? .empty),
+                                apiError: apiError
+                            ))
+                        }
                     }
+                    continuation.finish()
+                } catch {
+                    continuation.yield((result: .failure(error), apiError: nil))
+                    continuation.finish()
                 }
-            } catch {
-                resultHandler(.failure(error), nil)
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
             }
         }
     }
 
-    private func pollingPaymentStatusSubscription(
-        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) -> Task<Void, Never> {
-        pollingManager.startPolling {
-            do {
-                let response = try await self.client.fetch(
-                    query: KronorApi.PaymentStatusQuery(),
-                    cachePolicy: .networkOnly
-                )
-                let apiError = response.extractAPIError()
-                if let data = response.data {
-                    resultHandler(
-                        .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
-                        apiError
+    private func pollingPaymentStatusStream() -> AsyncStream<PaymentStatusUpdate> {
+        AsyncStream { continuation in
+            let task = pollingManager.startPolling { [client] in
+                do {
+                    let response = try await client.fetch(
+                        query: KronorApi.PaymentStatusQuery(),
+                        cachePolicy: .networkOnly
                     )
-                } else {
-                    resultHandler(
-                        .failure(apiError ?? KronorApi.APIError.empty),
-                        apiError
-                    )
+                    let apiError = response.extractAPIError()
+                    if let data = response.data {
+                        continuation.yield((
+                            result: .success(data.paymentRequests.map { $0.fragments.paymentRequestFields }),
+                            apiError: apiError
+                        ))
+                    } else {
+                        continuation.yield((
+                            result: .failure(apiError ?? .empty),
+                            apiError: apiError
+                        ))
+                    }
+                } catch {
+                    continuation.yield((result: .failure(error), apiError: nil))
                 }
-            } catch {
-                resultHandler(.failure(error), nil)
+            }
+            continuation.onTermination = { _ in
+                task.cancel()
             }
         }
     }

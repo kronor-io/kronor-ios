@@ -6,4 +6,4 @@
 //
 
 /// A closure that handles the outcome of a payment flow.
-public typealias PaymentResultHandler = (PaymentResult) -> Void
+public typealias PaymentResultHandler = @Sendable (PaymentResult) async -> Void

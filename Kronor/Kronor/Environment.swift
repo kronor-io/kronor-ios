@@ -8,7 +8,7 @@
 import Foundation
 
 public extension Kronor {
-    struct Environment {
+    struct Environment: Sendable {
         public let name: String
         public let apiURL: URL
         public let websocketURL: URL

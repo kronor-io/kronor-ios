@@ -49,8 +49,8 @@ enum SupportedEmbeddedMethod {
     }
 }
 
-class EmbeddedPaymentViewModel: ObservableObject {
-    
+@MainActor class EmbeddedPaymentViewModel: ObservableObject {
+
     private static let logger = Logger(
         subsystem: Bundle.main.bundleIdentifier!,
         category: String(describing: EmbeddedPaymentViewModel.self)
@@ -115,10 +115,8 @@ class EmbeddedPaymentViewModel: ObservableObject {
                 self.subscription?.cancel()
             }
 
-            await MainActor.run {
-                self.state = result.toState
-                Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
-            }
+            self.state = result.toState
+            Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
         }
 
         if let sideEffect = result?.sideEffect {
@@ -201,26 +199,20 @@ class EmbeddedPaymentViewModel: ObservableObject {
         case .notifyPaymentFailure:
             Self.logger.trace("performing notifyPaymentFailure")
             self.subscription?.cancel()
-            await MainActor.run {
-                self.paymentResultHandler(.failure(.declined))
-            }
+            await self.paymentResultHandler(.failure(.declined))
 
 
         case .cancelAndNotifyFailure:
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
-            await MainActor.run {
-                self.paymentResultHandler(.failure(.cancelled))
-            }
+            await self.paymentResultHandler(.failure(.cancelled))
 
             
         case .notifyPaymentSuccess:
             Self.logger.trace("performing notifyPaymentSuccess")
             self.subscription?.cancel()
             if let paymentId = self.paymenRequest?.resultingPaymentId {
-                await MainActor.run {
-                    self.paymentResultHandler(.success(paymentId))
-                }
+                await self.paymentResultHandler(.success(paymentId))
             } else {
                 Self.logger.error("could not find resultingPaymentId before calling onPaymentSuccess")
             }
@@ -230,10 +222,8 @@ class EmbeddedPaymentViewModel: ObservableObject {
             await subscribeToPaymentStatus(waitToken: waitToken)
      
         case .openEmbeddedSite:
-            await MainActor.run {
-                self.embeddedSiteURL = self.sessionURL
-                Self.logger.info("\(self.sessionURL)")
-            }
+            self.embeddedSiteURL = self.sessionURL
+            Self.logger.info("\(self.sessionURL)")
 
         case .resetState:
             self.subscription?.cancel()
@@ -245,9 +235,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
             self.paymenRequest = nil
 
-            await MainActor.run {
-                self.embeddedSiteURL = nil
-            }
+            self.embeddedSiteURL = nil
 
             Task {
                 await self.transition(.initialize)
@@ -277,65 +265,58 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
     private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentRequestFields) -> Bool) async {
         self.subscription?.cancel()
-        self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, _ in
-            switch result {
-                
-            case .failure(let error):
-                Task { [weak self] in
-                    await self?.handleError(error: .networkError(error: error))
-                }
-            case .success(let paymentRequests):
-                let request = paymentRequests
-                    .sorted(by: { itemA, itemB in
-                        itemA.createdAt > itemB.createdAt
-                    })
-                    .first(where: { paymentRequest in
-                        matcher(paymentRequest) &&
-                        (paymentRequest.status?.contains { status in
-                            status.status != KronorApi.PaymentStatusEnum.initializing
-                        } ?? false)
-                    })
+        let stream = await networking.subscribeToPaymentStatus()
+        self.subscription = Task { [weak self] in
+            for await (result, _) in stream {
+                guard !Task.isCancelled, let self else { return }
 
-                if let request {
-                    self?.paymenRequest = request
+                switch result {
+                case .failure(let error):
+                    await self.handleError(error: .networkError(error: error))
 
-                    if case .waitingForPaymentRequest = self?.stateMachine.state {
-                        Task { [weak self] in
-                            await self?.transition(.paymentRequestInitialized)
-                        }
-                    }
-                    
-                    if (request.status?.contains {
-                        $0.status == KronorApi.PaymentStatusEnum.paid
-                        || $0.status == KronorApi.PaymentStatusEnum.authorized
-                        || $0.status == KronorApi.PaymentStatusEnum.flowCompleted
-                    }) ?? false {
-                        Task { [weak self] in
-                            await self?.transition(.paymentAuthorized)
-                        }
-                    }
-                    
-                    let wasRejected = request.status?.contains { status in
-                        [KronorApi.PaymentStatusEnum.error, KronorApi.PaymentStatusEnum.declined, KronorApi.PaymentStatusEnum.cancelled].contains {
-                            $0 == status.status.value
-                        }
-                    }
+                case .success(let paymentRequests):
+                    let request = paymentRequests
+                        .sorted(by: { itemA, itemB in
+                            itemA.createdAt > itemB.createdAt
+                        })
+                        .first(where: { paymentRequest in
+                            matcher(paymentRequest) &&
+                            (paymentRequest.status?.contains { status in
+                                status.status != KronorApi.PaymentStatusEnum.initializing
+                            } ?? false)
+                        })
 
-                    if wasRejected ?? false {
-                        Task { [weak self] in
-                            await self?.transition(.paymentRejected)
-                        }
-                    }
+                    if let request {
+                        self.paymenRequest = request
 
-                    if case .initializing = self?.stateMachine.state {
-                        Task { [weak self] in
-                            await self?.transition(.initialize)
+                        if case .waitingForPaymentRequest = self.stateMachine.state {
+                            await self.transition(.paymentRequestInitialized)
                         }
-                    }
 
-                } else {
-                    Task { [weak self] in
-                        await self?.transition(.initialize)
+                        if (request.status?.contains {
+                            $0.status == KronorApi.PaymentStatusEnum.paid
+                            || $0.status == KronorApi.PaymentStatusEnum.authorized
+                            || $0.status == KronorApi.PaymentStatusEnum.flowCompleted
+                        }) ?? false {
+                            await self.transition(.paymentAuthorized)
+                        }
+
+                        let wasRejected = request.status?.contains { status in
+                            [KronorApi.PaymentStatusEnum.error, KronorApi.PaymentStatusEnum.declined, KronorApi.PaymentStatusEnum.cancelled].contains {
+                                $0 == status.status.value
+                            }
+                        }
+
+                        if wasRejected ?? false {
+                            await self.transition(.paymentRejected)
+                        }
+
+                        if case .initializing = self.stateMachine.state {
+                            await self.transition(.initialize)
+                        }
+
+                    } else {
+                        await self.transition(.initialize)
                     }
                 }
             }
@@ -348,15 +329,11 @@ class EmbeddedPaymentViewModel: ObservableObject {
 }
 
 extension EmbeddedPaymentViewModel: RetryableModel {
-    func cancel() {
-        Task {
-            await self.transition(.cancelFlow)
-        }
+    func cancel() async {
+        await self.transition(.cancelFlow)
     }
     
-    func retry() {
-        Task {
-            await self.transition(.retry)
-        }
+    func retry() async {
+        await self.transition(.retry)
     }
 }

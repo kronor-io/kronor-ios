@@ -48,7 +48,7 @@ struct SwiftUIWebView: UIViewRepresentable {
 
         func webView(_ webView: WKWebView,
                      decidePolicyFor navigationAction: WKNavigationAction,
-                     decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+                     decisionHandler: @escaping @MainActor (WKNavigationActionPolicy) -> Void) {
 
             // if the url is not http(s) schema, then the UIApplication open the url
             if let url = navigationAction.request.url,
