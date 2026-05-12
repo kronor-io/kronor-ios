@@ -13,7 +13,7 @@ import Kronor
 /// Uses `ASWebAuthenticationSession` instead of an embedded `WKWebView`
 /// to bypass Cloudflare challenges that block `WKWebView`.
 public struct PointsPayComponent: View {
-    let viewModel: EmbeddedPaymentViewModel
+    @StateObject private var viewModel: EmbeddedPaymentViewModel
 
     /// Creates a new PointsPay payment component.
     /// - Parameters:
@@ -23,22 +23,16 @@ public struct PointsPayComponent: View {
         configuration: ComponentConfiguration,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let networking = KronorEmbeddedPaymentNetworking(configuration: configuration)
-        let viewModel = EmbeddedPaymentViewModel(
-            configuration: configuration,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .pointsPay,
-            paymentResultHandler: paymentResultHandler,
-            prefersAuthenticationSession: true
+        _viewModel = StateObject(
+            wrappedValue: EmbeddedPaymentViewModel(
+                configuration: configuration,
+                stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
+                networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
+                paymentMethod: .pointsPay,
+                paymentResultHandler: paymentResultHandler,
+                prefersAuthenticationSession: true
+            )
         )
-
-        self.viewModel = viewModel
-
-        Task {
-            await viewModel.initialize()
-        }
     }
 
     public var body: some View {
@@ -47,6 +41,9 @@ public struct PointsPayComponent: View {
                 viewModel: self.viewModel,
                 waitingView: FallbackWaitingView()
             )
+        }
+        .task {
+            await viewModel.initialize()
         }
     }
 }

@@ -10,7 +10,7 @@ import Kronor
 
 /// A payment component that handles Przelewy24 (P24) payments.
 public struct P24Component: View {
-    let viewModel: EmbeddedPaymentViewModel
+    @StateObject private var viewModel: EmbeddedPaymentViewModel
 
     /// Creates a new P24 payment component.
     /// - Parameters:
@@ -20,21 +20,15 @@ public struct P24Component: View {
         configuration: ComponentConfiguration,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let networking = KronorEmbeddedPaymentNetworking(configuration: configuration)
-        let viewModel = EmbeddedPaymentViewModel(
-            configuration: configuration,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .p24,
-            paymentResultHandler: paymentResultHandler
+        _viewModel = StateObject(
+            wrappedValue: EmbeddedPaymentViewModel(
+                configuration: configuration,
+                stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
+                networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
+                paymentMethod: .p24,
+                paymentResultHandler: paymentResultHandler
+            )
         )
-        
-        self.viewModel = viewModel
-        
-        Task {
-            await viewModel.initialize()
-        }
     }
 
     public var body: some View {
@@ -43,6 +37,9 @@ public struct P24Component: View {
                 viewModel: self.viewModel,
                 waitingView: FallbackWaitingView()
             )
+        }
+        .task {
+            await viewModel.initialize()
         }
     }
 }
