@@ -260,6 +260,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
     }
 
     private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) async {
+        self.subscription?.cancel()
         self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, _ in
             switch result {
                 

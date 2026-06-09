@@ -10,7 +10,7 @@ import Kronor
 
 /// A generic payment component that handles payment methods without a dedicated component.
 public struct FallbackComponent: View {
-    let viewModel: EmbeddedPaymentViewModel
+    @StateObject private var viewModel: EmbeddedPaymentViewModel
 
     /// Creates a new fallback payment component.
     /// - Parameters:
@@ -22,21 +22,15 @@ public struct FallbackComponent: View {
         paymentMethodName: String,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let networking = KronorEmbeddedPaymentNetworking(configuration: configuration)
-        let viewModel = EmbeddedPaymentViewModel(
-            configuration: configuration,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .fallback(name: paymentMethodName),
-            paymentResultHandler: paymentResultHandler
+        _viewModel = StateObject(
+            wrappedValue: EmbeddedPaymentViewModel(
+                configuration: configuration,
+                stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
+                networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
+                paymentMethod: .fallback(name: paymentMethodName),
+                paymentResultHandler: paymentResultHandler
+            )
         )
-
-        self.viewModel = viewModel
-
-        Task {
-            await viewModel.initialize()
-        }
     }
 
     public var body: some View {
@@ -45,6 +39,9 @@ public struct FallbackComponent: View {
                 viewModel: self.viewModel,
                 waitingView: FallbackWaitingView()
             )
+        }
+        .task {
+            await viewModel.initialize()
         }
     }
 }

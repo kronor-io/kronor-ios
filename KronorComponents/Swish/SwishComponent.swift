@@ -10,7 +10,7 @@ import Kronor
 
 /// A payment component that handles Swish payments.
 public struct SwishComponent: View {
-    let viewModel: SwishPaymentViewModel
+    @StateObject private var viewModel: SwishPaymentViewModel
 
     /// Creates a new Swish payment component.
     /// - Parameters:
@@ -20,15 +20,14 @@ public struct SwishComponent: View {
         configuration: ComponentConfiguration,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = SwishStatechart.makeStateMachine()
-        let networking = KronorSwishPaymentNetworking(configuration: configuration)
-        self.viewModel = SwishPaymentViewModel(
-            stateMachine: machine,
-            networking: networking,
-            returnURL: configuration.returnURL,
-            paymentResultHandler: paymentResultHandler
+        _viewModel = StateObject(
+            wrappedValue: SwishPaymentViewModel(
+                stateMachine: SwishStatechart.makeStateMachine(),
+                networking: KronorSwishPaymentNetworking(configuration: configuration),
+                returnURL: configuration.returnURL,
+                paymentResultHandler: paymentResultHandler
+            )
         )
-
     }
 
     public var body: some View {

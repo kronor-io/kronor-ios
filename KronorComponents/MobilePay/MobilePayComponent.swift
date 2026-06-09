@@ -10,7 +10,7 @@ import Kronor
 
 /// A payment component that handles MobilePay payments.
 public struct MobilePayComponent: View {
-    let viewModel: EmbeddedPaymentViewModel
+    @StateObject private var viewModel: EmbeddedPaymentViewModel
 
     /// Creates a new MobilePay payment component.
     /// - Parameters:
@@ -20,21 +20,15 @@ public struct MobilePayComponent: View {
         configuration: ComponentConfiguration,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let networking = KronorEmbeddedPaymentNetworking(configuration: configuration)
-        let viewModel = EmbeddedPaymentViewModel(
-            configuration: configuration,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .mobilePay,
-            paymentResultHandler: paymentResultHandler
+        _viewModel = StateObject(
+            wrappedValue: EmbeddedPaymentViewModel(
+                configuration: configuration,
+                stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
+                networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
+                paymentMethod: .mobilePay,
+                paymentResultHandler: paymentResultHandler
+            )
         )
-
-        self.viewModel = viewModel
-
-        Task {
-            await viewModel.transition(.initialize)
-        }
     }
 
     public var body: some View {
@@ -43,6 +37,9 @@ public struct MobilePayComponent: View {
                 viewModel: self.viewModel,
                 waitingView: MobilePayWaitingView()
             )
+        }
+        .task {
+            await viewModel.transition(.initialize)
         }
     }
 }

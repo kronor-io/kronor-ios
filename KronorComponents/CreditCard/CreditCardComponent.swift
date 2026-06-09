@@ -10,7 +10,7 @@ import Kronor
 
 /// A payment component that handles credit card payments.
 public struct CreditCardComponent: View {
-    let viewModel: EmbeddedPaymentViewModel
+    @StateObject private var viewModel: EmbeddedPaymentViewModel
 
     /// Creates a new credit card payment component.
     /// - Parameters:
@@ -20,26 +20,23 @@ public struct CreditCardComponent: View {
         configuration: ComponentConfiguration,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
-        let machine = EmbeddedPaymentStatechart.makeStateMachine()
-        let networking = KronorEmbeddedPaymentNetworking(configuration: configuration)
-        let viewModel = EmbeddedPaymentViewModel(
-            configuration: configuration,
-            stateMachine: machine,
-            networking: networking,
-            paymentMethod: .creditCard,
-            paymentResultHandler: paymentResultHandler
+        _viewModel = StateObject(
+            wrappedValue: EmbeddedPaymentViewModel(
+                configuration: configuration,
+                stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
+                networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
+                paymentMethod: .creditCard,
+                paymentResultHandler: paymentResultHandler
+            )
         )
-
-        self.viewModel = viewModel
-
-        Task {
-            await viewModel.transition(.initialize)
-        }
     }
 
     public var body: some View {
         WrapperView(header: CreditCardHeaderView(viewModel: self.viewModel)) {
             EmbeddedPaymentView(viewModel: self.viewModel, waitingView: CreditCardWaitingView())
+        }
+        .task {
+            await viewModel.transition(.initialize)
         }
     }
 }

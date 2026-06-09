@@ -131,6 +131,7 @@ class TrustlyPaymentViewModel: ObservableObject {
     }
     
     private func subscribeToPaymentStatus(waitToken: String) async {
+        self.subscription?.cancel()
         self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, apiError in
             switch result {
                 
