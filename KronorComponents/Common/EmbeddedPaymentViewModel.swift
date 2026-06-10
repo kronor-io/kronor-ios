@@ -139,7 +139,12 @@ class EmbeddedPaymentViewModel: ObservableObject {
         Task { [weak self] in
             guard let self else { return }
             Self.logger.debug("refreshing payment status after redirect")
-            if case .failure(let error) = await self.networking.refreshPaymentStatus() {
+            switch await self.networking.refreshPaymentStatus() {
+            case .success(let accepted):
+                if !accepted {
+                    Self.logger.warning("payment status refresh was not accepted by the backend")
+                }
+            case .failure(let error):
                 Self.logger.warning("could not refresh payment status: \(String(describing: error))")
             }
         }

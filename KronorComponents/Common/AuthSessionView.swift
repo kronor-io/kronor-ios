@@ -14,13 +14,13 @@ struct AuthSessionViewRepresentable: UIViewControllerRepresentable {
 
     private let url: URL
     private let callbackScheme: String
-    private let onComplete: () -> Void
+    private let onComplete: (URL?) -> Void
     private let onCancel: () -> Void
 
     init(
         url: URL,
         callbackScheme: String,
-        onComplete: @escaping () -> Void,
+        onComplete: @escaping (URL?) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.url = url
@@ -45,7 +45,7 @@ final class AuthSessionViewController: UIViewController, ASWebAuthenticationPres
 
     private let url: URL
     private let callbackScheme: String
-    private let onComplete: () -> Void
+    private let onComplete: (URL?) -> Void
     private let onCancel: () -> Void
     private var authSession: ASWebAuthenticationSession?
     private var hasStarted = false
@@ -53,7 +53,7 @@ final class AuthSessionViewController: UIViewController, ASWebAuthenticationPres
     init(
         url: URL,
         callbackScheme: String,
-        onComplete: @escaping () -> Void,
+        onComplete: @escaping (URL?) -> Void,
         onCancel: @escaping () -> Void
     ) {
         self.url = url
@@ -79,7 +79,7 @@ final class AuthSessionViewController: UIViewController, ASWebAuthenticationPres
         let session = ASWebAuthenticationSession(
             url: url,
             callbackURLScheme: callbackScheme
-        ) { [onComplete, onCancel] _, error in
+        ) { [onComplete, onCancel] callbackURL, error in
             if let sessionError = error as? ASWebAuthenticationSessionError,
                sessionError.code == .canceledLogin {
                 onCancel()
@@ -91,7 +91,7 @@ final class AuthSessionViewController: UIViewController, ASWebAuthenticationPres
                 return
             }
 
-            onComplete()
+            onComplete(callbackURL)
         }
 
         session.prefersEphemeralWebBrowserSession = false
