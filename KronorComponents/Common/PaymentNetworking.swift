@@ -14,4 +14,6 @@ protocol PaymentNetworking {
     ) async -> Task<Void, Never>
 
     func cancelSessionPayments() async -> Result<(), Never>
+
+    func refreshPaymentStatus() async -> Result<Bool, KronorApi.KronorError>
 }

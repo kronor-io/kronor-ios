@@ -123,6 +123,12 @@ public extension KronorApi {
                 $0.newBankTransferPayment.paymentId
             }
     }
+
+    static func refreshPaymentStatus(client: ApolloClient) async -> Result<Bool, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.RefreshPaymentStatusMutation()) {
+            $0.refreshPaymentStatus.result
+        }
+    }
 }
 
 

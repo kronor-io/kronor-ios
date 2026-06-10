@@ -31,6 +31,8 @@ struct EmbeddedPaymentView<Content: View>: View {
                     }
                     if isCancel ?? false {
                         await self.embeddedPayViewModel.transition(.waitForCancel)
+                    } else {
+                        self.embeddedPayViewModel.refreshPaymentStatus()
                     }
                 }
             })
@@ -119,6 +121,9 @@ struct EmbeddedPaymentView<Content: View>: View {
     private func dismissAuthSession() {
         authSessionIntentionallyClosed = true
         showAuthSession = false
+        // the auth session completed by hitting the return URL scheme, which
+        // means the customer was redirected back from the payment provider
+        embeddedPayViewModel.refreshPaymentStatus()
     }
 
     private func onAuthSessionDismissed() {

@@ -85,6 +85,10 @@ class KronorPaymentNetworking: PaymentNetworking {
         )
         return .success(())
     }
+
+    func refreshPaymentStatus() async -> Result<Bool, KronorApi.KronorError> {
+        await KronorApi.refreshPaymentStatus(client: client)
+    }
 }
 
 // MARK: - Helpers

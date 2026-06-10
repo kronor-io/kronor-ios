@@ -130,6 +130,21 @@ class EmbeddedPaymentViewModel: ObservableObject {
         await subscribeToPaymentStatusMatcher(matcher: {_ in true })
     }
 
+    /// Asks the backend to poll the payment provider immediately instead of
+    /// waiting on the provider's webhook (which can arrive late) or the next
+    /// scheduled poll. Fired when the customer is redirected back to the app
+    /// from the external payment app. Failures are only logged: the regular
+    /// payment status subscription remains the source of truth.
+    func refreshPaymentStatus() {
+        Task { [weak self] in
+            guard let self else { return }
+            Self.logger.debug("refreshing payment status after redirect")
+            if case .failure(let error) = await self.networking.refreshPaymentStatus() {
+                Self.logger.warning("could not refresh payment status: \(String(describing: error))")
+            }
+        }
+    }
+
     private func handleSideEffect(sideEffect: EmbeddedPaymentStatechart.SideEffect) async {
         switch sideEffect {
             

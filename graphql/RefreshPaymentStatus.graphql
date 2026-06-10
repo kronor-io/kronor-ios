@@ -1,0 +1,11 @@
+# Hasura presets merchantId and paymentReference on RefreshPaymentStatusInput from
+# the session JWT, so the whole input is stripped from the payment-gateway role's
+# schema and the mutation is called with no arguments. Fired once when the customer
+# is redirected back from the provider's app, to make the backend poll the provider
+# for status immediately instead of waiting on a late webhook or the next scheduled
+# poll.
+mutation RefreshPaymentStatus {
+  refreshPaymentStatus {
+    result
+  }
+}
