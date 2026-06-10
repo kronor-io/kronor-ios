@@ -1,10 +1,10 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import ApolloAPI
+@_spi(Internal) import ApolloAPI
 
 public extension KronorApi {
-  enum GatewayEnum: String, EnumType {
+  nonisolated enum GatewayEnum: String, EnumType {
     /// Enable Banking
     case enableBanking = "ENABLE_BANKING"
     /// Finshark

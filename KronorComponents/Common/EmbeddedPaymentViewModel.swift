@@ -8,7 +8,6 @@
 import Foundation
 import Kronor
 import KronorApi
-import Apollo
 import os
 
 enum SupportedEmbeddedMethod {
@@ -59,8 +58,8 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
     private let stateMachine: EmbeddedPaymentStatechart.EmbeddedPaymentStateMachine
     private let networking: any EmbeddedPaymentNetworking
-    private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
-    private var subscription: Cancellable?
+    private var paymenRequest: KronorApi.PaymentRequestFields?
+    private var subscription: Task<Void, Never>?
 
     private let paymentMethod: SupportedEmbeddedMethod
     private let paymentResultHandler: PaymentResultHandler
@@ -236,13 +235,10 @@ class EmbeddedPaymentViewModel: ObservableObject {
 
         case .cancelAfterDeadline:
             Self.logger.info("attempting to cancel payment after deadline")
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                Task { [weak self] in
-                    if let state = self?.state, state == .waitingForPaymentRequest {
-                        Self.logger.info("attempting to cancel payment after deadline")
-                        await self?.transition(.cancel)
-                    }
-                }
+            Task { [weak self] in
+                try await Task.sleep(nanoseconds: 1_000_000_000)
+                Self.logger.info("firing cancel after deadline")
+                await self?.transition(.cancel)
             }
         }
     }
@@ -259,7 +255,7 @@ class EmbeddedPaymentViewModel: ObservableObject {
         )
     }
 
-    private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentStatusSubscription.Data.PaymentRequest) -> Bool) async {
+    private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentRequestFields) -> Bool) async {
         self.subscription?.cancel()
         self.subscription = await networking.subscribeToPaymentStatus { [weak self] result, _ in
             switch result {
@@ -268,8 +264,8 @@ class EmbeddedPaymentViewModel: ObservableObject {
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let paymentStatusData):                
-                let request = paymentStatusData.paymentRequests
+            case .success(let paymentRequests):
+                let request = paymentRequests
                     .sorted(by: { itemA, itemB in
                         itemA.createdAt > itemB.createdAt
                     })

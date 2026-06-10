@@ -4,7 +4,7 @@
 import ApolloAPI
 
 public extension KronorApi.Objects {
-  static let Query_root = ApolloAPI.Object(
+  nonisolated static let Query_root = ApolloAPI.Object(
     typename: "query_root",
     implementedInterfaces: [],
     keyFields: nil

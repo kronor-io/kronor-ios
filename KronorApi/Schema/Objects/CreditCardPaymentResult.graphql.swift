@@ -5,7 +5,7 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a credit card payment.
-  static let CreditCardPaymentResult = ApolloAPI.Object(
+  nonisolated static let CreditCardPaymentResult = ApolloAPI.Object(
     typename: "CreditCardPaymentResult",
     implementedInterfaces: [],
     keyFields: nil

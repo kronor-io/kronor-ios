@@ -5,7 +5,7 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// The result of initiating a bank transfer payment.
-  static let BankTransferPaymentResult = ApolloAPI.Object(
+  nonisolated static let BankTransferPaymentResult = ApolloAPI.Object(
     typename: "BankTransferPaymentResult",
     implementedInterfaces: [],
     keyFields: nil

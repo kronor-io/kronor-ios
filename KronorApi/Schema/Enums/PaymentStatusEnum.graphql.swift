@@ -1,10 +1,10 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import ApolloAPI
+@_spi(Internal) import ApolloAPI
 
 public extension KronorApi {
-  enum PaymentStatusEnum: String, EnumType {
+  nonisolated enum PaymentStatusEnum: String, EnumType {
     /// Payment is authorized. Can be captured now.
     case authorized = "AUTHORIZED"
     /// Payment was cancelled.

@@ -1,14 +1,14 @@
 // @generated
 // This file was automatically generated and should not be edited.
 
-import ApolloAPI
+@_spi(Internal) @_spi(Unsafe) import ApolloAPI
 
 public extension KronorApi {
   /// Arguments for creating a new Vipps payment
-  struct VippsPaymentInput: InputObject {
-    public private(set) var __data: InputDict
+  nonisolated struct VippsPaymentInput: InputObject {
+    @_spi(Unsafe) public private(set) var __data: InputDict
 
-    public init(_ data: InputDict) {
+    @_spi(Unsafe) public init(_ data: InputDict) {
       __data = data
     }
 

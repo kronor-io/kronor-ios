@@ -5,7 +5,7 @@ import ApolloAPI
 
 public extension KronorApi.Objects {
   /// Describe the schema for Vipps details.
-  static let VippsDetails = ApolloAPI.Object(
+  nonisolated static let VippsDetails = ApolloAPI.Object(
     typename: "VippsDetails",
     implementedInterfaces: [],
     keyFields: nil

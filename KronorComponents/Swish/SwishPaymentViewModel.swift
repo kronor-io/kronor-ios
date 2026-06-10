@@ -8,7 +8,6 @@
 import Foundation
 import Kronor
 import KronorApi
-import Apollo
 import os
 
 #if canImport(UIKit)
@@ -24,8 +23,8 @@ class SwishPaymentViewModel: ObservableObject {
 
     private let stateMachine: SwishStatechart.SwishStateMachine
     private let networking: any SwishPaymentNetworking
-    private var paymenRequest: KronorApi.PaymentStatusSubscription.Data.PaymentRequest?
-    private var subscription: Cancellable?
+    private var paymenRequest: KronorApi.PaymentRequestFields?
+    private var subscription: Task<Void, Never>?
 
     
     var qrCode: String? {
@@ -203,8 +202,8 @@ class SwishPaymentViewModel: ObservableObject {
                 Task { [weak self] in
                     await self?.handleError(error: .networkError(error: error))
                 }
-            case .success(let paymentStatusData):
-                let request = paymentStatusData.paymentRequests
+            case .success(let paymentRequests):
+                let request = paymentRequests
                     .first(where: { paymentRequest in
                         paymentRequest.waitToken == waitToken &&
                         
