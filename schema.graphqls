@@ -2242,6 +2242,19 @@ type PointspayPaymentResult {
 }
 
 """
+The result of triggering an immediate server-side poll of the
+payment provider's status.
+"""
+type RefreshPaymentStatusResult {
+  """
+  True when the immediate status poll was accepted. The actual status
+  change lands asynchronously once the poll completes; the frontend
+  continues its normal status subscription/polling.
+  """
+  result: Boolean!
+}
+
+"""
 Boolean expression to compare columns of type "spoken_lang". All fields are combined with logical 'AND'.
 """
 input SpokenLangComparisonExp {
@@ -3041,6 +3054,15 @@ type mutation_root {
   Create a new payment request to receive money via Vipps, available only in Norway.
   """
   newVippsPayment(pay: VippsPaymentInput!): VippsPaymentResult!
+
+  """
+  Trigger an immediate poll of the payment provider's status. Fired when
+  the customer is redirected back to Kronor from the provider's app
+  so the backend re-checks status immediately instead of waiting on
+  the provider's webhook (which can arrive late) or the next scheduled
+  poll.
+  """
+  refreshPaymentStatus: RefreshPaymentStatusResult!
 
   """Update the frontend flow state of a bank transfer"""
   updateBankTransferFlow(flow: BankTransferFlowInput!): BankTransferFlowResult!

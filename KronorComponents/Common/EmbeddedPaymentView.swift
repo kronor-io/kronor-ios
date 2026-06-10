@@ -24,15 +24,10 @@ struct EmbeddedPaymentView<Content: View>: View {
     var body: some View {
         self.innerBody()
             .onOpenURL(perform: { url in
-                Task {
-                    let components = URLComponents(string: url.absoluteString)
-                    let isCancel = components?.queryItems?.contains{ item in
-                        item.name == "cancel"
-                    }
-                    if isCancel ?? false {
-                        await self.embeddedPayViewModel.transition(.waitForCancel)
-                    }
-                }
+                // only react to redirect-returns on the configured return URL,
+                // not to unrelated deep links received while this view is shown
+                guard url.scheme == embeddedPayViewModel.returnURL.scheme else { return }
+                handleRedirectReturn(url: url)
             })
     }
 
@@ -116,9 +111,27 @@ struct EmbeddedPaymentView<Content: View>: View {
         }
     }
     
-    private func dismissAuthSession() {
+    private func dismissAuthSession(callbackURL: URL?) {
         authSessionIntentionallyClosed = true
         showAuthSession = false
+        // the auth session completed by hitting the return URL scheme, which
+        // means the customer was redirected back from the payment provider
+        handleRedirectReturn(url: callbackURL)
+    }
+
+    private func handleRedirectReturn(url: URL?) {
+        let components = url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false) }
+        let isCancel = components?.queryItems?.contains { item in
+            item.name == "cancel"
+        } ?? false
+
+        if isCancel {
+            Task {
+                await self.embeddedPayViewModel.transition(.waitForCancel)
+            }
+        } else {
+            self.embeddedPayViewModel.refreshPaymentStatus()
+        }
     }
 
     private func onAuthSessionDismissed() {
