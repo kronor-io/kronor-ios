@@ -1,6 +1,6 @@
 //
 //  PaymentNetworking.swift
-//  
+//
 //
 //  Created by Niclas Heltoft on 17/07/2023.
 //
@@ -8,10 +8,10 @@
 import Foundation
 import KronorApi
 
-protocol PaymentNetworking {
-    func subscribeToPaymentStatus(
-        resultHandler: @escaping (Result<[KronorApi.PaymentRequestFields], Error>, KronorApi.APIError?) -> Void
-    ) async -> Task<Void, Never>
+typealias PaymentStatusUpdate = (result: Result<[KronorApi.PaymentRequestFields], Error>, apiError: KronorApi.APIError?)
+
+protocol PaymentNetworking: Sendable {
+    func subscribeToPaymentStatus() async -> AsyncStream<PaymentStatusUpdate>
 
     func cancelSessionPayments() async -> Result<(), Never>
 

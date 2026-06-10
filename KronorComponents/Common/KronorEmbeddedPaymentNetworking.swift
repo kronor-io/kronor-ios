@@ -10,7 +10,7 @@ import Kronor
 import KronorApi
 import Apollo
 
-final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPaymentNetworking {
+final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPaymentNetworking, @unchecked Sendable {
     func createMobilePayPaymentRequest(
         returnURL: URL
     ) async -> Result<String, KronorApi.KronorError> {

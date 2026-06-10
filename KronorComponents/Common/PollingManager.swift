@@ -8,10 +8,10 @@ class PollingManager {
         self.pollingInterval = pollingInterval
     }
 
-    func startPolling(pollingAction: @escaping () async -> Void) -> Task<Void, Never> {
-        let task = Task {
+    func startPolling(pollingAction: sending @escaping () async -> Void) -> Task<Void, Never> {
+        let task = Task { [pollingAction, pollingInterval] in
            while !Task.isCancelled {
-               try? await Task.sleep(nanoseconds: self.pollingInterval * NSEC_PER_SEC)
+               try? await Task.sleep(nanoseconds: pollingInterval * NSEC_PER_SEC)
                if Task.isCancelled {
                    break
                }

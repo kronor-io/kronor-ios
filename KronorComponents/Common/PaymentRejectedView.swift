@@ -37,7 +37,9 @@ struct PaymentRejectedView: View {
                Spacer()
             } else {
                 Button(action: {
-                    viewModel.cancel()
+                    Task {
+                        await viewModel.cancel()
+                    }
                     clickedOnSomething = true
                 }) {
                     Text(
@@ -52,7 +54,9 @@ struct PaymentRejectedView: View {
                     .font(.caption)
                 
                 Button(action: {
-                    viewModel.retry()
+                    Task {
+                        await viewModel.retry()
+                    }
                     clickedOnSomething = true
                 }) {
                     Text(

@@ -29,7 +29,7 @@ enum Preview {
         }
     }
 
-    static func makeEmbeddedPaymentViewModel(
+    @MainActor static func makeEmbeddedPaymentViewModel(
         paymentMethod: SupportedEmbeddedMethod,
         state: EmbeddedPaymentStatechart.State? = nil
     ) -> EmbeddedPaymentViewModel {
@@ -49,7 +49,7 @@ enum Preview {
         )
     }
 
-    static func makeSwishPaymentViewModel(
+    @MainActor static func makeSwishPaymentViewModel(
         state: SwishStatechart.State? = nil
     ) -> SwishPaymentViewModel {
         let machine: SwishStatechart.SwishStateMachine

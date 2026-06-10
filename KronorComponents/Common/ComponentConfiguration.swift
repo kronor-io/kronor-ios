@@ -9,7 +9,7 @@ import Foundation
 import Kronor
 
 /// Shared configuration for all payment components.
-public struct ComponentConfiguration {
+public struct ComponentConfiguration: Sendable {
     /// The Kronor environment to use.
     public let env: Kronor.Environment
     /// The session token obtained from the backend via the `newPaymentSession` query.

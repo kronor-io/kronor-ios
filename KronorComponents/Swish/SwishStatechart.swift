@@ -11,7 +11,7 @@ import KronorApi
 
 final class SwishStatechart : StateMachineBuilder {
     
-    enum State : Equatable  {
+    enum State: Equatable, Sendable  {
         case promptingMethod
         case insertingPhoneNumber
         case creatingPaymentRequest (selected: SelectedMethod)
@@ -23,7 +23,7 @@ final class SwishStatechart : StateMachineBuilder {
         case errored (error: KronorApi.KronorError)
     }
     
-    enum Event : Equatable  {
+    enum Event: Equatable, Sendable  {
         case useSwishApp
         case usePhoneNumber
         case phoneNumberInserted (number: String)
@@ -38,7 +38,7 @@ final class SwishStatechart : StateMachineBuilder {
         case swishAppOpened
     }
     
-    enum SideEffect {
+    enum SideEffect: Sendable {
         case createEcomPaymentRequest (phoneNumber: String)
         case createMcomPaymentRequest
         case openSwishApp
@@ -49,7 +49,7 @@ final class SwishStatechart : StateMachineBuilder {
         case cancelFlow
     }
     
-    enum SelectedMethod : Equatable {
+    enum SelectedMethod: Equatable, Sendable {
         case swishApp
         case qrCode
         case phoneNumber
