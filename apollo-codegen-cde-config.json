@@ -1,0 +1,30 @@
+{
+  "schemaName" : "KronorCdeApi",
+  "input" : {
+    "operationSearchPaths" : [
+      "./cde/graphql/**/*.graphql"
+    ],
+    "schemaSearchPaths" : [
+      "./cde/*.graphqls"
+    ]
+  },
+  "output" : {
+    "testMocks" : {
+      "none" : {
+      }
+    },
+    "schemaTypes" : {
+      "path" : "./KronorCdeApi",
+      "moduleType" : {
+        "embeddedInTarget" : {
+            "name": "KronorCdeApi",
+            "accessModifier": "public"
+        }
+      }
+    },
+    "operations" : {
+      "inSchemaModule" : {
+      }
+    }
+  }
+}

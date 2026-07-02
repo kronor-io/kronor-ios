@@ -1,6 +1,7 @@
 fragment PaymentRequestFields on PaymentRequest {
     waitToken
     amount
+    currency
     status {
         status
     }

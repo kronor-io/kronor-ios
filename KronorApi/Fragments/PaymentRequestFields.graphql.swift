@@ -7,7 +7,7 @@
 public extension KronorApi {
   nonisolated struct PaymentRequestFields: KronorApi.SelectionSet, Fragment {
     public static var fragmentDefinition: StaticString {
-      #"fragment PaymentRequestFields on PaymentRequest { __typename waitToken amount status { __typename status } createdAt resultingPaymentId transactionSwishDetails { __typename errorCode returnUrl qrCode } transactionCreditCardDetails { __typename sessionId sessionUrl } transactionMobilePayDetails { __typename sessionId sessionUrl } transactionVippsDetails { __typename sessionId sessionUrl } transactionBankTransferDetails { __typename payUrl } }"#
+      #"fragment PaymentRequestFields on PaymentRequest { __typename waitToken amount currency status { __typename status } createdAt resultingPaymentId transactionSwishDetails { __typename errorCode returnUrl qrCode } transactionCreditCardDetails { __typename sessionId sessionUrl } transactionMobilePayDetails { __typename sessionId sessionUrl } transactionVippsDetails { __typename sessionId sessionUrl } transactionBankTransferDetails { __typename payUrl } }"#
     }
 
     @_spi(Unsafe) public let __data: DataDict
@@ -18,6 +18,7 @@ public extension KronorApi {
       .field("__typename", String.self),
       .field("waitToken", KronorApi.Uuid.self),
       .field("amount", KronorApi.Bigint.self),
+      .field("currency", GraphQLEnum<KronorApi.SupportedCurrencyEnum>.self),
       .field("status", [Status]?.self),
       .field("createdAt", KronorApi.Timestamptz.self),
       .field("resultingPaymentId", KronorApi.Bigint?.self),
@@ -33,6 +34,7 @@ public extension KronorApi {
 
     public var waitToken: KronorApi.Uuid { __data["waitToken"] }
     public var amount: KronorApi.Bigint { __data["amount"] }
+    public var currency: GraphQLEnum<KronorApi.SupportedCurrencyEnum> { __data["currency"] }
     /// List of statuses the payment is currently on
     public var status: [Status]? { __data["status"] }
     public var createdAt: KronorApi.Timestamptz { __data["createdAt"] }

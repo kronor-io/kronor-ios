@@ -24,3 +24,6 @@
 "continue" = "Jatka";
 "confirm_cancellation" = "Kyllä, keskeytä";
 "creating_secure_transaction" = "Luodaan turvallinen maksutapahtuma";
+
+/* Indicates that Apple Pay is not available on this device */
+"apple_pay_not_available" = "Apple Pay is not available on this device";

@@ -25,3 +25,6 @@
 "continue" = "Fortsätt.";
 "confirm_cancellation" = "Ja, avbryt.";
 "creating_secure_transaction" = "Skapar säker betalning.";
+
+/* Indicates that Apple Pay is not available on this device */
+"apple_pay_not_available" = "Apple Pay is not available on this device";

@@ -1,0 +1,1291 @@
+scalar pan
+scalar csc
+scalar bigint
+
+"""
+Month of the year
+"""
+enum Month {
+  January
+  February
+  March
+  April
+  May
+  June
+  July
+  August
+  September
+  October
+  November
+  December
+}
+"""
+All supported credit card schemes
+"""
+
+enum CreditCardSchemeEnum {
+"""
+American Express
+"""
+
+AMEX
+"""
+China Union Pay
+"""
+
+CHINA_UNION_PAY
+"""
+Dankort
+"""
+
+DANKORT
+"""
+Diners Club International
+"""
+
+DINERS
+"""
+Discover Card
+"""
+
+DISCOVER
+"""
+Forbrugsforeningen
+"""
+
+FORBRUGSFORENINGEN
+"""
+JCB
+"""
+
+JCB
+"""
+Maestro
+"""
+
+MAESTRO
+"""
+Mastercard
+"""
+
+MASTERCARD
+"""
+Visa
+"""
+
+VISA
+"""
+Visa DK
+"""
+
+VISA_DK
+"""
+Visa Electron
+"""
+
+VISA_ELECTRON
+
+}
+
+"""
+The different 3DS servers that are supported
+"""
+
+enum TdsServer {
+"""
+Shift4 3DS server
+"""
+
+Shift4
+"""
+3dsecure.io by Clearhaus
+"""
+
+TdSecure
+
+}
+
+"""
+All mappable issuer errors
+"""
+
+enum IssuerError {
+"""
+Acquirer error
+"""
+
+ACQUIRER_ERROR
+"""
+Card authentication failed
+"""
+
+CARD_AUTHENTICATION_FAILED
+"""
+Card expired
+"""
+
+CARD_EXPIRED
+"""
+Declined by issuer
+"""
+
+DECLINED_BY_ISSUER
+"""
+Do not honour
+"""
+
+DO_NOT_HONOUR
+"""
+Exceeds withdrawal limit
+"""
+
+EXCEEDS_WITHDRAWAL_LIMIT
+"""
+Insufficient funds
+"""
+
+INSUFFICIENT_FUNDS
+"""
+Invalid card number
+"""
+
+INVALID_CARD_NUMBER
+"""
+Invalid CSC
+"""
+
+INVALID_CSC
+"""
+Other error
+"""
+
+OTHER_ERROR
+"""
+Restricted card
+"""
+
+RESTRICTED_CARD
+"""
+Stolen card
+"""
+
+STOLEN_CARD
+"""
+Suspected fraud
+"""
+
+SUSPECTED_FRAUD
+"""
+Transaction not allowed
+"""
+
+TRANSACTION_NOT_ALLOWED
+
+}
+
+"""
+The status value of a wallet authorization result
+"""
+
+enum WalletAuthorizationResultEnum {
+"""
+Authorization successful
+"""
+
+SUCCESS
+"""
+3ds is required for this payment
+"""
+
+TDS_REQUIRED
+
+}
+
+"""
+The type of card the customer uses to complete the transaction.
+"""
+
+enum ApplePayPaymentMethodTypeEnum {
+"""
+CREDIT
+"""
+
+credit
+"""
+DEBIT
+"""
+
+debit
+"""
+PREPAID
+"""
+
+prepaid
+"""
+STORE
+"""
+
+store
+
+}
+
+"""
+Payment pass activation states.
+"""
+
+enum ApplePayPaymentPassActivationStateEnum {
+"""
+Active and ready to be used for payment.
+"""
+
+activated
+"""
+Not ready for use but activation is in progress.
+"""
+
+activating
+"""
+Not active because the issuer has disabled the account associated with the device.
+"""
+
+deactivated
+"""
+Not active but may be activated by the issuer.
+"""
+
+requiresActivation
+"""
+Not active and can’t be activated.
+"""
+
+suspended
+
+}
+
+"""
+States that a merchant''s account can be in
+"""
+
+enum AccountState {
+"""
+Live accounts, real money is involved
+"""
+
+Live
+"""
+Sandbox accounts, no real money is involved anywhere
+"""
+
+Sandbox
+"""
+Running test cases in CI and local environments, no real HTTP requests are involved anywhere
+"""
+
+Test
+
+}
+
+
+"""
+Arguments for a card on file payment
+"""
+
+input CardOnFileInput {
+"""
+The cvv of the credit card
+
+Max length: 4.
+"""
+
+  csc : csc!
+
+"""
+If true, the session will prefer Dankort over Visa/Mastercard
+
+"""
+
+  preferDankort : Boolean!
+
+"""
+The id of the card token to use for the payment
+
+Max length: 36.
+"""
+
+  token : String!
+
+}
+
+"""
+Source for credit card details 
+"""
+
+input CreditCardSourceInput {
+"""
+Credit card details with token & csc
+"""
+
+  cardOnFile : CardOnFileInput
+
+"""
+Credit card details with pan & csc
+"""
+
+  cardWithPan : CreditCardInput
+
+"""
+Google pay data with token & csc
+"""
+
+  googlePay : GooglePayInput
+
+}
+
+"""
+Arguments for tokening a credit card
+"""
+
+input TokenizeCreditCardInput {
+"""
+The color depth of the user's browser. Get this from screen.colorDepth
+
+"""
+
+  browserColorDepth : String!
+
+"""
+Whether the user's browser has Java enabled. Get this from navigator.javaEnabled
+
+"""
+
+  browserJavaEnabled : Boolean!
+
+"""
+The language of the user's browser. IETF BCP47. Get this from navigator.language
+
+"""
+
+  browserLanguage : String!
+
+"""
+The height of the user's screen. Get this from screen.height
+
+"""
+
+  browserScreenHeight : String!
+
+"""
+The width of the user's screen. Get this from screen.width
+
+"""
+
+  browserScreenWidth : String!
+
+"""
+The timezone of the user's browser.
+
+"""
+
+  browserTimezone : String!
+
+"""
+Credit card details
+"""
+
+  card : CreditCardInput
+
+"""
+Credit card source
+"""
+
+  cardSource : CreditCardSourceInput
+
+"""
+Dimensions of the challenge window that the ACS shall format its content to. Value should be one of
+"01" "02" "03" "04" "05"
+Meaning of values:
+01 	250 x 400
+02 	390 x 400
+03 	500 x 600
+04 	600 x 400
+05 	Full screen
+
+"""
+
+  challengeWindowSize : String!
+
+"""
+Whether customer has given consent to save the card details
+"""
+
+  saveCardDetails : Boolean
+
+}
+
+"""
+Arguments for a credit card
+"""
+
+input CreditCardInput {
+"""
+Name of the card holder
+"""
+
+  cardHolderName : String
+
+"""
+The cvv of the credit card
+
+Max length: 4.
+"""
+
+  csc : csc!
+
+"""
+Expiry month for the credit card
+"""
+
+  expiryMonth : Month!
+
+"""
+Expiry year for the credit card
+"""
+
+  expiryYear : Int!
+
+"""
+The credit card number, without spaces or hyphens in them
+
+Max length: 20.
+"""
+
+  pan : pan!
+
+"""
+If true, the session will prefer Dankort over Visa/Mastercard
+
+"""
+
+  preferDankort : Boolean!
+
+}
+
+"""
+Arguments for setting up a merchant.
+"""
+
+input SetupMerchantInput {
+"""
+Idempotency key is required to prevent double processing a request.
+It is recommended to use a deterministic unique value, such as the combination of
+the order id and the customer id. Avoid using time-based values.
+Only alphanumeric character and the following are allowed:
+- "-"
+- "_"
+- "."
+- ","
+- "["
+- "]"
+- "+"
+
+Max length: 64.
+"""
+
+  idempotencyKey : String!
+
+"""
+The merchant ID in our systems.
+
+Max length: 100.
+"""
+
+  merchantId : bigint!
+
+}
+
+"""
+Arguments for setting up the api key for 3dsecure.io.
+"""
+
+input SetupTdSecureApiKeyInput {
+"""
+Idempotency key is required to prevent double processing a request.
+It is recommended to use a deterministic unique value, such as the combination of
+the order id and the customer id. Avoid using time-based values.
+Only alphanumeric character and the following are allowed:
+- "-"
+- "_"
+- "."
+- ","
+- "["
+- "]"
+- "+"
+
+Max length: 64.
+"""
+
+  idempotencyKey : String!
+
+"""
+The api key for 3dsecure.io.
+
+Max length: 100.
+"""
+
+  key : String!
+
+"""
+The merchant ID in our systems.
+
+Max length: 100.
+"""
+
+  merchantId : bigint!
+
+}
+
+"""
+Arguments for setting up Shift4 for 3ds transactions
+"""
+
+input SetupShift4CredentialInput {
+"""
+Idempotency key is required to prevent double processing a request.
+It is recommended to use a deterministic unique value, such as the combination of
+the order id and the customer id. Avoid using time-based values.
+Only alphanumeric character and the following are allowed:
+- "-"
+- "_"
+- "."
+- ","
+- "["
+- "]"
+- "+"
+
+Max length: 64.
+"""
+
+  idempotencyKey : String!
+
+"""
+The merchant ID in our systems.
+
+Max length: 100.
+"""
+
+  merchantId : bigint!
+
+"""
+The Shift4 merchant ID.
+"""
+
+  shift4MerchantId : String!
+
+"""
+The signature key for Shift4.
+"""
+
+  signatureKey : String!
+
+}
+
+"""
+Arguments for making a 3ds auth request
+"""
+
+input Auth3dsInput {
+"""
+The color depth of the user's browser. Get this from screen.colorDepth
+
+"""
+
+  browserColorDepth : String!
+
+"""
+Whether the user's browser has Java enabled. Get this from navigator.javaEnabled
+
+"""
+
+  browserJavaEnabled : Boolean!
+
+"""
+The language of the user's browser. IETF BCP47. Get this from navigator.language
+
+"""
+
+  browserLanguage : String!
+
+"""
+The height of the user's screen. Get this from screen.height
+
+"""
+
+  browserScreenHeight : String!
+
+"""
+The width of the user's screen. Get this from screen.width
+
+"""
+
+  browserScreenWidth : String!
+
+"""
+The timezone of the user's browser.
+
+"""
+
+  browserTimezone : String!
+
+"""
+Credit card details
+"""
+
+  card : CreditCardInput
+
+"""
+Credit card source
+"""
+
+  cardSource : CreditCardSourceInput
+
+"""
+Dimensions of the challenge window that the ACS shall format its content to. Value should be one of
+"01" "02" "03" "04" "05"
+Meaning of values:
+01 	250 x 400
+02 	390 x 400
+03 	500 x 600
+04 	600 x 400
+05 	Full screen
+
+"""
+
+  challengeWindowSize : String!
+
+"""
+The uuid received in start3ds call
+"""
+
+  tdsId : String!
+
+}
+
+"""
+Arguments for authorizing a card
+"""
+
+input AuthorizeCreditCardInput {
+"""
+Credit card details
+"""
+
+  card : CreditCardInput
+
+"""
+Credit card source
+"""
+
+  cardSource : CreditCardSourceInput
+
+"""
+The uuid received in start3ds call
+"""
+
+  tdsId : String!
+
+}
+
+"""
+Arguments for authorizing a google pay payment
+"""
+
+input AuthorizeGooglePayInput {
+"""
+The cvv of the credit card
+
+Max length: 4.
+"""
+
+  csc : csc
+
+"""
+The uuid received in start3ds call
+"""
+
+  tdsId : String
+
+"""
+The token returned by the Google Pay API after tokenization
+"""
+
+  token : String!
+
+}
+
+"""
+Arguments for authorizing an Apple Pay payment
+"""
+
+input AuthorizeApplePayPaymentInput {
+"""
+The payment token returned by Apple Pay.
+"""
+
+  token : ApplePayPaymentTokenInput!
+
+}
+
+"""
+Arguments for a google pay payment
+"""
+
+input GooglePayInput {
+"""
+The cvv of the credit card
+
+Max length: 4.
+"""
+
+  csc : csc!
+
+"""
+If true, the session will prefer Dankort over Visa/Mastercard
+
+"""
+
+  preferDankort : Boolean!
+
+"""
+The token returned by the Google Pay API after tokenization
+"""
+
+  token : String!
+
+}
+
+"""
+Arguments for an apple pay payment. Fields are the ones from the Apple Pay docs. See https://developer.apple.com/documentation/ApplePayontheWeb/ApplePayPaymentToken
+"""
+
+input ApplePayPaymentTokenInput {
+"""
+An object containing the encrypted payment data.
+
+"""
+
+  paymentData : ApplePayPaymentDataInput
+
+"""
+Information about the card used in the transaction.
+"""
+
+  paymentMethod : ApplePayPaymentMethodInput!
+
+"""
+A unique identifier for this payment.
+
+"""
+
+  transactionIdentifier : String
+
+}
+
+"""
+See https://developer.apple.com/documentation/PassKit/payment-token-format-reference
+"""
+
+input ApplePayPaymentDataInput {
+"""
+Encrypted payment data. See Payment Data Keys for the decrypted payment data keys and values.
+"""
+
+  data : String!
+
+"""
+Additional version-dependent information you use to decrypt and verify the payment.
+"""
+
+  header : ApplePayPaymentHeaderInput!
+
+"""
+Signature of the payment and header data. The signature includes the signing certificate, its intermediate CA certificate, and information about the signing algorithm.
+"""
+
+  signature : String!
+
+"""
+Version information about the payment token. The token uses EC_v1 for ECC-encrypted data and RSA_v1 for RSA-encrypted data.
+"""
+
+  version : String!
+
+}
+
+"""
+Header dictionary for Apple Pay payment data. See https://developer.apple.com/documentation/PassKit/payment-token-format-reference
+"""
+
+input ApplePayPaymentHeaderInput {
+"""
+Optional hash of the applicationData property of the original payment request.
+"""
+
+  applicationData : String
+
+"""
+Ephemeral public key bytes. EC_v1 only.
+"""
+
+  ephemeralPublicKey : String
+
+"""
+Hash of the X.509 encoded public key bytes of the merchant's certificate.
+"""
+
+  publicKeyHash : String
+
+"""
+Transaction identifier, generated on the device.
+"""
+
+  transactionId : String
+
+"""
+The symmetric key wrapped using your RSA public key. RSA_v1 only.
+"""
+
+  wrappedKey : String
+
+}
+
+"""
+See https://developer.apple.com/documentation/applepayontheweb/applepaypaymentmethod
+"""
+
+input ApplePayPaymentMethodInput {
+"""
+The billing contact associated with the card.
+"""
+
+  billingContact : ApplePayPaymentContactInput
+
+"""
+A string, suitable for display, that describes the card.
+
+"""
+
+  displayName : String
+
+"""
+A string, suitable for display, that is the name of the payment network backing the card.
+
+"""
+
+  network : String
+
+"""
+The payment pass object currently selected to complete the payment.
+"""
+
+  paymentPass : ApplePayPaymentPassInput
+
+"""
+The type of card the customer uses to complete the transaction.
+"""
+
+  type : ApplePayPaymentMethodTypeEnum
+
+}
+
+"""
+See https://developer.apple.com/documentation/applepayontheweb/applepaypaymentmethod
+"""
+
+input ApplePayPaymentPassInput {
+"""
+The activation state of the pass.
+"""
+
+  activationState : ApplePayPaymentPassActivationStateEnum!
+
+"""
+The unique identifier for the device-specific account number.
+"""
+
+  deviceAccountIdentifier : String
+
+"""
+A version of the device account number suitable for display in your UI.
+"""
+
+  deviceAccountNumberSuffix : String
+
+"""
+The unique identifier for the primary account number for the payment card.
+
+"""
+
+  primaryAccountIdentifier : String!
+
+"""
+A version of the primary account number suitable for display in your UI.
+
+"""
+
+  primaryAccountNumberSuffix : String!
+
+}
+
+"""
+See https://developer.apple.com/documentation/applepayontheweb/applepaypaymentcontact
+"""
+
+input ApplePayPaymentContactInput {
+"""
+The street portion of the address for the contact.
+"""
+
+  addressLines : [String!]
+
+"""
+The state for the contact.
+"""
+
+  administrativeArea : String
+
+"""
+The name of the country or region for the contact.
+"""
+
+  country : String
+
+"""
+The contact’s two-letter ISO 3166 country code.
+"""
+
+  countryCode : String
+
+"""
+An email address for the contact.
+"""
+
+  emailAddress : String
+
+"""
+The contact’s family name.
+"""
+
+  familyName : String
+
+"""
+The contact’s given name.
+"""
+
+  givenName : String
+
+"""
+The city for the contact.
+"""
+
+  locality : String
+
+"""
+A phone number for the contact.
+"""
+
+  phoneNumber : String
+
+"""
+The phonetic spelling of the contact’s family name.
+"""
+
+  phoneticFamilyName : String
+
+"""
+The phonetic spelling of the contact’s given name.
+"""
+
+  phoneticGivenName : String
+
+"""
+The zip code or postal code, where applicable, for the contact.
+"""
+
+  postalCode : String
+
+"""
+The subadministrative area (such as a county or other region) in a postal address.
+"""
+
+  subAdministrativeArea : String
+
+"""
+Additional information associated with the location, typically defined at the city or town level (such as district or neighborhood), in a postal address.
+"""
+
+  subLocality : String
+
+}
+
+"""
+The result of setting up a merchant
+
+"""
+type SetupMerchantResult {
+
+"""
+The merchantId making the request.
+
+"""
+merchantId : bigint!
+
+}
+
+"""
+The result of starting a 3ds flow
+
+"""
+type Start3dsResult {
+
+"""
+The 3dsMethodData to post to tdsMethodUrl in base64url format without padding.
+
+"""
+base643dsMethodData : String!
+
+"""
+Visit this url to perform 3ds method invocation for this transaction. Used for debugging. Value is null if the 3ds method url is not available in the preauth response.
+
+"""
+debug3dsMethodPage : String
+
+"""
+This uuid uniquely identifies the 3ds flow
+
+"""
+tdsId : String!
+
+"""
+The url to be sent to the tds method to notify the result of the fingerprinting
+
+"""
+tdsMethodNotificationUrl : String!
+
+"""
+Load this url in an iframe to fingerprint the browser
+
+"""
+tdsMethodUrl : String
+
+"""
+The 3D Secure server used in the 3ds flow
+
+"""
+tdsServer : TdsServer!
+
+"""
+The transaction id to be used in the 3ds flow
+
+"""
+tdsTransId : String!
+
+}
+
+"""
+The result of a 3ds auth call
+
+"""
+type Auth3dsResult {
+
+"""
+CReq in base64url format without padding. Post this to the challengeUrl and target the result in an iframe. Size is preset to the supplied value in Auth3dsInput.
+
+"""
+base64CReq : String!
+
+"""
+Load this url in an iframe to load the challenge flow
+
+"""
+challengeUrl : String
+
+"""
+Visit this url to perform 3ds challenge for this transaction. Used for debugging.
+
+"""
+debugChallengePage : String
+
+"""
+The 3D Secure server used for this transaction
+
+"""
+tdsServer : TdsServer!
+
+}
+
+"""
+The result of authorizing a credit card
+
+"""
+type AuthorizeCreditCardResult {
+
+"""
+Returns the string "success"
+
+"""
+status : String!
+
+}
+
+"""
+The result of setting up api key of 3dsecure.io
+
+"""
+type SetupTdSecureApiKeyResult {
+
+"""
+Returns the string "success"
+
+"""
+status : String!
+
+}
+
+"""
+The result of setting up Shift4 for 3ds transactions
+
+"""
+type SetupShift4CredentialResult {
+
+"""
+Returns the string "success"
+
+"""
+status : String!
+
+}
+
+type Query {
+
+issuerError : IssuerError!
+
+version : String!
+
+}
+
+type CdeAdminMutation {
+
+"""
+Setup a merchant
+"""
+setupMerchant(
+
+  merchant : SetupMerchantInput!
+  ) : SetupMerchantResult!
+
+"""
+Setup credential for Shift4
+"""
+setupShift4Credential(
+
+  shift4Credential : SetupShift4CredentialInput!
+  ) : SetupShift4CredentialResult!
+
+"""
+Setup the api key for 3dsecure.io
+"""
+setupTdSecureApiKey(
+
+  tdSecureKey : SetupTdSecureApiKeyInput!
+  ) : SetupTdSecureApiKeyResult!
+
+}
+
+type CustomerMutation {
+
+"""
+Authorize 3ds session
+"""
+auth3ds(
+
+  card : Auth3dsInput!
+  ) : Auth3dsResult!
+
+"""
+Authorize the Apple Pay payment
+"""
+authorizeApplePayPayment(
+
+  token : AuthorizeApplePayPaymentInput!
+  ) : AuthorizeApplePayPaymentResult!
+
+"""
+Authorize the credit card
+"""
+authorizeCreditCard(
+
+  card : AuthorizeCreditCardInput!
+  ) : AuthorizeCreditCardResult!
+
+"""
+Authorize the google pay payment
+"""
+authorizeGooglePay(
+
+  token : AuthorizeGooglePayInput!
+  ) : AuthorizeGooglePayResult!
+
+"""
+Start 3ds flow
+"""
+start3ds(
+
+  card : TokenizeCreditCardInput!
+  ) : Start3dsResult!
+
+}
+
+"""
+The result of authorizing a google pay payment
+
+"""
+type AuthorizeGooglePayResult {
+
+"""
+When status is "TDS_REQUIRED", this value will be present (non-null) and contain the last 4 digits of the selected card. Use it to prompt the user for the CSC needed to continue the 3DS flow
+
+"""
+maskedPan : String
+
+"""
+Returns the string "SUCCESS" or "TDS_REQUIRED", if result is 3ds_required, then do start3ds and auth3ds and then perform authorizeGooglePay again
+
+"""
+status : WalletAuthorizationResultEnum!
+
+}
+
+"""
+The result of authorizing an Apple Pay payment
+
+"""
+type AuthorizeApplePayPaymentResult {
+
+"""
+When status is "TDS_REQUIRED", this value may contain the last 4 digits of the selected card.
+
+"""
+maskedPan : String
+
+"""
+Returns "SUCCESS" when authorization succeeded or "TDS_REQUIRED" when the token needs a 3DS flow that is not handled by this mutation yet.
+
+"""
+status : WalletAuthorizationResultEnum!
+
+}
+
+schema {
+  query: Query
+  mutation: CustomerMutation
+}

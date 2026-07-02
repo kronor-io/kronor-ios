@@ -29,6 +29,7 @@ public extension KronorApi {
 
     private static let objectTypeMap: [String: ApolloAPI.Object] = [
       "AddSessionDeviceInformationResult": KronorApi.Objects.AddSessionDeviceInformationResult,
+      "ApplePayPaymentResult": KronorApi.Objects.ApplePayPaymentResult,
       "BankTransferDetails": KronorApi.Objects.BankTransferDetails,
       "BankTransferPaymentResult": KronorApi.Objects.BankTransferPaymentResult,
       "CreditCardDetails": KronorApi.Objects.CreditCardDetails,

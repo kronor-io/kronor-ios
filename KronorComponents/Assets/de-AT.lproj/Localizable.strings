@@ -25,3 +25,6 @@
 "continue" = "Fortfahren";
 "confirm_cancellation" = "Ja, abbrechen";
 "creating_secure_transaction" = "Erstellen einer sicheren Transaktion";
+
+/* Indicates that Apple Pay is not available on this device */
+"apple_pay_not_available" = "Apple Pay is not available on this device";

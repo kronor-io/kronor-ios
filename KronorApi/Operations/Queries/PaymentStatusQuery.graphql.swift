@@ -49,6 +49,7 @@ public extension KronorApi {
 
         public var waitToken: KronorApi.Uuid { __data["waitToken"] }
         public var amount: KronorApi.Bigint { __data["amount"] }
+        public var currency: GraphQLEnum<KronorApi.SupportedCurrencyEnum> { __data["currency"] }
         /// List of statuses the payment is currently on
         public var status: [Status]? { __data["status"] }
         public var createdAt: KronorApi.Timestamptz { __data["createdAt"] }

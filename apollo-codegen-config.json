@@ -2,10 +2,10 @@
   "schemaName" : "KronorApi",
   "input" : {
     "operationSearchPaths" : [
-      "**/*.graphql"
+      "./graphql/**/*.graphql"
     ],
     "schemaSearchPaths" : [
-      "**/*.graphqls"
+      "./schema.graphqls"
     ]
   },
   "output" : {
