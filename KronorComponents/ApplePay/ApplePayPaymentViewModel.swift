@@ -183,7 +183,7 @@ import os
         request.paymentSummaryItems = [
             PKPaymentSummaryItem(
                 label: merchantName,
-                amount: NSDecimalNumber(string: paymentRequest.amount).multiplying(byPowerOf10: -2)
+                amount: Self.majorUnits(amount: paymentRequest.amount, currency: paymentRequest.currency)
             )
         ]
 
@@ -309,6 +309,17 @@ import os
                 }
             }
         }
+    }
+
+    /// Converts a payment request amount, given in the currency's minor
+    /// units, to the major units expected by the payment sheet. All supported
+    /// currencies use two decimals except ISK, which has none.
+    private static func majorUnits(
+        amount: String,
+        currency: GraphQLEnum<KronorApi.SupportedCurrencyEnum>
+    ) -> NSDecimalNumber {
+        let decimals: Int16 = currency == .case(.isk) ? 0 : 2
+        return NSDecimalNumber(string: amount).multiplying(byPowerOf10: -decimals)
     }
 
     private static func deviceCountryCode() -> String {
