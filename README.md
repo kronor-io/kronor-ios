@@ -46,3 +46,22 @@ struct CheckoutView: View {
 
 The `sessionToken` variable needs to be provided from the backend, by using the `newPaymentSession` query
 as [described in the docs](https://docs.kronor.io/payment-gateway-sdk#payment-session)
+
+## Avarda
+
+`AvardaComponent` handles Avarda buy-now-pay-later payments on Kronor's hosted
+payment page, which collects the customer's national identification number and
+redirects to Avarda's checkout for identification:
+
+```swift
+AvardaComponent(
+    configuration: .init(
+        env: .production,
+        sessionToken: sessionToken,
+        returnURL: URL(string: "myapp://")!
+    ),
+    buyNowPayLaterProduct: .directInvoice
+) { result in
+    // Handle payment result here
+}
+```
