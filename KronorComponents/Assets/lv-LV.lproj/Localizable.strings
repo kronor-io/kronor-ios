@@ -27,4 +27,4 @@
 "creating_secure_transaction" = "Droša maksājuma izveide";
 
 /* Indicates that Apple Pay is not available on this device */
-"apple_pay_not_available" = "Apple Pay is not available on this device";
+"apple_pay_not_available" = "Apple Pay šajā ierīcē nav pieejams";

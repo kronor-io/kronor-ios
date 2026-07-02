@@ -27,4 +27,4 @@
 "creating_secure_transaction" = "Oppretter sikker betaling";
 
 /* Indicates that Apple Pay is not available on this device */
-"apple_pay_not_available" = "Apple Pay is not available on this device";
+"apple_pay_not_available" = "Apple Pay er ikke tilgjengelig på denne enheten";
