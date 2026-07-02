@@ -46,3 +46,22 @@ struct CheckoutView: View {
 
 The `sessionToken` variable needs to be provided from the backend, by using the `newPaymentSession` query
 as [described in the docs](https://docs.kronor.io/payment-gateway-sdk#payment-session)
+
+## Google Pay
+
+Google Pay has no native iOS SDK, so `GooglePayComponent` runs the payment on
+Kronor's hosted payment page in an `ASWebAuthenticationSession` (a real Safari
+context, required by the Google Pay web API). The customer needs to be signed
+in to a Google account with a saved card:
+
+```swift
+GooglePayComponent(
+    configuration: .init(
+        env: .production,
+        sessionToken: sessionToken,
+        returnURL: URL(string: "myapp://")!
+    )
+) { result in
+    // Handle payment result here
+}
+```

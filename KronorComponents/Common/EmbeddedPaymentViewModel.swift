@@ -18,8 +18,9 @@ enum SupportedEmbeddedMethod {
     case bankTransfer
     case p24
     case pointsPay
+    case googlePay
     case fallback(name: String)
-    
+
     func getName() -> String {
         switch self {
         case .creditCard:
@@ -36,14 +37,16 @@ enum SupportedEmbeddedMethod {
             return "p24"
         case .pointsPay:
             return "pointspay"
+        case .googlePay:
+            return "googlePay"
         case .fallback(let name):
             return name
         }
     }
-    
+
     func isFallback() -> Bool {
         switch self {
-        case .bankTransfer, .p24, .pointsPay, .fallback: return true
+        case .bankTransfer, .p24, .pointsPay, .googlePay, .fallback: return true
         default: return false
         }
     }
@@ -179,7 +182,7 @@ enum SupportedEmbeddedMethod {
                         returnURL: self.intermediateRedirectURL,
                         merchantReturnURL: self.returnURL
                     )
-                case .bankTransfer, .p24, .pointsPay, .fallback:
+                case .bankTransfer, .p24, .pointsPay, .googlePay, .fallback:
                     // cannot create the payment request as we don't know how.
                     // it will be created by the web version of the payment gateway
                     fatalError("impossible")
