@@ -14,6 +14,12 @@ import Kronor
 public struct ApplePayComponent: View {
     @StateObject private var viewModel: ApplePayPaymentViewModel
 
+    /// The card networks accepted by default: Visa, Mastercard, American
+    /// Express and, on iOS 15.1 and later, Dankort.
+    public static var defaultSupportedNetworks: [PKPaymentNetwork] {
+        ApplePayPaymentViewModel.defaultSupportedNetworks
+    }
+
     /// Creates a new Apple Pay payment component.
     /// - Parameters:
     ///   - configuration: The shared component configuration.
@@ -28,7 +34,7 @@ public struct ApplePayComponent: View {
         configuration: ComponentConfiguration,
         merchantIdentifier: String,
         merchantName: String,
-        supportedNetworks: [PKPaymentNetwork] = [.visa, .masterCard, .amex],
+        supportedNetworks: [PKPaymentNetwork] = ApplePayComponent.defaultSupportedNetworks,
         countryCode: String? = nil,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
@@ -50,7 +56,7 @@ public struct ApplePayComponent: View {
     /// supported networks. Use this to decide whether to offer Apple Pay as a
     /// payment method.
     public static func canMakePayments(
-        usingNetworks networks: [PKPaymentNetwork] = [.visa, .masterCard, .amex]
+        usingNetworks networks: [PKPaymentNetwork] = ApplePayComponent.defaultSupportedNetworks
     ) -> Bool {
         ApplePayPaymentViewModel.canMakePayments(usingNetworks: networks)
     }

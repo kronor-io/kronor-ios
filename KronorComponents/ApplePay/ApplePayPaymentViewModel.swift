@@ -17,7 +17,13 @@ import os
             category: String(describing: ApplePayPaymentViewModel.self)
     )
 
-    static let defaultSupportedNetworks: [PKPaymentNetwork] = [.visa, .masterCard, .amex]
+    static var defaultSupportedNetworks: [PKPaymentNetwork] {
+        var networks: [PKPaymentNetwork] = [.visa, .masterCard, .amex]
+        if #available(iOS 15.1, *) {
+            networks.append(.dankort)
+        }
+        return networks
+    }
 
     private let stateMachine: ApplePayStatechart.ApplePayStateMachine
     private let networking: any ApplePayPaymentNetworking
