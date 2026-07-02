@@ -47,7 +47,7 @@ public struct AvardaComponent: View {
     }
 
     public var body: some View {
-        WrapperView(header: AvardaHeaderView()) {
+        WrapperView(header: FallbackHeaderView()) {
             EmbeddedPaymentView(
                 viewModel: self.viewModel,
                 waitingView: FallbackWaitingView()
