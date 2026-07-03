@@ -24,11 +24,12 @@ struct ApplePayButton: UIViewRepresentable {
         Coordinator(action: action)
     }
 
-    @MainActor final class Coordinator {
+    @MainActor final class Coordinator: NSObject {
         var action: @MainActor () -> Void
 
         init(action: @escaping @MainActor () -> Void) {
             self.action = action
+            super.init()
         }
 
         @objc func tapped() {

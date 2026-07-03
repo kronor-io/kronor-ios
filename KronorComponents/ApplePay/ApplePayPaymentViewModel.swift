@@ -38,6 +38,11 @@ import os
     private var cdeToken: String?
     private var subscription: Task<Void, Never>?
 
+    /// Stable for the duration of a payment attempt, so that retrying the
+    /// request creation (after the view disappears mid-request) cannot create
+    /// a duplicate payment. Renewed when the flow is reset for a new attempt.
+    private var idempotencyKey = UUID().uuidString
+
     /// Keeps the payment sheet controller and its delegate alive while the
     /// sheet is presented: PassKit does not retain either of them.
     private var session: (controller: PKPaymentAuthorizationController, delegate: ApplePaySessionDelegate)?
@@ -106,7 +111,10 @@ import os
         case .createPaymentRequest:
             Self.logger.debug("creating apple pay payment request")
 
-            let result = await networking.createPaymentRequest(returnURL: self.returnURL)
+            let result = await networking.createPaymentRequest(
+                returnURL: self.returnURL,
+                idempotencyKey: self.idempotencyKey
+            )
 
             // The component's task is cancelled when the view disappears; don't
             // treat that as a payment error. A repeated initialize retries the
@@ -163,6 +171,7 @@ import os
 
             self.paymentRequest = nil
             self.cdeToken = nil
+            self.idempotencyKey = UUID().uuidString
             await transition(.initialize)
         }
     }

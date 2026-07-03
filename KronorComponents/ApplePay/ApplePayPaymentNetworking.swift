@@ -10,7 +10,8 @@ import KronorCdeApi
 
 protocol ApplePayPaymentNetworking: PaymentNetworking {
     func createPaymentRequest(
-        returnURL: URL
+        returnURL: URL,
+        idempotencyKey: String
     ) async -> Result<KronorApi.ApplePayPaymentMutation.Data.NewApplePayPayment, KronorApi.KronorError>
 
     func authorizePayment(

@@ -22,7 +22,7 @@ import KronorComponents
 
 struct CheckoutView: View {
 
-    @State var sessionToken: String
+    let sessionToken: String
 
     var body: some View {
         VStack {
@@ -79,7 +79,7 @@ import KronorComponents
 
 struct ApplePayCheckoutView: View {
 
-    @State var sessionToken: String
+    let sessionToken: String
 
     var body: some View {
         if ApplePayComponent.canMakePayments() {
