@@ -1,0 +1,11 @@
+mutation ApplePayPayment($payment: ApplePayPaymentInput!, $deviceInfo: AddSessionDeviceInformationInput!) {
+  newApplePayPayment(pay: $payment) {
+    waitToken
+    gateway
+    authToken
+  }
+
+  addSessionDeviceInformation(info: $deviceInfo) {
+    result
+  }
+}

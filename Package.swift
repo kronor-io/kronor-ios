@@ -20,7 +20,12 @@ let package = Package(
             name: "KronorApi",
             targets: ["KronorApi"]
         ),
-        
+
+        .library(
+            name: "KronorCdeApi",
+            targets: ["KronorCdeApi"]
+        ),
+
         .library(
             name: "KronorComponents",
             targets: ["KronorComponents"]
@@ -63,10 +68,20 @@ let package = Package(
             path: "./KronorApi"
         ),
         .target(
+            name: "KronorCdeApi",
+            dependencies: [
+                .target(name: "Kronor"),
+                .product(name: "ApolloAPI", package: "apollo-ios"),
+                .product(name: "Apollo", package: "apollo-ios"),
+            ],
+            path: "./KronorCdeApi"
+        ),
+        .target(
             name: "KronorComponents",
             dependencies: [
                 .target(name: "Kronor"),
                 .target(name: "KronorApi"),
+                .target(name: "KronorCdeApi"),
                 .product(name: "Apollo", package: "apollo-ios"),
                 .product(name: "StateMachine", package: "StateMachine"),
                 .product(name: "TrustlyIosSdk", package: "TrustlyIosSdk")

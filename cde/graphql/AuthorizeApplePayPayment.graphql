@@ -1,0 +1,6 @@
+mutation AuthorizeApplePayPayment($token: AuthorizeApplePayPaymentInput!) {
+  authorizeApplePayPayment(token: $token) {
+    status
+    maskedPan
+  }
+}

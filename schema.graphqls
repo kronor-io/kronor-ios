@@ -68,6 +68,62 @@ type AddSessionDeviceInformationResult {
   result: Boolean!
 }
 
+"""Arguments for creating a new apple pay payment"""
+input ApplePayPaymentInput {
+  """
+  Payment flow, either 'ecom' or 'mcom'.
+  This determines if the flow is apple pay on the web flow or apple pay on the ios app.
+  """
+  flow: String!
+
+  """
+  Idempotency key is required to prevent double processing a request.
+  It is recommended to use a deterministic unique value, such as the combination of
+  the order id and the customer id. Avoid using time-based values.
+  Only alphanumeric character and the following are allowed:
+  - "-"
+  - "_"
+  - "."
+  - ","
+  - "["
+  - "]"
+  - "+"
+
+  Max length: 64.
+  """
+  idempotencyKey: String!
+
+  """The original return url as provided by the merchant."""
+  merchantReturnUrl: String
+
+  """
+  The url to return to after the payment is done. If the payment
+  screen is opened on a separate window, customer will be redirected
+  here on payment success or error.
+  """
+  returnUrl: String!
+}
+
+"""The result of initiating an Apple Pay payment."""
+type ApplePayPaymentResult {
+  """
+  Token used to authorize the payment against the card data environment
+  (CDE) API. Only present when the payment is processed by the KRONOR
+  gateway.
+  """
+  authToken: String
+
+  """The gateway that will process the card."""
+  gateway: GatewayEnum!
+
+  """
+  Once a payment is initialized, we will start the apple pay payment
+  workflow. You can use this token to query the current status
+  of the payment, with paymentRequests query.
+  """
+  waitToken: String!
+}
+
 """Describes the schema for bank transfer details"""
 type BankTransferDetails {
   aspspId: bigint
@@ -3023,6 +3079,9 @@ type mutation_root {
 
   """Log information about various stages of the payment component."""
   log(info: LogInput!): LogResult!
+
+  """Create a new payment request to accept a payment from Apple Pay"""
+  newApplePayPayment(pay: ApplePayPaymentInput!): ApplePayPaymentResult!
 
   """Create a new payment request via bank transfer"""
   newBankTransferPayment(pay: BankTransferPaymentInput!): BankTransferPaymentResult!

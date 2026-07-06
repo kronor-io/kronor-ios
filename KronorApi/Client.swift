@@ -74,6 +74,14 @@ public extension KronorApi {
         return (ApolloClient(networkTransport: httpTransport, store: store), nil)
     }
     
+    static func createApplePayPaymentRequest(client: ApolloClient,
+                                             input: KronorApi.ApplePayPaymentInput,
+                                             deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<ApplePayPaymentMutation.Data.NewApplePayPayment, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.ApplePayPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+            $0.newApplePayPayment
+        }
+    }
+
     static func createSwishPaymentRequest(client: ApolloClient,
                                           input: KronorApi.SwishPaymentInput,
                                           deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {

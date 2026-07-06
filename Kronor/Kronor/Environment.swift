@@ -13,6 +13,7 @@ public extension Kronor {
         public let apiURL: URL
         public let websocketURL: URL
         public let gatewayURL: URL
+        public let cdeURL: URL
     }
 }
 
@@ -21,13 +22,15 @@ public extension Kronor.Environment {
         name: "prod",
         apiURL: URL(string: "https://kronor.io/v1/graphql")!,
         websocketURL: URL(string: "wss://kronor.io/v1/graphql")!,
-        gatewayURL: URL(string: "https://payment-gateway.kronor.io")!
+        gatewayURL: URL(string: "https://payment-gateway.kronor.io")!,
+        cdeURL: URL(string: "https://kronor.io/cde/gql")!
     )
 
     static let sandbox = Kronor.Environment(
         name: "staging",
         apiURL: URL(string: "https://staging.kronor.io/v1/graphql")!,
         websocketURL: URL(string: "wss://staging.kronor.io/v1/graphql")!,
-        gatewayURL: URL(string: "https://payment-gateway.staging.kronor.io")!
+        gatewayURL: URL(string: "https://payment-gateway.staging.kronor.io")!,
+        cdeURL: URL(string: "https://staging.kronor.io/cde/gql")!
     )
 }

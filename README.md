@@ -22,7 +22,7 @@ import KronorComponents
 
 struct CheckoutView: View {
 
-    @State var sessionToken: String
+    let sessionToken: String
 
     var body: some View {
         VStack {
@@ -65,3 +65,39 @@ AvardaComponent(
     // Handle payment result here
 }
 ```
+
+## Apple Pay
+
+The `ApplePayComponent` provides a native (in-app) Apple Pay flow using PassKit.
+In addition to the shared configuration it needs the Apple Pay merchant identifier
+registered in your Apple developer account, and your app must have the
+`com.apple.developer.in-app-payments` entitlement for that merchant identifier:
+
+```swift
+import SwiftUI
+import KronorComponents
+
+struct ApplePayCheckoutView: View {
+
+    let sessionToken: String
+
+    var body: some View {
+        if ApplePayComponent.canMakePayments() {
+            ApplePayComponent(
+                configuration: .init(
+                    env: .production,
+                    sessionToken: sessionToken,
+                    returnURL: URL(string: "myapp://")!
+                ),
+                merchantIdentifier: "merchant.com.example.shop",
+                merchantName: "Example Shop"
+            ) { result in
+                // Handle payment result here
+            }
+        }
+    }
+}
+```
+
+Use `ApplePayComponent.canMakePayments()` to decide whether to offer Apple Pay
+as a payment method on the current device.
