@@ -15,6 +15,11 @@ struct SwishPaymentView: View {
     }
 
     @ViewBuilder func generateContentView() -> some View {
+        stateContentView()
+            .paymentDelayedNotice(viewModel.isDelayed)
+    }
+
+    @ViewBuilder private func stateContentView() -> some View {
         switch viewModel.state {
         case .promptingMethod:
             SwishPromptMethodView(viewModel: viewModel)

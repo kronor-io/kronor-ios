@@ -113,40 +113,45 @@ public extension KronorApi {
     
     static func createApplePayPaymentRequest(client: ApolloClient,
                                              input: KronorApi.ApplePayPaymentInput,
-                                             deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<ApplePayPaymentMutation.Data.NewApplePayPayment, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.ApplePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+                                             deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                             onRetry: (@Sendable () async -> Void)? = nil) async -> Result<ApplePayPaymentMutation.Data.NewApplePayPayment, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.ApplePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
             $0.newApplePayPayment
         }
     }
 
     static func createSwishPaymentRequest(client: ApolloClient,
                                           input: KronorApi.SwishPaymentInput,
-                                          deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+                                          deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
             $0.newSwishPayment.waitToken
         }
     }
     
     static func createMobilePayPaymentRequest(client: ApolloClient,
                                               input: KronorApi.MobilePayPaymentInput,
-                                              deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+                                              deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
             $0.newMobilePayPayment.waitToken
         }
     }
     
     static func createCreditCardPaymentRequest(client: ApolloClient,
                                                input: KronorApi.CreditCardPaymentInput,
-                                               deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+                                               deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
             $0.newCreditCardPayment.waitToken
         }
     }
     
     static func createVippsPaymentRequest(client: ApolloClient,
                                           input: KronorApi.VippsPaymentInput,
-                                          deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+                                          deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+        await sendMutation(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
             $0.newVippsPayment.waitToken
         }
     }
@@ -154,8 +159,9 @@ public extension KronorApi {
     static func createPayPalPaymentRequest(
         client: ApolloClient,
         input: KronorApi.PayPalPaymentInput,
-        deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-            await sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+        deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+            await sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
                 $0.newPayPalPayment.paymentId
             }
     }
@@ -163,8 +169,9 @@ public extension KronorApi {
     static func createBankPaymentRequest(
         client: ApolloClient,
         input: KronorApi.BankTransferPaymentInput,
-        deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-            await sendMutation(client: client, mutation: KronorApi.BankTransferPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
+        deviceInfo: KronorApi.AddSessionDeviceInformationInput,
+                                          onRetry: (@Sendable () async -> Void)? = nil) async -> Result<String, KronorError> {
+            await sendMutation(client: client, mutation: KronorApi.BankTransferPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default, onRetry: onRetry) {
                 $0.newBankTransferPayment.paymentId
             }
     }
@@ -181,10 +188,11 @@ func sendMutation<Mutation: GraphQLMutation, OperationResult>(
     client: ApolloClient,
     mutation: Mutation,
     retry: KronorApi.RetryConfiguration = .none,
+    onRetry: (@Sendable () async -> Void)? = nil,
     extractData: @escaping (Mutation.Data) -> OperationResult
 ) async -> Result<OperationResult, KronorApi.KronorError>
 where Mutation.ResponseFormat == SingleResponseFormat {
-    await withRetry(retry) {
+    await withRetry(retry, onRetry: onRetry) {
         do {
             let result = try await client.perform(mutation: mutation)
             return if let data = result.data {
@@ -209,6 +217,7 @@ where Mutation.ResponseFormat == SingleResponseFormat {
 /// retry budget is exhausted. Stops early if the surrounding task is cancelled.
 func withRetry<OperationResult>(
     _ configuration: KronorApi.RetryConfiguration,
+    onRetry: (@Sendable () async -> Void)? = nil,
     operation: () async -> Result<OperationResult, KronorApi.KronorError>
 ) async -> Result<OperationResult, KronorApi.KronorError> {
     var attempt = 0
@@ -222,6 +231,8 @@ func withRetry<OperationResult>(
         else {
             return result
         }
+
+        await onRetry?()
 
         do {
             try await Task.sleep(nanoseconds: UInt64(configuration.delays[attempt] * 1_000_000_000))

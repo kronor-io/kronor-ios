@@ -72,6 +72,9 @@ enum SupportedEmbeddedMethod {
     internal let prefersAuthenticationSession: Bool
     
     @Published var state: EmbeddedPaymentStatechart.State
+    /// True while the flow is retrying transient failures behind the scenes,
+    /// so the UI can tell the customer the payment is taking longer than usual.
+    @Published private(set) var isDelayed = false
     @Published var embeddedSiteURL: URL?
 
     init(
@@ -177,20 +180,24 @@ enum SupportedEmbeddedMethod {
                 switch self.paymentMethod {
                 case .mobilePay:
                     return await networking.createMobilePayPaymentRequest(
-                        returnURL: self.returnURL
+                        returnURL: self.returnURL,
+                        onRetry: self.retryNotification
                     )
                 case .creditCard:
                     return await networking.createCreditCardPaymentRequest(
-                        returnURL: self.returnURL
+                        returnURL: self.returnURL,
+                        onRetry: self.retryNotification
                     )
                 case .vipps:
                     return await networking.createVippsRequest(
-                        returnURL: self.returnURL
+                        returnURL: self.returnURL,
+                        onRetry: self.retryNotification
                     )
                 case .payPal:
                     return await networking.createPayPalRequest(
                         returnURL: self.intermediateRedirectURL,
-                        merchantReturnURL: self.returnURL
+                        merchantReturnURL: self.returnURL,
+                        onRetry: self.retryNotification
                     )
                 case .bankTransfer, .p24, .pointsPay, .avarda, .fallback:
                     // cannot create the payment request as we don't know how.
@@ -199,6 +206,8 @@ enum SupportedEmbeddedMethod {
                 }
             }()
             
+            self.isDelayed = false
+
             switch rWaitToken {
                 
             case .failure(let error):
@@ -267,6 +276,15 @@ enum SupportedEmbeddedMethod {
     private func handleError(error: KronorApi.KronorError) async {
         let _ = await transition(.error(error: error))
     }
+
+    private var retryNotification: RetryNotification {
+        { [weak self] in await self?.noteRetry() }
+    }
+
+    private func noteRetry() {
+        self.isDelayed = true
+    }
+
     
     private func subscribeToPaymentStatus(waitToken: String) async {
         await subscribeToPaymentStatusMatcher(
@@ -278,7 +296,7 @@ enum SupportedEmbeddedMethod {
 
     private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentRequestFields) -> Bool) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus()
+        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
         self.subscription = Task { [weak self] in
             for await (result, _) in stream {
                 guard !Task.isCancelled, let self else { return }
@@ -288,6 +306,7 @@ enum SupportedEmbeddedMethod {
                     await self.handleError(error: .networkError(error: error))
 
                 case .success(let paymentRequests):
+                    self.isDelayed = false
                     let request = paymentRequests
                         .sorted(by: { itemA, itemB in
                             itemA.createdAt > itemB.createdAt

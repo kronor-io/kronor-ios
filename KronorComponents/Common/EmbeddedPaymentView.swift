@@ -37,6 +37,7 @@ struct EmbeddedPaymentView<Content: View>: View {
         case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest, .paymentRequestInitialized, .waitingForPayment:
             if embeddedPayViewModel.prefersAuthenticationSession {
                 self.waitingView
+                    .paymentDelayedNotice(embeddedPayViewModel.isDelayed)
                     .transition(.slide)
                     .onReceive(embeddedPayViewModel.$embeddedSiteURL) { embeddedSiteURL in
                         showAuthSession = embeddedSiteURL != nil
@@ -54,6 +55,7 @@ struct EmbeddedPaymentView<Content: View>: View {
                     }
             } else {
                 self.waitingView
+                    .paymentDelayedNotice(embeddedPayViewModel.isDelayed)
                     .transition(.slide)
                     .onReceive(embeddedPayViewModel.$embeddedSiteURL.combineLatest(webViewModel.$link)) { (embeddedSiteURL, link) in
                             if let _ = embeddedSiteURL {

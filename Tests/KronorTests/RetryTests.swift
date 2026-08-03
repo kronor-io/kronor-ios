@@ -101,6 +101,44 @@ final class RetryTests: XCTestCase {
         guard case .failure = result else { return XCTFail("expected failure after exhausting the budget") }
     }
 
+    func testOnRetryIsInvokedBeforeEachRetry() async {
+        final class Counter: @unchecked Sendable { var value = 0 }
+        let notified = Counter()
+        var attempts = 0
+
+        let _: Result<String, KronorApi.KronorError> = await withRetry(
+            Self.fastRetry,
+            onRetry: { notified.value += 1 }
+        ) {
+            attempts += 1
+            return .failure(.networkError(error: URLError(.timedOut)))
+        }
+
+        XCTAssertEqual(notified.value, Self.fastRetry.delays.count,
+                       "the UI must be notified once per retry, not on the first attempt")
+        XCTAssertEqual(attempts, Self.fastRetry.delays.count + 1)
+    }
+
+    func testOnRetryIsNotInvokedOnSuccessOrFatalErrors() async {
+        final class Counter: @unchecked Sendable { var value = 0 }
+        let notified = Counter()
+
+        let _: Result<String, KronorApi.KronorError> = await withRetry(
+            Self.fastRetry,
+            onRetry: { notified.value += 1 }
+        ) {
+            .success("ok")
+        }
+        let _: Result<String, KronorApi.KronorError> = await withRetry(
+            Self.fastRetry,
+            onRetry: { notified.value += 1 }
+        ) {
+            .failure(Self.fatalFailure())
+        }
+
+        XCTAssertEqual(notified.value, 0)
+    }
+
     func testNoRetryConfigurationRunsOnce() async {
         var attempts = 0
         let _: Result<String, KronorApi.KronorError> = await withRetry(.none) {

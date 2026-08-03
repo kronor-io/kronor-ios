@@ -63,8 +63,8 @@ class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
         Task { await transport?.pause() }
     }
 
-    func subscribeToPaymentStatus() async -> AsyncStream<PaymentStatusUpdate> {
-        resilientPaymentStatusStream { [weak self] in
+    func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate> {
+        resilientPaymentStatusStream(onRetry: onRetry) { [weak self] in
             await self?.rawPaymentStatusStream()
         }
     }
@@ -215,6 +215,7 @@ struct PaymentStatusStreamEnded: Error {}
 func resilientPaymentStatusStream(
     maxConsecutiveFailures: Int = 5,
     resubscribeDelay: TimeInterval = 2,
+    onRetry: RetryNotification? = nil,
     makeStream: @escaping @Sendable () async -> AsyncStream<PaymentStatusUpdate>?
 ) -> AsyncStream<PaymentStatusUpdate> {
     AsyncStream { continuation in
@@ -243,6 +244,7 @@ func resilientPaymentStatusStream(
                         continuation.yield(update)
                     case .failure:
                         if recordFailure(update) { return }
+                        await onRetry?()
                     }
                 }
 
@@ -251,6 +253,7 @@ func resilientPaymentStatusStream(
                 // The stream ended without being cancelled (e.g. dropped
                 // websocket): count it against the budget and resubscribe.
                 if recordFailure((result: .failure(PaymentStatusStreamEnded()), apiError: nil)) { return }
+                await onRetry?()
 
                 try? await Task.sleep(nanoseconds: UInt64(resubscribeDelay * 1_000_000_000))
             }

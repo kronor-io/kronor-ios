@@ -52,9 +52,13 @@ final class ResilientPaymentStatusStreamTests: XCTestCase {
             [Self.success(), Self.success()],
         ])
 
+        final class Counter: @unchecked Sendable { var value = 0 }
+        let notified = Counter()
+
         let stream = resilientPaymentStatusStream(
             maxConsecutiveFailures: 5,
-            resubscribeDelay: 0.01
+            resubscribeDelay: 0.01,
+            onRetry: { notified.value += 1 }
         ) { streams.next() }
 
         var received: [PaymentStatusUpdate] = []
@@ -64,6 +68,7 @@ final class ResilientPaymentStatusStreamTests: XCTestCase {
         }
 
         XCTAssertEqual(streams.subscriptionCount, 2, "a dead stream must be re-established")
+        XCTAssertGreaterThan(notified.value, 0, "swallowed failures must notify the retry callback")
         XCTAssertTrue(received.allSatisfy { update in
             if case .success = update.result { return true } else { return false }
         }, "transient failures must not reach the consumer")
