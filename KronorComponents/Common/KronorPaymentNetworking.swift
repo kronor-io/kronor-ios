@@ -104,7 +104,10 @@ extension KronorPaymentNetworking {
             return options
         }()
 
-        let parameters = NWParameters(tls: NWProtocolTLS.Options(), tcp: tcpOptions)
+        // TLS only for wss:// endpoints, so that plain ws:// (local test
+        // servers) can connect too.
+        let isSecure = self.env.websocketURL.scheme?.lowercased() == "wss"
+        let parameters = NWParameters(tls: isSecure ? NWProtocolTLS.Options() : nil, tcp: tcpOptions)
         let websocketOptions = NWProtocolWebSocket.Options()
         websocketOptions.setSubprotocols(["graphql-ws"])
 
