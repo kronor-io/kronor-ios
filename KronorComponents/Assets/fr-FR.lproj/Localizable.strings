@@ -30,4 +30,4 @@
 "apple_pay_not_available" = "Apple Pay n'est pas disponible sur cet appareil";
 
 /* Tells the customer that the payment is taking longer than usual but is still being processed */
-"payment_taking_longer" = "Le paiement prend plus de temps que d'habitude. Veuillez patienter — nous le traitons toujours";
+"payment_taking_longer" = "Le paiement prend plus de temps que prévu. Merci de patienter — il est toujours en cours de traitement";
