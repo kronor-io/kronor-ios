@@ -51,7 +51,7 @@ struct PaymentErroredView: View {
                 }
                 .padding(.vertical)
 
-                Text("or")
+                Text("or", bundle: .module)
                     .font(.caption)
 
                 Button(action: {

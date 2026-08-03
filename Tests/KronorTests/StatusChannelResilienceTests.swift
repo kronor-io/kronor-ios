@@ -79,8 +79,9 @@ final class StatusChannelResilienceTests: XCTestCase {
             if await condition() { return }
             try await Task.sleep(nanoseconds: 100_000_000)
         }
+        struct TimedOut: Error {}
         XCTFail("timed out waiting for \(what)")
-        throw XCTSkip("timed out")
+        throw TimedOut()
     }
 
     // MARK: - Tests
