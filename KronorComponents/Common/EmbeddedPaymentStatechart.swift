@@ -162,6 +162,15 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                     transition(to: .initializing, emit: .resetState)
                 }
             }
+
+            state(.errored) {
+                on(.retry) {
+                    transition(to: .initializing, emit: .resetState)
+                }
+                on(.cancelFlow) {
+                    dontTransition(emit: .cancelAndNotifyFailure)
+                }
+            }
         }
     }
 }

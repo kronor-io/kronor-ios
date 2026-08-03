@@ -20,8 +20,17 @@ public extension KronorApi {
             self.errors = errors
             self.extensions = extensions
         }
+
+        /// Whether the backend classified this error as transient
+        /// (`extensions.type == "TEMPORARY_FAILURE"`), meaning the same
+        /// request can be retried with the same idempotency key.
+        public var isTemporaryFailure: Bool {
+            let errorTypes = errors.compactMap { $0.extensions?["type"] as? String }
+            let responseType = extensions["type"] as? String
+            return errorTypes.contains("TEMPORARY_FAILURE") || responseType == "TEMPORARY_FAILURE"
+        }
     }
-    
+
     enum KronorError: Error, Equatable {
         public static func == (lhs: KronorError, rhs: KronorError) -> Bool {
             switch (lhs, rhs) {
@@ -36,8 +45,36 @@ public extension KronorApi {
         
         case networkError (error: Error)
         case usageError (error: KronorApi.APIError)
+
+        /// Transport failures and backend errors flagged as temporary can be
+        /// retried with the same idempotency key; anything else is fatal.
+        public var isRetryable: Bool {
+            switch self {
+            case .networkError:
+                return true
+            case .usageError(let error):
+                return error.isTemporaryFailure
+            }
+        }
     }
-    
+
+    /// Bounded exponential backoff used when retrying payment mutations
+    /// against transient failures.
+    struct RetryConfiguration: Sendable {
+        /// Delay before each retry; the number of entries bounds the retry budget.
+        public var delays: [TimeInterval]
+
+        public init(delays: [TimeInterval]) {
+            self.delays = delays
+        }
+
+        /// Roughly 15s of retries, enough to span a short backend disruption.
+        public static let `default` = RetryConfiguration(delays: [0.5, 1, 2, 4, 8])
+
+        /// No retries: the first failure is returned as-is.
+        public static let none = RetryConfiguration(delays: [])
+    }
+
     static func makeGraphQLClient(
         env: Kronor.Environment,
         token: String
@@ -54,7 +91,7 @@ public extension KronorApi {
         )
 
         let wsConfig = WebSocketTransport.Configuration(
-            reconnectionInterval: 0,
+            reconnectionInterval: 3,
             connectingPayload: payload
         )
         if let webSocketTransport = try? WebSocketTransport(
@@ -77,7 +114,7 @@ public extension KronorApi {
     static func createApplePayPaymentRequest(client: ApolloClient,
                                              input: KronorApi.ApplePayPaymentInput,
                                              deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<ApplePayPaymentMutation.Data.NewApplePayPayment, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.ApplePayPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.ApplePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
             $0.newApplePayPayment
         }
     }
@@ -85,7 +122,7 @@ public extension KronorApi {
     static func createSwishPaymentRequest(client: ApolloClient,
                                           input: KronorApi.SwishPaymentInput,
                                           deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.SwishPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
             $0.newSwishPayment.waitToken
         }
     }
@@ -93,7 +130,7 @@ public extension KronorApi {
     static func createMobilePayPaymentRequest(client: ApolloClient,
                                               input: KronorApi.MobilePayPaymentInput,
                                               deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.MobilePayPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
             $0.newMobilePayPayment.waitToken
         }
     }
@@ -101,7 +138,7 @@ public extension KronorApi {
     static func createCreditCardPaymentRequest(client: ApolloClient,
                                                input: KronorApi.CreditCardPaymentInput,
                                                deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.CreditCardPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
             $0.newCreditCardPayment.waitToken
         }
     }
@@ -109,7 +146,7 @@ public extension KronorApi {
     static func createVippsPaymentRequest(client: ApolloClient,
                                           input: KronorApi.VippsPaymentInput,
                                           deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-        await sendMutation(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+        await sendMutation(client: client, mutation: KronorApi.VippsPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
             $0.newVippsPayment.waitToken
         }
     }
@@ -118,7 +155,7 @@ public extension KronorApi {
         client: ApolloClient,
         input: KronorApi.PayPalPaymentInput,
         deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-            await sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+            await sendMutation(client: client, mutation: KronorApi.PayPalPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
                 $0.newPayPalPayment.paymentId
             }
     }
@@ -127,7 +164,7 @@ public extension KronorApi {
         client: ApolloClient,
         input: KronorApi.BankTransferPaymentInput,
         deviceInfo: KronorApi.AddSessionDeviceInformationInput) async -> Result<String, KronorError> {
-            await sendMutation(client: client, mutation: KronorApi.BankTransferPaymentMutation(payment: input, deviceInfo: deviceInfo)) {
+            await sendMutation(client: client, mutation: KronorApi.BankTransferPaymentMutation(payment: input, deviceInfo: deviceInfo), retry: .default) {
                 $0.newBankTransferPayment.paymentId
             }
     }
@@ -143,21 +180,54 @@ public extension KronorApi {
 func sendMutation<Mutation: GraphQLMutation, OperationResult>(
     client: ApolloClient,
     mutation: Mutation,
+    retry: KronorApi.RetryConfiguration = .none,
     extractData: @escaping (Mutation.Data) -> OperationResult
 ) async -> Result<OperationResult, KronorApi.KronorError>
 where Mutation.ResponseFormat == SingleResponseFormat {
-    do {
-        let result = try await client.perform(mutation: mutation)
-        return if let data = result.data {
-            .success(extractData(data))
-        } else {
-            .failure(
-                .usageError(error: KronorApi.APIError(
-                    errors: result.errors ?? [], extensions: result.extensions ?? [:])
+    await withRetry(retry) {
+        do {
+            let result = try await client.perform(mutation: mutation)
+            return if let data = result.data {
+                .success(extractData(data))
+            } else {
+                .failure(
+                    .usageError(error: KronorApi.APIError(
+                        errors: result.errors ?? [], extensions: result.extensions ?? [:])
+                    )
                 )
-            )
+            }
+        } catch {
+            return .failure(.networkError(error: error))
         }
-    } catch {
-        return .failure(.networkError(error: error))
+    }
+}
+
+/// Runs `operation`, retrying retryable failures after each delay in the
+/// configuration. The retried operation must be idempotent: payment mutations
+/// qualify because they carry an idempotency key that stays the same across
+/// retries. Returns the first fatal failure, or the last failure once the
+/// retry budget is exhausted. Stops early if the surrounding task is cancelled.
+func withRetry<OperationResult>(
+    _ configuration: KronorApi.RetryConfiguration,
+    operation: () async -> Result<OperationResult, KronorApi.KronorError>
+) async -> Result<OperationResult, KronorApi.KronorError> {
+    var attempt = 0
+    while true {
+        let result = await operation()
+
+        guard case .failure(let error) = result,
+              error.isRetryable,
+              attempt < configuration.delays.count,
+              !Task.isCancelled
+        else {
+            return result
+        }
+
+        do {
+            try await Task.sleep(nanoseconds: UInt64(configuration.delays[attempt] * 1_000_000_000))
+        } catch {
+            return result
+        }
+        attempt += 1
     }
 }

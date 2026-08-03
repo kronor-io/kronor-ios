@@ -89,5 +89,14 @@ let package = Package(
             path: "./KronorComponents",
             resources: [.process("Assets")]
         ),
+        .testTarget(
+            name: "KronorTests",
+            dependencies: [
+                .target(name: "Kronor"),
+                .target(name: "KronorApi"),
+                .target(name: "KronorComponents"),
+            ],
+            path: "./Tests/KronorTests"
+        ),
     ]
 )

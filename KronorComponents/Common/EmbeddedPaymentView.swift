@@ -91,23 +91,7 @@ struct EmbeddedPaymentView<Content: View>: View {
                 Spacer()
             }
         case .errored(_):
-            HStack {
-                Spacer()
-                Image(systemName: "xmark.circle")
-                    .foregroundColor(Color.red)
-                
-                Text(
-                    "payment_error_retry_later",
-                    bundle: .module,
-                    comment:  "An error message indicating there was an unexpected error with the payment"
-                )
-                .font(.headline)
-                .foregroundColor(Color.red)
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .padding(.all)
+            PaymentErroredView(viewModel: self.embeddedPayViewModel)
         }
     }
     

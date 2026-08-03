@@ -106,21 +106,7 @@ struct SwishPaymentView: View {
                 Spacer()
             }
         case .errored(_):
-            HStack {
-                Spacer()
-                Image(systemName: "xmark.circle")
-                    .foregroundColor(Color.red)
-
-                Text(
-                    "Could not complete the payment due to an error. Please try again after a short time",
-                    bundle: .module,
-                    comment:  "An error message indicating there was an unexpected error with the payment"
-                )
-                .font(.headline)
-                .foregroundColor(Color.red)
-
-                Spacer()
-            }
+            PaymentErroredView(viewModel: self.viewModel)
         }
     }
 }

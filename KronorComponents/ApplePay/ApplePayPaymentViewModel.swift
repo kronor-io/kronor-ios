@@ -92,12 +92,21 @@ import os
         let result = try? self.stateMachine.transition(event)
 
         if let result {
-            if result.toState.hashableIdentifier == .errored {
+            let becameErrored = result.toState.hashableIdentifier == .errored
+                && result.fromState.hashableIdentifier != .errored
+
+            if becameErrored {
                 self.subscription?.cancel()
             }
 
             self.state = result.toState
             Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
+
+            // Let the merchant app know the flow failed; the customer can
+            // still retry or cancel from the error screen.
+            if becameErrored {
+                await self.paymentResultHandler(.failure(.failed))
+            }
         }
 
         if let sideEffect = result?.sideEffect {
@@ -310,10 +319,12 @@ import os
                         }
                     }
 
+                    // An error alongside a successful response is not fatal:
+                    // the subscription keeps delivering updates, so keep
+                    // observing instead of stranding the customer on an
+                    // error screen.
                     if let error = apiError {
-                        await self.handleError(
-                            error: .usageError(error: error)
-                        )
+                        Self.logger.warning("payment status update carried an error: \(String(describing: error))")
                     }
                 }
             }
