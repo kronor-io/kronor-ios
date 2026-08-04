@@ -11,7 +11,8 @@ import KronorCdeApi
 final class KronorApplePayPaymentNetworking: KronorPaymentNetworking, ApplePayPaymentNetworking, @unchecked Sendable {
     func createPaymentRequest(
         returnURL: URL,
-        idempotencyKey: String
+        idempotencyKey: String,
+        onRetry: RetryNotification?
     ) async -> Result<KronorApi.ApplePayPaymentMutation.Data.NewApplePayPayment, KronorApi.KronorError> {
         let input = KronorApi.ApplePayPaymentInput(
             flow: "mcom",
@@ -22,7 +23,8 @@ final class KronorApplePayPaymentNetworking: KronorPaymentNetworking, ApplePayPa
         return await KronorApi.createApplePayPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 

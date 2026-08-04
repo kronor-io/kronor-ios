@@ -12,7 +12,8 @@ import Apollo
 
 final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPaymentNetworking, @unchecked Sendable {
     func createMobilePayPaymentRequest(
-        returnURL: URL
+        returnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.MobilePayPaymentInput(
             idempotencyKey: UUID().uuidString,
@@ -22,12 +23,14 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
         return await KronorApi.createMobilePayPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 
     func createCreditCardPaymentRequest(
-        returnURL: URL
+        returnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.CreditCardPaymentInput(
             idempotencyKey: UUID().uuidString,
@@ -37,12 +40,14 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
         return await KronorApi.createCreditCardPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 
     func createVippsRequest(
-        returnURL: URL
+        returnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.VippsPaymentInput(
             idempotencyKey: UUID().uuidString,
@@ -52,13 +57,15 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
         return await KronorApi.createVippsPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 
     func createPayPalRequest(
         returnURL: URL,
-        merchantReturnURL: URL
+        merchantReturnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
          let input = KronorApi.PayPalPaymentInput(
              idempotencyKey: UUID().uuidString,
@@ -69,7 +76,8 @@ final class KronorEmbeddedPaymentNetworking: KronorPaymentNetworking, EmbeddedPa
          return await KronorApi.createPayPalPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
          )
      }
 }

@@ -1,15 +1,16 @@
 //
-//  PaymentRejectedView.swift
-//  
+//  PaymentErroredView.swift
 //
-//  Created by lorenzo on 2023-01-19.
 //
 
 import SwiftUI
 
-struct PaymentRejectedView: View {
+/// Shown when the payment flow lands in the errored state. Mirrors
+/// ``PaymentRejectedView``: the customer can retry the payment or cancel and
+/// go back to the checkout, so an unexpected error never leaves them stuck.
+struct PaymentErroredView: View {
     var viewModel: RetryableModel
-    
+
     @State var clickedOnSomething = false
 
     var body: some View {
@@ -19,19 +20,19 @@ struct PaymentRejectedView: View {
                 Spacer()
                 Image(systemName: "xmark.circle")
                     .foregroundColor(Color.red)
-                    
+
                 Text(
-                    "payment_rejected",
+                    "payment_error_retry_later",
                     bundle: .module,
-                     comment: "indicates that the payment resulted in error, cancelled by the customer or declined by the provider"
+                    comment: "An error message indicating there was an unexpected error with the payment"
                 )
-                    .font(.headline)
-                    .foregroundColor(Color.red)
-                    
+                .font(.headline)
+                .foregroundColor(Color.red)
+
                 Spacer()
             }
             .padding(.bottom)
-            
+
             Spacer()
             if clickedOnSomething {
                Spacer()
@@ -49,10 +50,10 @@ struct PaymentRejectedView: View {
                     )
                 }
                 .padding(.vertical)
-                
+
                 Text("or", bundle: .module)
                     .font(.caption)
-                
+
                 Button(action: {
                     Task {
                         await viewModel.retry()
@@ -62,7 +63,7 @@ struct PaymentRejectedView: View {
                     Text(
                         "try_again",
                         bundle: .module,
-                        comment: "Indicates that the user wants to continue the payment session and try another payment"
+                        comment: "Indicates that the user wants to try the payment again"
                     )
                 }
                 .padding(.vertical)
@@ -71,16 +72,8 @@ struct PaymentRejectedView: View {
     }
 }
 
-struct PaymentRejectedView_Previews: PreviewProvider {
+struct PaymentErroredView_Previews: PreviewProvider {
     static var previews: some View {
-        PaymentRejectedView(viewModel: PreviewRetryable())
-    }
-}
-
-struct PreviewRetryable: RetryableModel {
-    func cancel() {
-    }
-
-    func retry() {
+        PaymentErroredView(viewModel: PreviewRetryable())
     }
 }

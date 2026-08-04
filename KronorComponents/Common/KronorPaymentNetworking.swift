@@ -63,7 +63,13 @@ class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
         Task { await transport?.pause() }
     }
 
-    func subscribeToPaymentStatus() async -> AsyncStream<PaymentStatusUpdate> {
+    func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate> {
+        resilientPaymentStatusStream(onRetry: onRetry) { [weak self] in
+            await self?.rawPaymentStatusStream()
+        }
+    }
+
+    private func rawPaymentStatusStream() async -> AsyncStream<PaymentStatusUpdate> {
         if isWebSocketsEnabled {
             do {
                 return try await websocketPaymentStatusStream()
@@ -98,7 +104,10 @@ extension KronorPaymentNetworking {
             return options
         }()
 
-        let parameters = NWParameters(tls: NWProtocolTLS.Options(), tcp: tcpOptions)
+        // TLS only for wss:// endpoints, so that plain ws:// (local test
+        // servers) can connect too.
+        let isSecure = self.env.websocketURL.scheme?.lowercased() == "wss"
+        let parameters = NWParameters(tls: isSecure ? NWProtocolTLS.Options() : nil, tcp: tcpOptions)
         let websocketOptions = NWProtocolWebSocket.Options()
         websocketOptions.setSubprotocols(["graphql-ws"])
 
@@ -191,6 +200,70 @@ extension KronorPaymentNetworking {
             continuation.onTermination = { _ in
                 task.cancel()
             }
+        }
+    }
+}
+
+/// Signals that the payment status stream ended (e.g. the websocket closed)
+/// and could not be re-established within the failure budget.
+struct PaymentStatusStreamEnded: Error {}
+
+/// Wraps a payment status stream so that transient failures don't reach the
+/// consumer: failed updates are swallowed and the underlying stream is
+/// re-created when it ends, with a delay between attempts. Only after
+/// `maxConsecutiveFailures` failures in a row (with no successful update in
+/// between) is a failure forwarded, after which the stream finishes. A
+/// successful update resets the budget, so a long-lived subscription can
+/// survive any number of isolated blips.
+func resilientPaymentStatusStream(
+    maxConsecutiveFailures: Int = 5,
+    resubscribeDelay: TimeInterval = 2,
+    onRetry: RetryNotification? = nil,
+    makeStream: @escaping @Sendable () async -> AsyncStream<PaymentStatusUpdate>?
+) -> AsyncStream<PaymentStatusUpdate> {
+    AsyncStream { continuation in
+        let task = Task {
+            var consecutiveFailures = 0
+
+            func recordFailure(_ update: PaymentStatusUpdate) -> Bool {
+                consecutiveFailures += 1
+                if consecutiveFailures >= maxConsecutiveFailures {
+                    continuation.yield(update)
+                    continuation.finish()
+                    return true
+                }
+                return false
+            }
+
+            while !Task.isCancelled {
+                guard let stream = await makeStream() else { break }
+
+                for await update in stream {
+                    if Task.isCancelled { break }
+
+                    switch update.result {
+                    case .success:
+                        consecutiveFailures = 0
+                        continuation.yield(update)
+                    case .failure:
+                        if recordFailure(update) { return }
+                        await onRetry?()
+                    }
+                }
+
+                if Task.isCancelled { break }
+
+                // The stream ended without being cancelled (e.g. dropped
+                // websocket): count it against the budget and resubscribe.
+                if recordFailure((result: .failure(PaymentStatusStreamEnded()), apiError: nil)) { return }
+                await onRetry?()
+
+                try? await Task.sleep(nanoseconds: UInt64(resubscribeDelay * 1_000_000_000))
+            }
+            continuation.finish()
+        }
+        continuation.onTermination = { _ in
+            task.cancel()
         }
     }
 }

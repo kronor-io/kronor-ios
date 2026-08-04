@@ -11,7 +11,8 @@ import KronorApi
 
 final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentNetworking, @unchecked Sendable {
     func createMcomPaymentRequest(
-        returnURL: URL
+        returnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.SwishPaymentInput(
             flow: "mcom",
@@ -22,13 +23,15 @@ final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentN
         return await KronorApi.createSwishPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 
     func createEcomPaymentRequest(
         phoneNumber: String,
-        returnURL: URL
+        returnURL: URL,
+        onRetry: RetryNotification?
     ) async -> Result<String, KronorApi.KronorError> {
         let input = KronorApi.SwishPaymentInput(
             customerSwishNumber: .some(phoneNumber),
@@ -40,7 +43,8 @@ final class KronorSwishPaymentNetworking: KronorPaymentNetworking, SwishPaymentN
         return await KronorApi.createSwishPaymentRequest(
             client: client,
             input: input,
-            deviceInfo: deviceInfo
+            deviceInfo: deviceInfo,
+            onRetry: onRetry
         )
     }
 }

@@ -158,9 +158,19 @@ final class SwishStatechart : StateMachineBuilder {
                 on(.cancelFlow) {
                     dontTransition(emit: .cancelFlow)
                 }
-                
+
                 on(.retry) {
                     transition(to: .promptingMethod, emit: .resetState)
+                }
+            }
+
+            state(.errored) {
+                on(.retry) {
+                    transition(to: .promptingMethod, emit: .resetState)
+                }
+
+                on(.cancelFlow) {
+                    dontTransition(emit: .cancelFlow)
                 }
             }
         }

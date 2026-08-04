@@ -28,3 +28,6 @@
 
 /* Indicates that Apple Pay is not available on this device */
 "apple_pay_not_available" = "Apple Pay šajā ierīcē nav pieejams";
+
+/* Tells the customer that the payment is taking longer than usual but is still being processed */
+"payment_taking_longer" = "Maksājums aizņem ilgāku laiku nekā parasti. Lūdzu, uzgaidiet — mēs to joprojām apstrādājam";

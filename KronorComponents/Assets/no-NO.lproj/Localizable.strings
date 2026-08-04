@@ -28,3 +28,6 @@
 
 /* Indicates that Apple Pay is not available on this device */
 "apple_pay_not_available" = "Apple Pay er ikke tilgjengelig på denne enheten";
+
+/* Tells the customer that the payment is taking longer than usual but is still being processed */
+"payment_taking_longer" = "Betalingen tar lengre tid enn vanlig. Vent litt — vi behandler den fortsatt";

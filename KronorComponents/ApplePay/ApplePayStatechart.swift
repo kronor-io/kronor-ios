@@ -197,6 +197,16 @@ final class ApplePayStatechart: StateMachineBuilder {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
                 }
             }
+
+            state(.errored) {
+                on(.retry) {
+                    transition(to: .initializing, emit: .resetState)
+                }
+
+                on(.cancelFlow) {
+                    dontTransition(emit: .cancelAndNotifyFailure)
+                }
+            }
         }
     }
 }

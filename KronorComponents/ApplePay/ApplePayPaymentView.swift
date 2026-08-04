@@ -13,6 +13,11 @@ struct ApplePayPaymentView: View {
     }
 
     @ViewBuilder func generateContentView() -> some View {
+        stateContentView()
+            .paymentDelayedNotice(viewModel.isDelayed)
+    }
+
+    @ViewBuilder private func stateContentView() -> some View {
         switch viewModel.state {
         case .initializing, .creatingPaymentRequest, .waitingForPaymentRequest:
             HStack {
@@ -96,21 +101,7 @@ struct ApplePayPaymentView: View {
                 Spacer()
             }
         case .errored(_):
-            HStack {
-                Spacer()
-                Image(systemName: "xmark.circle")
-                    .foregroundColor(Color.red)
-
-                Text(
-                    "payment_error_retry_later",
-                    bundle: .module,
-                    comment: "An error message indicating there was an unexpected error with the payment"
-                )
-                .font(.headline)
-                .foregroundColor(Color.red)
-
-                Spacer()
-            }
+            PaymentErroredView(viewModel: self.viewModel)
         }
     }
 }

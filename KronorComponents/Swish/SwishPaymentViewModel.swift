@@ -43,6 +43,9 @@ import UIKit
     private let paymentResultHandler: PaymentResultHandler
     
     @Published var state: SwishStatechart.State
+    /// True while the flow is retrying transient failures behind the scenes,
+    /// so the UI can tell the customer the payment is taking longer than usual.
+    @Published private(set) var isDelayed = false
     
 #if canImport(UIKit)
     @Published var swishAppInstalled = true
@@ -69,12 +72,21 @@ import UIKit
         let result = try? self.stateMachine.transition(event)
 
         if let result {
-            if result.toState.hashableIdentifier == .errored {
+            let becameErrored = result.toState.hashableIdentifier == .errored
+                && result.fromState.hashableIdentifier != .errored
+
+            if becameErrored {
                 self.subscription?.cancel()
             }
 
             self.state = result.toState
             Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
+
+            // Let the merchant app know the flow failed; the customer can
+            // still retry or cancel from the error screen.
+            if becameErrored {
+                await self.paymentResultHandler(.failure(.failed))
+            }
         }
 
         if let sideEffect = result?.sideEffect {
@@ -89,8 +101,10 @@ import UIKit
             Self.logger.debug("creating swish mcom request")
 
             let rWaitToken = await networking.createMcomPaymentRequest(
-                returnURL: self.returnURL
+                returnURL: self.returnURL,
+                onRetry: self.retryNotification
             )
+            self.isDelayed = false
             
             switch rWaitToken {
                 
@@ -106,8 +120,10 @@ import UIKit
             Self.logger.debug("creating swish ecom request")
             let rWaitToken = await networking.createEcomPaymentRequest(
                 phoneNumber: phoneNumber,
-                returnURL: self.returnURL
+                returnURL: self.returnURL,
+                onRetry: self.retryNotification
             )
+            self.isDelayed = false
             
             switch rWaitToken {
 
@@ -175,10 +191,19 @@ import UIKit
     private func handleError(error: KronorApi.KronorError) async {
         let _ = await transition(.error(error: error))
     }
+
+    private var retryNotification: RetryNotification {
+        { [weak self] in await self?.noteRetry() }
+    }
+
+    private func noteRetry() {
+        self.isDelayed = true
+    }
+
     
     private func subscribeToPaymentStatus(waitToken: String) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus()
+        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
         self.subscription = Task { [weak self] in
             for await (result, apiError) in stream {
                 guard !Task.isCancelled, let self else { return }
@@ -188,6 +213,7 @@ import UIKit
                     await self.handleError(error: .networkError(error: error))
 
                 case .success(let paymentRequests):
+                    self.isDelayed = false
                     let request = paymentRequests
                         .first(where: { paymentRequest in
                             paymentRequest.waitToken == waitToken &&
@@ -219,10 +245,12 @@ import UIKit
                         }
                     }
 
+                    // An error alongside a successful response is not fatal:
+                    // the subscription keeps delivering updates, so keep
+                    // observing instead of stranding the customer on an
+                    // error screen.
                     if let error = apiError {
-                        await self.handleError(
-                            error: .usageError(error: error)
-                        )
+                        Self.logger.warning("payment status update carried an error: \(String(describing: error))")
                     }
                 }
             }
