@@ -78,7 +78,7 @@ public extension KronorApi {
     static func makeGraphQLClient(
         env: Kronor.Environment,
         token: String
-    ) -> (client: ApolloClient, webSocketTransport: WebSocketTransport?) {
+    ) -> ApolloClient {
         let bearer = "Bearer " + token
         let store = ApolloStore(cache: InMemoryNormalizedCache())
         let payload: JSONEncodableDictionary = ["headers": ["Authorization": bearer]]
@@ -94,21 +94,18 @@ public extension KronorApi {
             reconnectionInterval: 3,
             connectingPayload: payload
         )
-        if let webSocketTransport = try? WebSocketTransport(
+        let webSocketTransport = WebSocketTransport(
             urlSession: URLSession(configuration: .default),
             store: store,
             endpointURL: env.websocketURL,
             configuration: wsConfig
-        ) {
-            let transport = SplitNetworkTransport(
-                queryTransport: httpTransport,
-                mutationTransport: httpTransport,
-                subscriptionTransport: webSocketTransport
-            )
-            return (ApolloClient(networkTransport: transport, store: store), webSocketTransport)
-        }
-
-        return (ApolloClient(networkTransport: httpTransport, store: store), nil)
+        )
+        let transport = SplitNetworkTransport(
+            queryTransport: httpTransport,
+            mutationTransport: httpTransport,
+            subscriptionTransport: webSocketTransport
+        )
+        return ApolloClient(networkTransport: transport, store: store)
     }
     
     static func createApplePayPaymentRequest(client: ApolloClient,

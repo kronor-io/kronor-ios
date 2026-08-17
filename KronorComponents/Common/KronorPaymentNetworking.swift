@@ -7,7 +7,6 @@
 
 import Foundation
 import Apollo
-import ApolloWebSocket
 import KronorApi
 import Kronor
 import Network
@@ -28,7 +27,6 @@ class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
     private let state: State
 
     let client: ApolloClient
-    private let webSocketTransport: WebSocketTransport?
     let pollingManager: PollingManager
     let env: Kronor.Environment
     let isWebSocketsEnabled: Bool
@@ -47,20 +45,13 @@ class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
 
     init(configuration: ComponentConfiguration) {
         self.env = configuration.env
-        let (client, webSocketTransport) = KronorApi.makeGraphQLClient(
+        self.client = KronorApi.makeGraphQLClient(
             env: configuration.env,
             token: configuration.sessionToken
         )
-        self.client = client
-        self.webSocketTransport = webSocketTransport
         self.isWebSocketsEnabled = configuration.isWebSocketsEnabled
         self.pollingManager = PollingManager(pollingInterval: 1)
         self.state = .init(device: configuration.device)
-    }
-
-    deinit {
-        let transport = webSocketTransport
-        Task { await transport?.pause() }
     }
 
     func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate> {
