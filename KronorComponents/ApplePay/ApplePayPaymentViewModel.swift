@@ -184,11 +184,13 @@ import os
             let _ = await networking.cancelSessionPayments()
             await self.paymentResultHandler(.failure(.failed))
 
-        case .resetState:
+        case .resetState, .resetStateWithoutCancelling:
             self.subscription?.cancel()
             self.subscription = nil
 
-            if let _ = self.paymentRequest {
+            // Only cancel when the payment is known to be dead — a rejection
+            // tells us that, an error does not.
+            if case .resetState = sideEffect, self.paymentRequest != nil {
                 let _ = await networking.cancelSessionPayments()
             }
 

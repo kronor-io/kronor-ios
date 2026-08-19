@@ -54,8 +54,11 @@ class KronorPaymentNetworking: PaymentNetworking, @unchecked Sendable {
         self.state = .init(device: configuration.device)
     }
 
-    func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate> {
-        resilientPaymentStatusStream(onRetry: onRetry) { [weak self] in
+    func subscribeToPaymentStatus(
+        onRetry: RetryNotification?,
+        keepRetrying: KeepRetrying?
+    ) async -> AsyncStream<PaymentStatusUpdate> {
+        resilientPaymentStatusStream(onRetry: onRetry, keepRetrying: keepRetrying) { [weak self] in
             await self?.rawPaymentStatusStream()
         }
     }
@@ -206,24 +209,37 @@ struct PaymentStatusStreamEnded: Error {}
 /// between) is a failure forwarded, after which the stream finishes. A
 /// successful update resets the budget, so a long-lived subscription can
 /// survive any number of isolated blips.
+///
+/// `keepRetrying` overrides that budget: while it answers `true` the failure is
+/// never forwarded and the channel keeps trying indefinitely. The flow uses it
+/// to hold the channel open for as long as the customer is on the payment site,
+/// where giving up would mean abandoning a live payment.
 func resilientPaymentStatusStream(
     maxConsecutiveFailures: Int = 5,
     resubscribeDelay: TimeInterval = 2,
     onRetry: RetryNotification? = nil,
+    keepRetrying: KeepRetrying? = nil,
     makeStream: @escaping @Sendable () async -> AsyncStream<PaymentStatusUpdate>?
 ) -> AsyncStream<PaymentStatusUpdate> {
     AsyncStream { continuation in
         let task = Task {
             var consecutiveFailures = 0
 
-            func recordFailure(_ update: PaymentStatusUpdate) -> Bool {
+            /// Returns true when the failure was fatal and the stream finished.
+            func recordFailure(_ update: PaymentStatusUpdate) async -> Bool {
                 consecutiveFailures += 1
-                if consecutiveFailures >= maxConsecutiveFailures {
-                    continuation.yield(update)
-                    continuation.finish()
-                    return true
+                guard consecutiveFailures >= maxConsecutiveFailures else { return false }
+
+                if await keepRetrying?() ?? false {
+                    // Re-arm the budget and carry on: the consumer must not see
+                    // this failure.
+                    consecutiveFailures = 0
+                    return false
                 }
-                return false
+
+                continuation.yield(update)
+                continuation.finish()
+                return true
             }
 
             while !Task.isCancelled {
@@ -237,7 +253,7 @@ func resilientPaymentStatusStream(
                         consecutiveFailures = 0
                         continuation.yield(update)
                     case .failure:
-                        if recordFailure(update) { return }
+                        if await recordFailure(update) { return }
                         await onRetry?()
                     }
                 }
@@ -246,7 +262,7 @@ func resilientPaymentStatusStream(
 
                 // The stream ended without being cancelled (e.g. dropped
                 // websocket): count it against the budget and resubscribe.
-                if recordFailure((result: .failure(PaymentStatusStreamEnded()), apiError: nil)) { return }
+                if await recordFailure((result: .failure(PaymentStatusStreamEnded()), apiError: nil)) { return }
                 await onRetry?()
 
                 try? await Task.sleep(nanoseconds: UInt64(resubscribeDelay * 1_000_000_000))

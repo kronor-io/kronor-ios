@@ -7,11 +7,12 @@ import XCTest
 import KronorApi
 @testable import KronorComponents
 
-/// How the embedded flow recovers from the error screen: the status channel is
+/// How the embedded flow behaves when the status channel fails: the channel is
 /// driven over polling against ``LocalGraphQLServer`` and fed enough consecutive
-/// errors to exhaust the resilient stream's budget, which lands the flow on the
-/// error screen. From there the customer can retry, which must come all the way
-/// back and present the embedded site again, or give up.
+/// errors to exhaust the resilient stream's budget. Where that lands depends on
+/// whether the customer has been handed off to the payment site yet — before
+/// handoff the error screen is offered, after it the site must stay up — and a
+/// retry from the error screen must come all the way back.
 final class EmbeddedRetryAfterErrorTests: XCTestCase {
 
     private var server: LocalGraphQLServer!
@@ -105,12 +106,12 @@ final class EmbeddedRetryAfterErrorTests: XCTestCase {
 
     // MARK: - Tests
 
-    /// The site goes up, the backend starts failing every poll, the flow lands on
-    /// the error screen, the backend recovers, and the customer taps retry. The
-    /// site must be presented again — as a *new* presentation, since the session
-    /// URL is unchanged and re-presenting the old one would reuse a dead webview.
+    /// The customer is on the payment site when the status channel starts
+    /// failing. The site must stay up and the channel must keep re-establishing
+    /// itself, because the payment is proceeding at the provider whether or not
+    /// we can currently see it.
     @MainActor
-    func testRetryAfterErroredRepresentsTheEmbeddedSite() async throws {
+    func testStatusChannelOutageDoesNotTearDownThePaymentSite() async throws {
         server.script(operation: "CreditCardPayment", responses: [
             (200, Self.creditCardSuccessBody(waitToken: Self.firstWaitToken)),
         ])
@@ -124,26 +125,65 @@ final class EmbeddedRetryAfterErrorTests: XCTestCase {
 
         await viewModel.transition(.initialize)
 
-        try await Self.waitUntil(timeout: 20, "the embedded site to open") { @MainActor in
+        try await Self.waitUntil(timeout: 20, "the payment site to open") { @MainActor in
             viewModel.embeddedSite != nil
         }
-        let firstSite = try XCTUnwrap(viewModel.embeddedSite)
+        let site = try XCTUnwrap(viewModel.embeddedSite)
 
-        // The outage: every poll now fails, which exhausts the resilient
-        // stream's budget and lands the flow on the error screen.
+        // The outage: every poll now fails, well past the failure budget of 5.
         server.script(operation: "PaymentStatusQuery", responses: [(503, "")])
+        try await Task.sleep(nanoseconds: 15_000_000_000)
+
+        XCTAssertEqual(
+            viewModel.state.hashableIdentifier, .paymentRequestInitialized,
+            "a status channel outage must not move the flow off the payment site"
+        )
+        XCTAssertEqual(
+            viewModel.embeddedSite, site,
+            "the payment site must stay up, and stay the same presentation, through the outage"
+        )
+        let results = await box.results
+        XCTAssertTrue(results.isEmpty, "an outage must not report a result to the merchant app")
+
+        // The channel must still be trying, not given up: it recovers on its own
+        // once the backend does, with no customer interaction.
+        server.script(operation: "PaymentStatusQuery", responses: [
+            (200, Self.paymentRequestsPayload(waitToken: Self.firstWaitToken, status: "PAID")),
+        ])
+        try await Self.waitUntil(timeout: 30, "the flow to complete after the outage") { @MainActor in
+            viewModel.state.hashableIdentifier == .paymentCompleted
+        }
+
+        XCTAssertFalse(
+            server.receivedOperations.contains("CancelSessionPayments"),
+            "an outage must never cancel the session's payments"
+        )
+    }
+
+    /// Before handoff nothing is in flight, so failing to create the payment
+    /// request is a safe place to offer a retry — and that retry must come all
+    /// the way back and present the site, as a fresh presentation.
+    @MainActor
+    func testRetryAfterPreHandoffErrorReachesThePaymentSite() async throws {
+        server.script(operation: "CreditCardPayment", responses: [(503, "")])
+        server.script(operation: "PaymentStatusQuery", responses: [
+            (200, #"{"data":{"paymentRequests":[]}}"#),
+        ])
+        server.script(operation: "CancelSessionPayments", responses: [(200, Self.cancelSessionBody)])
+
+        let box = ResultBox()
+        let viewModel = makeViewModel(box)
+
+        await viewModel.transition(.initialize)
 
         try await Self.waitUntil(timeout: 30, "the flow to land on the error screen") { @MainActor in
             viewModel.state.hashableIdentifier == .errored
         }
 
-        // The customer can still retry, so the merchant app must not have been
-        // handed a result yet.
         let resultsWhileErrored = await box.results
         XCTAssertTrue(resultsWhileErrored.isEmpty,
                       "entering the error state must not report a result to the merchant app")
-        XCTAssertNil(viewModel.embeddedSite,
-                     "the failed attempt's site must be taken down with the error screen")
+        XCTAssertNil(viewModel.embeddedSite)
 
         // The backend recovers, and the customer taps "try again".
         server.script(operation: "CreditCardPayment", responses: [
@@ -155,17 +195,15 @@ final class EmbeddedRetryAfterErrorTests: XCTestCase {
 
         await viewModel.retry()
 
-        try await Self.waitUntil(timeout: 30, "the embedded site to be presented again") { @MainActor in
+        try await Self.waitUntil(timeout: 30, "the payment site to be presented") { @MainActor in
             viewModel.embeddedSite != nil
         }
-        let secondSite = try XCTUnwrap(viewModel.embeddedSite)
 
         XCTAssertEqual(viewModel.state.hashableIdentifier, .paymentRequestInitialized)
-        XCTAssertNotEqual(
-            secondSite.id, firstSite.id,
-            "the retried attempt needs a fresh identity, otherwise SwiftUI reuses the dead webview"
+        XCTAssertFalse(
+            server.receivedOperations.contains("CancelSessionPayments"),
+            "retrying after an error must not cancel a payment we could not observe"
         )
-        XCTAssertEqual(secondSite.url, firstSite.url, "the session URL itself does not change")
         let resultsAfterRetry = await box.results
         XCTAssertTrue(resultsAfterRetry.isEmpty,
                       "a recovered retry must not report a failure to the merchant app")

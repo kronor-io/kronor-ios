@@ -185,11 +185,13 @@ import UIKit
         case .subscribeToPaymentStatus(let waitToken):
             await subscribeToPaymentStatus(waitToken: waitToken)
             
-        case .resetState:
+        case .resetState, .resetStateWithoutCancelling:
             self.subscription?.cancel()
             self.subscription = nil
-            
-            if let _ = self.paymenRequest {
+
+            // Only cancel when the payment is known to be dead — a rejection
+            // tells us that, an error does not.
+            if case .resetState = sideEffect, self.paymenRequest != nil {
                 let _ = await networking.cancelSessionPayments()
             }
 

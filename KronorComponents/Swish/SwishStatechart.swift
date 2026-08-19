@@ -49,6 +49,11 @@ final class SwishStatechart : StateMachineBuilder {
         /// flow actually hit rather than a cancellation.
         case cancelAndNotifyError
         case resetState
+        /// Like ``resetState``, but leaves the session's payments alone. Used
+        /// when retrying after an error: we lost contact with the backend, so we
+        /// cannot tell whether the payment went through, and cancelling it would
+        /// throw away a payment the customer may already have made.
+        case resetStateWithoutCancelling
         case cancelFlow
     }
     
@@ -169,7 +174,7 @@ final class SwishStatechart : StateMachineBuilder {
 
             state(.errored) {
                 on(.retry) {
-                    transition(to: .promptingMethod, emit: .resetState)
+                    transition(to: .promptingMethod, emit: .resetStateWithoutCancelling)
                 }
 
                 on(.cancelFlow) {

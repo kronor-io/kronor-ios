@@ -270,7 +270,7 @@ enum SupportedEmbeddedMethod {
             self.embeddedSite = EmbeddedSite(id: self.embeddedSiteAttempts, url: self.sessionURL)
             Self.logger.info("\(self.sessionURL)")
 
-        case .resetState:
+        case .resetState, .resetStateWithoutCancelling:
             self.subscription?.cancel()
             self.subscription = nil
 
@@ -280,7 +280,11 @@ enum SupportedEmbeddedMethod {
             self.embeddedSite = nil
             self.isDelayed = false
 
-            if let _ = self.paymenRequest {
+            // Only cancel when the payment is known to be dead — a rejection
+            // tells us that, an error does not. Cancelling on an error would
+            // discard a payment the customer may already have completed, and
+            // leaves the gateway polling a session it can no longer finish.
+            if case .resetState = sideEffect, self.paymenRequest != nil {
                 let _ = await networking.cancelSessionPayments()
             }
 
@@ -308,6 +312,18 @@ enum SupportedEmbeddedMethod {
         { [weak self] in await self?.noteRetry() }
     }
 
+    /// True while the customer is on the payment site. The status channel must
+    /// not give up during that window: the payment is proceeding there whether
+    /// or not we can observe it, and the flow has no error exit from those
+    /// states precisely so that the site is never pulled out from under them.
+    private var isOnPaymentSurface: Bool {
+        self.embeddedSite != nil
+    }
+
+    private var keepRetryingWhileOnPaymentSurface: KeepRetrying {
+        { [weak self] in await self?.isOnPaymentSurface ?? false }
+    }
+
     private func noteRetry() {
         self.isDelayed = true
     }
@@ -323,7 +339,10 @@ enum SupportedEmbeddedMethod {
 
     private func subscribeToPaymentStatusMatcher(matcher: @escaping (KronorApi.PaymentRequestFields) -> Bool) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
+        let stream = await networking.subscribeToPaymentStatus(
+            onRetry: self.retryNotification,
+            keepRetrying: self.keepRetryingWhileOnPaymentSurface
+        )
         self.subscription = Task { [weak self] in
             for await (result, _) in stream {
                 guard !Task.isCancelled, let self else { return }
