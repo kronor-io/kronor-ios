@@ -27,8 +27,8 @@ final class ErroredStateRecoveryTests: XCTestCase {
     func testEmbeddedErroredCanCancel() throws {
         let machine = EmbeddedPaymentStatechart.makeStateMachineWithInitialState(initial: .errored(error: Self.error))
         let result = try machine.transition(.cancelFlow)
-        guard case .cancelAndNotifyFailure = try XCTUnwrap(result.sideEffect) else {
-            return XCTFail("cancel must notify the merchant app")
+        guard case .cancelAndNotifyError = try XCTUnwrap(result.sideEffect) else {
+            return XCTFail("giving up after an error must report the failure, not a cancellation")
         }
     }
 
@@ -46,8 +46,8 @@ final class ErroredStateRecoveryTests: XCTestCase {
     func testSwishErroredCanCancel() throws {
         let machine = SwishStatechart.makeStateMachineWithInitialState(initial: .errored(error: Self.error))
         let result = try machine.transition(.cancelFlow)
-        guard case .cancelFlow = try XCTUnwrap(result.sideEffect) else {
-            return XCTFail("cancel must notify the merchant app")
+        guard case .cancelAndNotifyError = try XCTUnwrap(result.sideEffect) else {
+            return XCTFail("giving up after an error must report the failure, not a cancellation")
         }
     }
 
@@ -65,8 +65,8 @@ final class ErroredStateRecoveryTests: XCTestCase {
     func testApplePayErroredCanCancel() throws {
         let machine = ApplePayStatechart.makeStateMachineWithInitialState(initial: .errored(error: Self.error))
         let result = try machine.transition(.cancelFlow)
-        guard case .cancelAndNotifyFailure = try XCTUnwrap(result.sideEffect) else {
-            return XCTFail("cancel must notify the merchant app")
+        guard case .cancelAndNotifyError = try XCTUnwrap(result.sideEffect) else {
+            return XCTFail("giving up after an error must report the failure, not a cancellation")
         }
     }
 }

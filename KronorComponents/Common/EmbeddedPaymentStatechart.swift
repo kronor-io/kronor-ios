@@ -44,6 +44,9 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case notifyPaymentFailure
         case resetState
         case cancelAndNotifyFailure
+        /// The customer gave up on the error screen: report the failure the
+        /// flow actually hit rather than a cancellation.
+        case cancelAndNotifyError
         case cancelAfterDeadline
     }
     
@@ -168,7 +171,7 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                     transition(to: .initializing, emit: .resetState)
                 }
                 on(.cancelFlow) {
-                    dontTransition(emit: .cancelAndNotifyFailure)
+                    dontTransition(emit: .cancelAndNotifyError)
                 }
             }
         }

@@ -45,6 +45,9 @@ final class SwishStatechart : StateMachineBuilder {
         case subscribeToPaymentStatus (waitToken: String)
         case notifyPaymentSuccess
         case notifyPaymentFailure
+        /// The customer gave up on the error screen: report the failure the
+        /// flow actually hit rather than a cancellation.
+        case cancelAndNotifyError
         case resetState
         case cancelFlow
     }
@@ -170,7 +173,7 @@ final class SwishStatechart : StateMachineBuilder {
                 }
 
                 on(.cancelFlow) {
-                    dontTransition(emit: .cancelFlow)
+                    dontTransition(emit: .cancelAndNotifyError)
                 }
             }
         }

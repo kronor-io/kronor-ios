@@ -112,6 +112,11 @@ import os
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
             await self.paymentResultHandler(.failure(.cancelled))
+
+        case .cancelAndNotifyError:
+            Self.logger.trace("performing cancelAndNotifyError")
+            self.subscription?.cancel()
+            await self.paymentResultHandler(.failure(.failed))
         }
     }
     

@@ -44,6 +44,9 @@ final class ApplePayStatechart: StateMachineBuilder {
         case presentPaymentSheet
         case notifyPaymentSuccess
         case cancelAndNotifyFailure
+        /// The customer gave up on the error screen: report the failure the
+        /// flow actually hit rather than a cancellation.
+        case cancelAndNotifyError
         case resetState
     }
 
@@ -204,7 +207,7 @@ final class ApplePayStatechart: StateMachineBuilder {
                 }
 
                 on(.cancelFlow) {
-                    dontTransition(emit: .cancelAndNotifyFailure)
+                    dontTransition(emit: .cancelAndNotifyError)
                 }
             }
         }

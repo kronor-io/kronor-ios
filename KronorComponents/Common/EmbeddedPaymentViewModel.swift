@@ -75,7 +75,18 @@ enum SupportedEmbeddedMethod {
     /// True while the flow is retrying transient failures behind the scenes,
     /// so the UI can tell the customer the payment is taking longer than usual.
     @Published private(set) var isDelayed = false
-    @Published var embeddedSiteURL: URL?
+    @Published var embeddedSite: EmbeddedSite?
+
+    /// One presentation of the embedded payment site. The identifier changes on
+    /// every attempt so that a retry rebuilds the webview from scratch instead
+    /// of re-presenting the previous attempt's page, which is identical by URL
+    /// (the session token never changes) and would otherwise be reused.
+    struct EmbeddedSite: Identifiable, Equatable {
+        let id: Int
+        let url: URL
+    }
+
+    private var embeddedSiteAttempts = 0
 
     init(
         configuration: ComponentConfiguration,
@@ -125,14 +136,18 @@ enum SupportedEmbeddedMethod {
                 self.subscription?.cancel()
             }
 
+            if becameErrored {
+                // The customer is offered a retry from the error screen, so the
+                // flow is not over yet. The merchant app is only told once the
+                // customer gives up, from `cancelAndNotifyError`; reporting a
+                // result here would end the payment as far as the host app is
+                // concerned while the SDK keeps driving it.
+                self.embeddedSite = nil
+                self.isDelayed = false
+            }
+
             self.state = result.toState
             Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
-
-            // Let the merchant app know the flow failed; the customer can
-            // still retry or cancel from the error screen.
-            if becameErrored {
-                await self.paymentResultHandler(.failure(.failed))
-            }
         }
 
         if let sideEffect = result?.sideEffect {
@@ -224,6 +239,13 @@ enum SupportedEmbeddedMethod {
             await self.paymentResultHandler(.failure(.declined))
 
 
+        case .cancelAndNotifyError:
+            Self.logger.trace("performing cancelAndNotifyError")
+            self.subscription?.cancel()
+            self.embeddedSite = nil
+            await self.paymentResultHandler(.failure(.failed))
+
+
         case .cancelAndNotifyFailure:
             Self.logger.trace("performing cancelAndNotifyFailure")
             self.subscription?.cancel()
@@ -244,20 +266,25 @@ enum SupportedEmbeddedMethod {
             await subscribeToPaymentStatus(waitToken: waitToken)
      
         case .openEmbeddedSite:
-            self.embeddedSiteURL = self.sessionURL
+            self.embeddedSiteAttempts += 1
+            self.embeddedSite = EmbeddedSite(id: self.embeddedSiteAttempts, url: self.sessionURL)
             Self.logger.info("\(self.sessionURL)")
 
         case .resetState:
             self.subscription?.cancel()
             self.subscription = nil
-            
+
+            // Take the site down before any awaiting, so the customer never
+            // sees the previous attempt's page while the session it belongs to
+            // is being cancelled.
+            self.embeddedSite = nil
+            self.isDelayed = false
+
             if let _ = self.paymenRequest {
                 let _ = await networking.cancelSessionPayments()
             }
 
             self.paymenRequest = nil
-
-            self.embeddedSiteURL = nil
 
             Task {
                 await self.transition(.initialize)

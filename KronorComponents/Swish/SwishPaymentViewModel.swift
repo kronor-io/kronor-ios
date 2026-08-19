@@ -79,14 +79,17 @@ import UIKit
                 self.subscription?.cancel()
             }
 
+            if becameErrored {
+                // The customer is offered a retry from the error screen, so the
+                // flow is not over yet. The merchant app is only told once the
+                // customer gives up; reporting a result here would end the
+                // payment as far as the host app is concerned while the SDK
+                // keeps driving it.
+                self.isDelayed = false
+            }
+
             self.state = result.toState
             Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
-
-            // Let the merchant app know the flow failed; the customer can
-            // still retry or cancel from the error screen.
-            if becameErrored {
-                await self.paymentResultHandler(.failure(.failed))
-            }
         }
 
         if let sideEffect = result?.sideEffect {
@@ -144,6 +147,12 @@ import UIKit
             Self.logger.trace("performing cancelFlow")
             self.subscription?.cancel()
             await self.paymentResultHandler(.failure(.cancelled))
+
+
+        case .cancelAndNotifyError:
+            Self.logger.trace("performing cancelAndNotifyError")
+            self.subscription?.cancel()
+            await self.paymentResultHandler(.failure(.failed))
 
             
         case .notifyPaymentSuccess:
