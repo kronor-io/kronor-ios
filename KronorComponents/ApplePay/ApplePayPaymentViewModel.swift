@@ -295,9 +295,30 @@ import os
     }
 
 
+    /// True from the moment the payment sheet goes up until the flow settles.
+    /// `.authorizing` keeps its `.error` transition, because failing to present
+    /// the sheet at all is a real local failure worth surfacing — but a status
+    /// channel blip is not, and suppressing it here stops a lost connection from
+    /// stranding a payment the customer is in the middle of authorizing.
+    private var isOnPaymentSurface: Bool {
+        switch self.stateMachine.state {
+        case .authorizing, .waitingForSheetDismissal, .waitingForPayment:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var keepRetryingWhileOnPaymentSurface: KeepRetrying {
+        { [weak self] in await self?.isOnPaymentSurface ?? false }
+    }
+
     private func subscribeToPaymentStatus(waitToken: String) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
+        let stream = await networking.subscribeToPaymentStatus(
+            onRetry: self.retryNotification,
+            keepRetrying: self.keepRetryingWhileOnPaymentSurface
+        )
         self.subscription = Task { [weak self] in
             for await (result, apiError) in stream {
                 guard !Task.isCancelled, let self else { return }

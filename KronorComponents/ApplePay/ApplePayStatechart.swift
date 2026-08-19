@@ -175,6 +175,12 @@ final class ApplePayStatechart: StateMachineBuilder {
                 }
             }
 
+            // The token is authorized and already with the backend, so the
+            // charge may well be going through. There is deliberately no
+            // `.error` transition out: the only thing that can fail here is our
+            // own view of the payment, and offering a retry would ask the
+            // customer to authorize a second charge we cannot rule out having
+            // already made. Mirrors `.waitingForSheetDismissal` above.
             state(.waitingForPayment) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
@@ -182,10 +188,6 @@ final class ApplePayStatechart: StateMachineBuilder {
 
                 on(.paymentRejected) {
                     transition(to: .paymentRejected)
-                }
-
-                on(.error) {
-                    transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
             }
 

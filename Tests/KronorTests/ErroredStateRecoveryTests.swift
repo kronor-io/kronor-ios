@@ -67,11 +67,53 @@ final class ErroredStateRecoveryTests: XCTestCase {
         }
     }
 
+    /// Swish hands off to a surface too — the QR code on our own screen, the
+    /// Swish app, or a request sent to the customer's phone number — and the
+    /// customer may already have approved there.
+    func testSwishPostHandoffStatesHaveNoErrorExit() throws {
+        let states: [SwishStatechart.State] = [
+            .paymentRequestInitialized(selected: .qrCode),
+            .paymentRequestInitialized(selected: .swishApp),
+            .paymentRequestInitialized(selected: .phoneNumber),
+            .waitingForPayment,
+        ]
+        for state in states {
+            let machine = SwishStatechart.makeStateMachineWithInitialState(initial: state)
+            XCTAssertThrowsError(
+                try machine.transition(.error(error: Self.error)),
+                "\(state) must not have an error exit: the customer may already have paid in Swish"
+            )
+        }
+    }
+
+    /// The token is authorized and already with the backend by this point, so a
+    /// retry would ask for a second charge. Mirrors `.waitingForSheetDismissal`.
+    func testApplePayWaitingForPaymentHasNoErrorExit() throws {
+        let machine = ApplePayStatechart.makeStateMachineWithInitialState(initial: .waitingForPayment)
+        XCTAssertThrowsError(try machine.transition(.error(error: Self.error)))
+    }
+
+    /// `.authorizing` keeps its error exit on purpose: failing to present the
+    /// sheet at all is a real local failure worth surfacing, and the customer has
+    /// authorized nothing yet. Only status channel failures are suppressed there.
+    func testApplePayAuthorizingKeepsItsErrorExit() throws {
+        let machine = ApplePayStatechart.makeStateMachineWithInitialState(initial: .authorizing)
+        let result = try machine.transition(.error(error: Self.error))
+        XCTAssertEqual(result.toState.hashableIdentifier, .errored)
+    }
+
     /// Before handoff nothing is in flight, so erroring out is correct there.
-    func testEmbeddedPreHandoffStatesKeepTheirErrorExit() throws {
-        let machine = EmbeddedPaymentStatechart.makeStateMachineWithInitialState(initial: .creatingPaymentRequest)
+    func testPreHandoffStatesKeepTheirErrorExit() throws {
+        let embedded = EmbeddedPaymentStatechart.makeStateMachineWithInitialState(initial: .creatingPaymentRequest)
         XCTAssertEqual(
-            try machine.transition(.error(error: Self.error)).toState.hashableIdentifier, .errored
+            try embedded.transition(.error(error: Self.error)).toState.hashableIdentifier, .errored
+        )
+
+        let swish = SwishStatechart.makeStateMachineWithInitialState(
+            initial: .creatingPaymentRequest(selected: .qrCode)
+        )
+        XCTAssertEqual(
+            try swish.transition(.error(error: Self.error)).toState.hashableIdentifier, .errored
         )
     }
 

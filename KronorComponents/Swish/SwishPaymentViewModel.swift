@@ -212,9 +212,29 @@ import UIKit
     }
 
     
+    /// True once the customer has been handed off to a payment surface: the QR
+    /// code, the Swish app, or a payment request sent to their phone number. The
+    /// status channel must not give up during that window — the payment is
+    /// proceeding whether or not we can observe it.
+    private var isOnPaymentSurface: Bool {
+        switch self.stateMachine.state {
+        case .paymentRequestInitialized, .waitingForPayment:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var keepRetryingWhileOnPaymentSurface: KeepRetrying {
+        { [weak self] in await self?.isOnPaymentSurface ?? false }
+    }
+
     private func subscribeToPaymentStatus(waitToken: String) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
+        let stream = await networking.subscribeToPaymentStatus(
+            onRetry: self.retryNotification,
+            keepRetrying: self.keepRetryingWhileOnPaymentSurface
+        )
         self.subscription = Task { [weak self] in
             for await (result, apiError) in stream {
                 guard !Task.isCancelled, let self else { return }

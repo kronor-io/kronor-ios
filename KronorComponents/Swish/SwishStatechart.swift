@@ -130,6 +130,13 @@ final class SwishStatechart : StateMachineBuilder {
                 }
             }
             
+            // The customer is on a payment surface here — scanning the QR, or
+            // switched over to the Swish app. There is deliberately no `.error`
+            // transition out: the only thing that can fail in this state is our
+            // own view of the payment, and replacing the QR with an error screen
+            // would abandon a payment the customer may already have approved,
+            // then invite them to make a second one. The status channel keeps
+            // re-establishing itself instead.
             state(.paymentRequestInitialized) {
                 on (.retry) {
                     transition(to: .promptingMethod, emit: .resetState)
@@ -145,20 +152,15 @@ final class SwishStatechart : StateMachineBuilder {
                 on(.paymentRejected) {
                     transition(to: .paymentRejected)
                 }
-                on (.error) {
-                    transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
-                }
             }
             
+            // Post-handoff, like `.paymentRequestInitialized`: no `.error` exit.
             state(.waitingForPayment) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
                 }
                 on(.paymentRejected) {
                     transition(to: .paymentRejected)
-                }
-                on (.error) {
-                    transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
             }
             
