@@ -15,8 +15,17 @@ typealias PaymentStatusUpdate = (result: Result<[KronorApi.PaymentRequestFields]
 /// longer than usual.
 typealias RetryNotification = @Sendable () async -> Void
 
+/// Asked whenever the status channel has burned through its failure budget.
+/// Answering `true` keeps the channel alive instead of surfacing the failure,
+/// which is what the flow wants while the customer is on the payment site: the
+/// payment is proceeding there whether or not we can currently observe it.
+typealias KeepRetrying = @Sendable () async -> Bool
+
 protocol PaymentNetworking: Sendable {
-    func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate>
+    func subscribeToPaymentStatus(
+        onRetry: RetryNotification?,
+        keepRetrying: KeepRetrying?
+    ) async -> AsyncStream<PaymentStatusUpdate>
 
     func cancelSessionPayments() async -> Result<(), Never>
 
@@ -25,6 +34,10 @@ protocol PaymentNetworking: Sendable {
 
 extension PaymentNetworking {
     func subscribeToPaymentStatus() async -> AsyncStream<PaymentStatusUpdate> {
-        await subscribeToPaymentStatus(onRetry: nil)
+        await subscribeToPaymentStatus(onRetry: nil, keepRetrying: nil)
+    }
+
+    func subscribeToPaymentStatus(onRetry: RetryNotification?) async -> AsyncStream<PaymentStatusUpdate> {
+        await subscribeToPaymentStatus(onRetry: onRetry, keepRetrying: nil)
     }
 }

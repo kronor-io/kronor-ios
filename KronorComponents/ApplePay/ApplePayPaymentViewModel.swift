@@ -102,14 +102,17 @@ import os
                 self.subscription?.cancel()
             }
 
+            if becameErrored {
+                // The customer is offered a retry from the error screen, so the
+                // flow is not over yet. The merchant app is only told once the
+                // customer gives up; reporting a result here would end the
+                // payment as far as the host app is concerned while the SDK
+                // keeps driving it.
+                self.isDelayed = false
+            }
+
             self.state = result.toState
             Self.logger.trace("new state: \(String(describing: self.state.hashableIdentifier))")
-
-            // Let the merchant app know the flow failed; the customer can
-            // still retry or cancel from the error screen.
-            if becameErrored {
-                await self.paymentResultHandler(.failure(.failed))
-            }
         }
 
         if let sideEffect = result?.sideEffect {
@@ -175,11 +178,19 @@ import os
             let _ = await networking.cancelSessionPayments()
             await self.paymentResultHandler(.failure(.cancelled))
 
-        case .resetState:
+        case .cancelAndNotifyError:
+            Self.logger.trace("performing cancelAndNotifyError")
+            self.subscription?.cancel()
+            let _ = await networking.cancelSessionPayments()
+            await self.paymentResultHandler(.failure(.failed))
+
+        case .resetState, .resetStateWithoutCancelling:
             self.subscription?.cancel()
             self.subscription = nil
 
-            if let _ = self.paymentRequest {
+            // Only cancel when the payment is known to be dead — a rejection
+            // tells us that, an error does not.
+            if case .resetState = sideEffect, self.paymentRequest != nil {
                 let _ = await networking.cancelSessionPayments()
             }
 
@@ -284,9 +295,30 @@ import os
     }
 
 
+    /// True from the moment the payment sheet goes up until the flow settles.
+    /// `.authorizing` keeps its `.error` transition, because failing to present
+    /// the sheet at all is a real local failure worth surfacing — but a status
+    /// channel blip is not, and suppressing it here stops a lost connection from
+    /// stranding a payment the customer is in the middle of authorizing.
+    private var isOnPaymentSurface: Bool {
+        switch self.stateMachine.state {
+        case .authorizing, .waitingForSheetDismissal, .waitingForPayment:
+            return true
+        default:
+            return false
+        }
+    }
+
+    private var keepRetryingWhileOnPaymentSurface: KeepRetrying {
+        { [weak self] in await self?.isOnPaymentSurface ?? false }
+    }
+
     private func subscribeToPaymentStatus(waitToken: String) async {
         self.subscription?.cancel()
-        let stream = await networking.subscribeToPaymentStatus(onRetry: self.retryNotification)
+        let stream = await networking.subscribeToPaymentStatus(
+            onRetry: self.retryNotification,
+            keepRetrying: self.keepRetryingWhileOnPaymentSurface
+        )
         self.subscription = Task { [weak self] in
             for await (result, apiError) in stream {
                 guard !Task.isCancelled, let self else { return }

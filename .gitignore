@@ -9,3 +9,5 @@ DerivedData/
 .netrc
 apollo-ios-cli
 .swiftpm
+.claude/
+_dev/

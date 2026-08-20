@@ -9,6 +9,10 @@ class PollingManager {
     }
 
     func startPolling(pollingAction: sending @escaping () async -> Void) -> Task<Void, Never> {
+        // A previous poller would otherwise keep running forever, adding a
+        // request per interval for every payment attempt in the session.
+        self.cancel()
+
         let task = Task { [pollingAction, pollingInterval] in
            while !Task.isCancelled {
                try? await Task.sleep(nanoseconds: pollingInterval * NSEC_PER_SEC)

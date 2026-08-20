@@ -9,27 +9,39 @@ import SwiftUI
 import WebKit
 
 class WebViewModel: ObservableObject {
-    @Published var link = URL(string: "https://kronor.io")!
+    /// The URL the webview last finished loading, or `nil` before the first
+    /// navigation completes. Reset between presentations so a URL reached
+    /// during an earlier attempt cannot decide anything about a later one.
+    @Published var link: URL?
     @Published var didFinishLoading: Bool = false
+
+    func reset() {
+        self.link = nil
+        self.didFinishLoading = false
+    }
 }
 
 struct SwiftUIWebView: UIViewRepresentable {
     @ObservedObject var viewModel: WebViewModel
     var url: URL
 
-    let webView = WKWebView()
-
     func makeUIView(context: UIViewRepresentableContext<SwiftUIWebView>) -> WKWebView {
-        self.webView.navigationDelegate = context.coordinator
-        self.webView.allowsBackForwardNavigationGestures = false
-        self.webView.allowsLinkPreview = false
-        self.webView.load(URLRequest(url: self.url))
+        let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        webView.allowsBackForwardNavigationGestures = false
+        webView.allowsLinkPreview = false
+        webView.load(URLRequest(url: self.url))
 
-        return self.webView
+        return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<SwiftUIWebView>) {
-        return
+        // SwiftUI may reuse the webview across body updates. Load again only
+        // when it is showing something other than what we were asked for, so a
+        // retry never leaves the customer looking at the previous attempt's
+        // dead page.
+        guard uiView.url != self.url, !uiView.isLoading else { return }
+        uiView.load(URLRequest(url: self.url))
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {

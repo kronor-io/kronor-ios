@@ -43,7 +43,15 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
         case notifyPaymentSuccess
         case notifyPaymentFailure
         case resetState
+        /// Like ``resetState``, but leaves the session's payments alone. Used
+        /// when retrying after an error: we lost contact with the backend, so we
+        /// cannot tell whether the payment went through, and cancelling it would
+        /// throw away a payment the customer may already have made.
+        case resetStateWithoutCancelling
         case cancelAndNotifyFailure
+        /// The customer gave up on the error screen: report the failure the
+        /// flow actually hit rather than a cancellation.
+        case cancelAndNotifyError
         case cancelAfterDeadline
     }
     
@@ -118,15 +126,19 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 }
             }
 
+            // Once the customer has been handed off to the payment site there is
+            // deliberately no `.error` transition out of this state: the only
+            // thing that can fail here is our own view of the payment, and
+            // tearing the site down would abandon a payment that is proceeding
+            // — possibly already completing — on the provider's side. The status
+            // channel keeps re-establishing itself instead, and the customer
+            // still has the site's own cancel affordance.
             state(.paymentRequestInitialized) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
                 }
                 on(.paymentRejected) {
                     transition(to: .paymentRejected)
-                }
-                on (.error) {
-                    transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
                 on(.cancel) {
                     transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
@@ -136,15 +148,13 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
                 }
             }
 
+            // Post-handoff, like `.paymentRequestInitialized`: no `.error` exit.
             state(.waitingForPayment) {
                 on(.paymentAuthorized) {
                     transition(to: .paymentCompleted, emit: .notifyPaymentSuccess)
                 }
                 on(.paymentRejected) {
                     transition(to: .paymentRejected)
-                }
-                on (.error) {
-                    transition(to: .errored(error: $1.associatedValue as! KronorApi.KronorError))
                 }
                 on(.cancel) {
                     transition(to: .paymentRejected, emit: .cancelAndNotifyFailure)
@@ -165,10 +175,10 @@ final class EmbeddedPaymentStatechart : StateMachineBuilder {
 
             state(.errored) {
                 on(.retry) {
-                    transition(to: .initializing, emit: .resetState)
+                    transition(to: .initializing, emit: .resetStateWithoutCancelling)
                 }
                 on(.cancelFlow) {
-                    dontTransition(emit: .cancelAndNotifyFailure)
+                    dontTransition(emit: .cancelAndNotifyError)
                 }
             }
         }

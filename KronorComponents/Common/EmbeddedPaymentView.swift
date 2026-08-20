@@ -11,7 +11,8 @@ import AuthenticationServices
 struct EmbeddedPaymentView<Content: View>: View {
     @ObservedObject private var embeddedPayViewModel: EmbeddedPaymentViewModel
     @ObservedObject private var webViewModel = WebViewModel()
-    @State private var keepWaitingOpen = false
+    @State private var presentedSite: EmbeddedPaymentViewModel.EmbeddedSite?
+    @State private var siteIntentionallyClosed = false
     @State private var showAuthSession = false
     @State private var authSessionIntentionallyClosed = false
     private var waitingView: Content
@@ -39,11 +40,11 @@ struct EmbeddedPaymentView<Content: View>: View {
                 self.waitingView
                     .paymentDelayedNotice(embeddedPayViewModel.isDelayed)
                     .transition(.slide)
-                    .onReceive(embeddedPayViewModel.$embeddedSiteURL) { embeddedSiteURL in
-                        showAuthSession = embeddedSiteURL != nil
+                    .onReceive(embeddedPayViewModel.$embeddedSite) { embeddedSite in
+                        showAuthSession = embeddedSite != nil
                     }
                     .fullScreenCover(isPresented: $showAuthSession, onDismiss: onAuthSessionDismissed) {
-                        if let url = self.embeddedPayViewModel.embeddedSiteURL,
+                        if let url = self.embeddedPayViewModel.embeddedSite?.url,
                            let scheme = embeddedPayViewModel.returnURL.scheme {
                             AuthSessionViewRepresentable(
                                 url: url,
@@ -57,21 +58,31 @@ struct EmbeddedPaymentView<Content: View>: View {
                 self.waitingView
                     .paymentDelayedNotice(embeddedPayViewModel.isDelayed)
                     .transition(.slide)
-                    .onReceive(embeddedPayViewModel.$embeddedSiteURL.combineLatest(webViewModel.$link)) { (embeddedSiteURL, link) in
-                            if let _ = embeddedSiteURL {
-                                keepWaitingOpen = (link != embeddedPayViewModel.returnURL)
-                            } else {
-                                keepWaitingOpen = false
-                            }
-                    }
-                    .sheet(isPresented: $keepWaitingOpen, onDismiss: dismissSheet) {
-                        if let url = self.embeddedPayViewModel.embeddedSiteURL {
-                            EmbeddedSiteView(
-                                webViewModel: self.webViewModel,
-                                url: url,
-                                onCancel: cancelNow
-                            )
+                    .onReceive(embeddedPayViewModel.$embeddedSite.combineLatest(webViewModel.$link)) { (embeddedSite, link) in
+                        guard let embeddedSite, link != embeddedPayViewModel.returnURL else {
+                            return closeSite()
                         }
+                        // A new attempt gets a new identifier, which rebuilds
+                        // the sheet and its webview even though the URL is
+                        // unchanged. The webview also starts from a clean slate,
+                        // so the previous attempt's last URL cannot immediately
+                        // close the new sheet.
+                        guard presentedSite?.id != embeddedSite.id else { return }
+                        // Adopt the new attempt before clearing the webview
+                        // state: resetting publishes back into this same
+                        // pipeline, and the identifier check above is what stops
+                        // it from looping.
+                        presentedSite = embeddedSite
+                        if link != nil {
+                            webViewModel.reset()
+                        }
+                    }
+                    .sheet(item: $presentedSite, onDismiss: onSiteDismissed) { site in
+                        EmbeddedSiteView(
+                            webViewModel: self.webViewModel,
+                            url: site.url,
+                            onCancel: cancelNow
+                        )
                     }
             }
         case .paymentRejected:
@@ -118,6 +129,20 @@ struct EmbeddedPaymentView<Content: View>: View {
         } else {
             self.embeddedPayViewModel.refreshPaymentStatus()
         }
+    }
+
+    /// Closes the embedded site without the dismissal being mistaken for the
+    /// customer swiping the sheet away, which would cancel the payment.
+    private func closeSite() {
+        guard presentedSite != nil else { return }
+        siteIntentionallyClosed = true
+        presentedSite = nil
+    }
+
+    private func onSiteDismissed() {
+        defer { siteIntentionallyClosed = false }
+        guard !siteIntentionallyClosed else { return }
+        dismissSheet()
     }
 
     private func onAuthSessionDismissed() {
