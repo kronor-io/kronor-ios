@@ -10,12 +10,13 @@ import SwiftUI
 struct EmbeddedSiteView: View {
     let webViewModel: WebViewModel
     let url: URL
+    let attempt: Int
     @State var alertIsPresenting = false
     let onCancel: () -> ()
     
     var body: some View {
         NavigationView {
-            SwiftUIWebView(viewModel: webViewModel, url: url)
+            SwiftUIWebView(viewModel: webViewModel, url: url, attempt: attempt)
                 .navigationBarItems(
                     trailing: Button(action: {
                         alertIsPresenting = true
@@ -64,6 +65,7 @@ struct EmbeddedSiteView_Previews: PreviewProvider {
         EmbeddedSiteView(
             webViewModel: WebViewModel(),
             url: URL(string: "https://example.com")!,
+            attempt: 1,
             onCancel: { print("cancel") }
         )
     }

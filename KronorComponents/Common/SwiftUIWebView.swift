@@ -24,28 +24,47 @@ class WebViewModel: ObservableObject {
 struct SwiftUIWebView: UIViewRepresentable {
     @ObservedObject var viewModel: WebViewModel
     var url: URL
+    /// Identifies the attempt this presentation belongs to. A retry reuses the
+    /// same session URL, so the attempt is the only thing that distinguishes a
+    /// fresh start from an ongoing one.
+    var attempt: Int
+
+    /// Whether a body update should send the webview back to the payment site.
+    ///
+    /// SwiftUI may reuse the webview across body updates, so a retry has to be
+    /// able to reload it. Deliberately decided from the attempt alone, and never
+    /// from where the webview currently is: the customer navigates away from the
+    /// session URL as a matter of course (to PayPal, to a bank), so reloading
+    /// whenever the current URL differs would throw them back to the start of
+    /// the flow on every body update.
+    static func shouldLoad(attempt: Int, loadedAttempt: Int?) -> Bool {
+        loadedAttempt != attempt
+    }
 
     func makeUIView(context: UIViewRepresentableContext<SwiftUIWebView>) -> WKWebView {
         let webView = WKWebView()
         webView.navigationDelegate = context.coordinator
         webView.allowsBackForwardNavigationGestures = false
         webView.allowsLinkPreview = false
+        context.coordinator.loadedAttempt = self.attempt
         webView.load(URLRequest(url: self.url))
 
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: UIViewRepresentableContext<SwiftUIWebView>) {
-        // SwiftUI may reuse the webview across body updates. Load again only
-        // when it is showing something other than what we were asked for, so a
-        // retry never leaves the customer looking at the previous attempt's
-        // dead page.
-        guard uiView.url != self.url, !uiView.isLoading else { return }
+        guard Self.shouldLoad(attempt: self.attempt, loadedAttempt: context.coordinator.loadedAttempt) else {
+            return
+        }
+        context.coordinator.loadedAttempt = self.attempt
         uiView.load(URLRequest(url: self.url))
     }
 
     class Coordinator: NSObject, WKNavigationDelegate {
         private var viewModel: WebViewModel
+        /// The attempt this webview was last loaded for, as opposed to wherever
+        /// the customer has navigated to since.
+        var loadedAttempt: Int?
 
         init(_ viewModel: WebViewModel) {
             self.viewModel = viewModel

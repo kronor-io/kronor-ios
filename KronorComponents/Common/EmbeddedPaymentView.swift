@@ -81,6 +81,7 @@ struct EmbeddedPaymentView<Content: View>: View {
                         EmbeddedSiteView(
                             webViewModel: self.webViewModel,
                             url: site.url,
+                            attempt: site.id,
                             onCancel: cancelNow
                         )
                     }
