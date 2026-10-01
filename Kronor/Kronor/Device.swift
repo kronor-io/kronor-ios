@@ -6,10 +6,7 @@
 //
 
 import Foundation
-@preconcurrency import FingerprintJS
 import SwiftUI
-
-let  fingerprinter = FingerprinterFactory.getInstance()
 
 public extension Kronor {
     
@@ -24,7 +21,7 @@ public extension Kronor {
     
     static func detectDevice(appName: String? = nil, appVersion: String? = nil) async -> Device {
         return await Device(
-            fingerprint: fingerprinter.getFingerprint() ?? "unknown",
+            fingerprint: UIDevice.current.identifierForVendor?.uuidString ?? "unknown",
             appName: appName ?? (Bundle.main.infoDictionary?["CFBundleName"] as? String) ?? "unknown",
             appVersion: appVersion ?? (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "unknown",
             deviceModel: UIDevice.current.type.rawValue,
