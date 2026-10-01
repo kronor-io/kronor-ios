@@ -42,10 +42,6 @@ let package = Package(
             .upToNextMajor(from: "0.3.0")
         ),
         .package(
-            url: "https://github.com/fingerprintjs/fingerprintjs-ios",
-            .upToNextMajor(from: "1.0.0")
-        ),
-        .package(
             url: "https://github.com/trustly/TrustlyIosSdk",
             .upToNextMajor(from: "4.0.1")
         ),
@@ -53,9 +49,6 @@ let package = Package(
     targets: [
         .target(
             name: "Kronor",
-            dependencies: [
-                .product(name: "FingerprintJS", package: "fingerprintjs-ios"),
-            ],
             path: "./Kronor"
         ),
         .target(
@@ -87,7 +80,10 @@ let package = Package(
                 .product(name: "TrustlyIosSdk", package: "TrustlyIosSdk")
             ],
             path: "./KronorComponents",
-            resources: [.process("Assets")]
+            resources: [
+                .process("Assets"),
+                .copy("PrivacyInfo.xcprivacy"),
+            ]
         ),
         .testTarget(
             name: "KronorTests",
