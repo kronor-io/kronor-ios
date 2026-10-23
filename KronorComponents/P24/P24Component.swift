@@ -15,9 +15,13 @@ public struct P24Component: View {
     /// Creates a new P24 payment component.
     /// - Parameters:
     ///   - configuration: The shared component configuration.
+    ///   - channelOverride: The `P24PaymentChannel` to offer instead of the
+    ///     merchant's configured channels, e.g. `"BLIK"` to offer only BLIK. When
+    ///     `nil`, the merchant's configured channels are used.
     ///   - paymentResultHandler: A closure called with the payment result.
     public init(
         configuration: ComponentConfiguration,
+        channelOverride: String? = nil,
         paymentResultHandler: @escaping PaymentResultHandler
     ) {
         _viewModel = StateObject(
@@ -26,7 +30,10 @@ public struct P24Component: View {
                 stateMachine: EmbeddedPaymentStatechart.makeStateMachine(),
                 networking: KronorEmbeddedPaymentNetworking(configuration: configuration),
                 paymentMethod: .p24,
-                paymentResultHandler: paymentResultHandler
+                paymentResultHandler: paymentResultHandler,
+                additionalQueryItems: channelOverride.map {
+                    [URLQueryItem(name: "channelOverride", value: $0)]
+                } ?? []
             )
         )
     }
