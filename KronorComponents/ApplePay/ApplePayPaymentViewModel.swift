@@ -36,6 +36,7 @@ import os
 
     private var paymentRequest: KronorApi.PaymentRequestFields?
     private var cdeToken: String?
+    private var orderLines: [ApplePayOrderLine] = []
     private var subscription: Task<Void, Never>?
 
     /// Stable for the duration of a payment attempt, so that retrying the
@@ -126,6 +127,7 @@ import os
         case .createPaymentRequest:
             Self.logger.debug("creating apple pay payment request")
 
+            async let orderLines = networking.fetchOrderLines()
             let result = await networking.createPaymentRequest(
                 returnURL: self.returnURL,
                 idempotencyKey: self.idempotencyKey,
@@ -154,6 +156,17 @@ import os
                 }
 
                 self.cdeToken = cdeToken
+
+                // The items are only an itemization of the total on the
+                // payment sheet; without them the sheet still shows the total.
+                switch await orderLines {
+                case .success(let lines):
+                    self.orderLines = lines
+                case .failure(let error):
+                    Self.logger.warning("could not fetch the order lines, showing only the total: \(error)")
+                    self.orderLines = []
+                }
+
                 await transition(.paymentRequestCreated(waitToken: payment.waitToken))
             }
 
@@ -196,6 +209,7 @@ import os
 
             self.paymentRequest = nil
             self.cdeToken = nil
+            self.orderLines = []
             self.idempotencyKey = UUID().uuidString
             await transition(.initialize)
         }
@@ -214,12 +228,12 @@ import os
         request.supportedNetworks = supportedNetworks
         request.countryCode = countryCode
         request.currencyCode = paymentRequest.currency.rawValue
-        request.paymentSummaryItems = [
-            PKPaymentSummaryItem(
-                label: merchantName,
-                amount: Self.majorUnits(amount: paymentRequest.amount, currency: paymentRequest.currency)
-            )
-        ]
+        request.paymentSummaryItems = Self.paymentSummaryItems(
+            orderLines: orderLines,
+            total: paymentRequest.amount,
+            currency: paymentRequest.currency,
+            merchantName: merchantName
+        )
 
         let delegate = ApplePaySessionDelegate(
             onAuthorize: { [weak self] payment in
@@ -376,6 +390,32 @@ import os
                 }
             }
         }
+    }
+
+    /// The order lines followed by the total, which the payment sheet expects
+    /// last and labelled with the merchant name. The payment request amount
+    /// stays authoritative: the order lines only itemize it, and incomplete
+    /// ones are left out.
+    static func paymentSummaryItems(
+        orderLines: [ApplePayOrderLine],
+        total: String,
+        currency: GraphQLEnum<KronorApi.SupportedCurrencyEnum>,
+        merchantName: String
+    ) -> [PKPaymentSummaryItem] {
+        let lineItems = orderLines.compactMap { line -> PKPaymentSummaryItem? in
+            guard let name = line.name, let amount = line.totalAmount else { return nil }
+            return PKPaymentSummaryItem(
+                label: name,
+                amount: majorUnits(amount: amount, currency: currency)
+            )
+        }
+
+        return lineItems + [
+            PKPaymentSummaryItem(
+                label: merchantName,
+                amount: majorUnits(amount: total, currency: currency)
+            )
+        ]
     }
 
     /// Converts a payment request amount, given in the currency's minor

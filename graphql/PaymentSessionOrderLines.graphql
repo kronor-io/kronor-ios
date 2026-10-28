@@ -1,0 +1,8 @@
+query PaymentSessionOrderLinesQuery {
+    paymentSessions(limit: 1) {
+        orderLines {
+            name
+            totalAmount
+        }
+    }
+}
