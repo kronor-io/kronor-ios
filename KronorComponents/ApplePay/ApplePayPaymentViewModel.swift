@@ -132,9 +132,11 @@ import os
             // hold up the payment: the sheet shows them if they've arrived by
             // the time it opens, and only the total otherwise.
             orderLinesTask?.cancel()
-            orderLinesTask = Task { [networking] in
+            // Weak, so a pending fetch doesn't keep an abandoned payment's
+            // view model (and its deinit cleanup) alive.
+            orderLinesTask = Task { [weak self, networking] in
                 let result = await networking.fetchOrderLines()
-                if Task.isCancelled {
+                guard let self, !Task.isCancelled else {
                     return
                 }
                 switch result {
@@ -459,6 +461,7 @@ import os
             break
         }
         self.subscription?.cancel()
+        self.orderLinesTask?.cancel()
     }
 }
 
