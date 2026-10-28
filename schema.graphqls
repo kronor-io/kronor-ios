@@ -2099,6 +2099,217 @@ enum PaymentRequestSelectColumn {
   waitToken
 }
 
+"""A payment session"""
+type PaymentSession {
+  amount: bigint
+  country: country
+  createdAt: timestamptz!
+  currency: currency!
+  id: uuid!
+  message: String!
+
+  """Purchase items supplied by the merchant for this payment session."""
+  orderLines(
+    """distinct select on columns"""
+    distinctOn: [PaymentSessionOrderLineSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [PaymentSessionOrderLineOrderBy!]
+
+    """filter the rows returned"""
+    where: PaymentSessionOrderLineBoolExp
+  ): [PaymentSessionOrderLine!]
+  saveCardDetails: Boolean!
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.payment_session". All fields are combined with a logical 'AND'.
+"""
+input PaymentSessionBoolExp {
+  _and: [PaymentSessionBoolExp!]
+  _not: PaymentSessionBoolExp
+  _or: [PaymentSessionBoolExp!]
+  amount: BigintComparisonExp
+  country: CountryComparisonExp
+  createdAt: TimestamptzComparisonExp
+  currency: CurrencyComparisonExp
+  id: UuidComparisonExp
+  message: StringComparisonExp
+  orderLines: PaymentSessionOrderLineBoolExp
+  saveCardDetails: BooleanComparisonExp
+}
+
+"""Ordering options when selecting data from "runtime.payment_session"."""
+input PaymentSessionOrderBy {
+  amount: OrderBy
+  country: OrderBy
+  createdAt: OrderBy
+  currency: OrderBy
+  id: OrderBy
+  message: OrderBy
+  orderLinesAggregate: PaymentSessionOrderLineAggregateOrderBy
+  saveCardDetails: OrderBy
+}
+
+"""
+columns and relationships of "runtime.payment_session_order_line"
+"""
+type PaymentSessionOrderLine {
+  name: String
+  totalAmount: bigint
+}
+
+"""
+order by aggregate values of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineAggregateOrderBy {
+  avg: PaymentSessionOrderLineAvgOrderBy
+  count: OrderBy
+  max: PaymentSessionOrderLineMaxOrderBy
+  min: PaymentSessionOrderLineMinOrderBy
+  stddev: PaymentSessionOrderLineStddevOrderBy
+  stddevPop: PaymentSessionOrderLineStddevPopOrderBy
+  stddevSamp: PaymentSessionOrderLineStddevSampOrderBy
+  sum: PaymentSessionOrderLineSumOrderBy
+  varPop: PaymentSessionOrderLineVarPopOrderBy
+  varSamp: PaymentSessionOrderLineVarSampOrderBy
+  variance: PaymentSessionOrderLineVarianceOrderBy
+}
+
+"""
+order by avg() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineAvgOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+Boolean expression to filter rows from the table "runtime.payment_session_order_line". All fields are combined with a logical 'AND'.
+"""
+input PaymentSessionOrderLineBoolExp {
+  _and: [PaymentSessionOrderLineBoolExp!]
+  _not: PaymentSessionOrderLineBoolExp
+  _or: [PaymentSessionOrderLineBoolExp!]
+  name: StringComparisonExp
+  totalAmount: BigintComparisonExp
+}
+
+"""
+order by max() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineMaxOrderBy {
+  name: OrderBy
+  totalAmount: OrderBy
+}
+
+"""
+order by min() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineMinOrderBy {
+  name: OrderBy
+  totalAmount: OrderBy
+}
+
+"""
+Ordering options when selecting data from "runtime.payment_session_order_line".
+"""
+input PaymentSessionOrderLineOrderBy {
+  name: OrderBy
+  totalAmount: OrderBy
+}
+
+"""
+select columns of table "runtime.payment_session_order_line"
+"""
+enum PaymentSessionOrderLineSelectColumn {
+  """column name"""
+  name
+
+  """column name"""
+  totalAmount
+}
+
+"""
+order by stddev() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineStddevOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by stddevPop() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineStddevPopOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by stddevSamp() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineStddevSampOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by sum() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineSumOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by varPop() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineVarPopOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by varSamp() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineVarSampOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+order by variance() on columns of table "runtime.payment_session_order_line"
+"""
+input PaymentSessionOrderLineVarianceOrderBy {
+  totalAmount: OrderBy
+}
+
+"""
+select columns of table "runtime.payment_session"
+"""
+enum PaymentSessionSelectColumn {
+  """column name"""
+  amount
+
+  """column name"""
+  country
+
+  """column name"""
+  createdAt
+
+  """column name"""
+  currency
+
+  """column name"""
+  id
+
+  """column name"""
+  message
+
+  """column name"""
+  saveCardDetails
+}
+
 enum PaymentStatusEnum {
   """Payment is authorized. Can be captured now."""
   AUTHORIZED
@@ -3323,6 +3534,24 @@ type query_root {
     where: PaymentRequestBoolExp
   ): [PaymentRequest!]!
 
+  """Get the list of payment requests"""
+  paymentSessions(
+    """distinct select on columns"""
+    distinctOn: [PaymentSessionSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [PaymentSessionOrderBy!]
+
+    """filter the rows returned"""
+    where: PaymentSessionBoolExp
+  ): [PaymentSession!]!
+
   """
   fetch data from the table: "tenant.paypal_setting"
   """
@@ -3510,6 +3739,24 @@ type subscription_root {
     """filter the rows returned"""
     where: PaymentRequestBoolExp
   ): [PaymentRequest!]!
+
+  """Get the list of payment requests"""
+  paymentSessions(
+    """distinct select on columns"""
+    distinctOn: [PaymentSessionSelectColumn!]
+
+    """limit the number of rows returned"""
+    limit: Int
+
+    """skip the first n rows. Use only with order_by"""
+    offset: Int
+
+    """sort the rows by one or more columns"""
+    orderBy: [PaymentSessionOrderBy!]
+
+    """filter the rows returned"""
+    where: PaymentSessionBoolExp
+  ): [PaymentSession!]!
 
   """
   fetch data from the table: "tenant.paypal_setting"

@@ -40,6 +40,8 @@ public extension KronorApi {
       "PayPalPaymentResult": KronorApi.Objects.PayPalPaymentResult,
       "PaymentCancelResult": KronorApi.Objects.PaymentCancelResult,
       "PaymentRequest": KronorApi.Objects.PaymentRequest,
+      "PaymentSession": KronorApi.Objects.PaymentSession,
+      "PaymentSessionOrderLine": KronorApi.Objects.PaymentSessionOrderLine,
       "RefreshPaymentStatusResult": KronorApi.Objects.RefreshPaymentStatusResult,
       "SwishDetails": KronorApi.Objects.SwishDetails,
       "SwishPaymentResult": KronorApi.Objects.SwishPaymentResult,

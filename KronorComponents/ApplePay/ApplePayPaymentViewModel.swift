@@ -36,6 +36,8 @@ import os
 
     private var paymentRequest: KronorApi.PaymentRequestFields?
     private var cdeToken: String?
+    private var orderLines: [ApplePayOrderLine] = []
+    private var orderLinesTask: Task<Void, Never>?
     private var subscription: Task<Void, Never>?
 
     /// Stable for the duration of a payment attempt, so that retrying the
@@ -126,6 +128,25 @@ import os
         case .createPaymentRequest:
             Self.logger.debug("creating apple pay payment request")
 
+            // The items are only an itemization of the total, so they never
+            // hold up the payment: the sheet shows them if they've arrived by
+            // the time it opens, and only the total otherwise.
+            orderLinesTask?.cancel()
+            // Weak, so a pending fetch doesn't keep an abandoned payment's
+            // view model (and its deinit cleanup) alive.
+            orderLinesTask = Task { [weak self, networking] in
+                let result = await networking.fetchOrderLines()
+                guard let self, !Task.isCancelled else {
+                    return
+                }
+                switch result {
+                case .success(let lines):
+                    self.orderLines = lines
+                case .failure(let error):
+                    Self.logger.warning("could not fetch the order lines, showing only the total: \(error)")
+                }
+            }
+
             let result = await networking.createPaymentRequest(
                 returnURL: self.returnURL,
                 idempotencyKey: self.idempotencyKey,
@@ -137,6 +158,7 @@ import os
             // treat that as a payment error. A repeated initialize retries the
             // request creation when the view appears again.
             if Task.isCancelled {
+                orderLinesTask?.cancel()
                 return
             }
 
@@ -196,6 +218,9 @@ import os
 
             self.paymentRequest = nil
             self.cdeToken = nil
+            self.orderLinesTask?.cancel()
+            self.orderLinesTask = nil
+            self.orderLines = []
             self.idempotencyKey = UUID().uuidString
             await transition(.initialize)
         }
@@ -214,12 +239,12 @@ import os
         request.supportedNetworks = supportedNetworks
         request.countryCode = countryCode
         request.currencyCode = paymentRequest.currency.rawValue
-        request.paymentSummaryItems = [
-            PKPaymentSummaryItem(
-                label: merchantName,
-                amount: Self.majorUnits(amount: paymentRequest.amount, currency: paymentRequest.currency)
-            )
-        ]
+        request.paymentSummaryItems = Self.paymentSummaryItems(
+            orderLines: orderLines,
+            total: paymentRequest.amount,
+            currency: paymentRequest.currency,
+            merchantName: merchantName
+        )
 
         let delegate = ApplePaySessionDelegate(
             onAuthorize: { [weak self] payment in
@@ -378,6 +403,32 @@ import os
         }
     }
 
+    /// The order lines followed by the total, which the payment sheet expects
+    /// last and labelled with the merchant name. The payment request amount
+    /// stays authoritative: the order lines only itemize it, and incomplete
+    /// ones are left out.
+    static func paymentSummaryItems(
+        orderLines: [ApplePayOrderLine],
+        total: String,
+        currency: GraphQLEnum<KronorApi.SupportedCurrencyEnum>,
+        merchantName: String
+    ) -> [PKPaymentSummaryItem] {
+        let lineItems = orderLines.compactMap { line -> PKPaymentSummaryItem? in
+            guard let name = line.name, let amount = line.totalAmount else { return nil }
+            return PKPaymentSummaryItem(
+                label: name,
+                amount: majorUnits(amount: amount, currency: currency)
+            )
+        }
+
+        return lineItems + [
+            PKPaymentSummaryItem(
+                label: merchantName,
+                amount: majorUnits(amount: total, currency: currency)
+            )
+        ]
+    }
+
     /// Converts a payment request amount, given in the currency's minor
     /// units, to the major units expected by the payment sheet. All supported
     /// currencies use two decimals except ISK, which has none.
@@ -410,6 +461,7 @@ import os
             break
         }
         self.subscription?.cancel()
+        self.orderLinesTask?.cancel()
     }
 }
 

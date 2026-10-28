@@ -28,6 +28,23 @@ final class KronorApplePayPaymentNetworking: KronorPaymentNetworking, ApplePayPa
         )
     }
 
+    func fetchOrderLines() async -> Result<[ApplePayOrderLine], KronorApi.KronorError> {
+        do {
+            let response = try await client.fetch(
+                query: KronorApi.PaymentSessionOrderLinesQuery(),
+                cachePolicy: .networkOnly
+            )
+            if let data = response.data {
+                return .success(data.paymentSessions.first?.orderLines ?? [])
+            }
+            return .failure(.usageError(error: KronorApi.APIError(
+                errors: response.errors ?? [], extensions: response.extensions ?? [:]
+            )))
+        } catch {
+            return .failure(.networkError(error: error))
+        }
+    }
+
     func authorizePayment(
         cdeToken: String,
         token: KronorCdeApi.ApplePayPaymentTokenInput
