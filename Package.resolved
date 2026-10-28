@@ -1,5 +1,5 @@
 {
-  "originHash" : "fee07e8b4227fb7d4539c0077b7f0b440c93369576af1262e038a0aea964f40c",
+  "originHash" : "fdf4e5e7b6934f2fb23f55a6582cff981618ffdec5738c4d26af9387e39e86e7",
   "pins" : [
     {
       "identity" : "apollo-ios",
@@ -8,15 +8,6 @@
       "state" : {
         "revision" : "a6668545666c48b25ddb67c1329048633f45168b",
         "version" : "2.3.0"
-      }
-    },
-    {
-      "identity" : "fingerprintjs-ios",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/fingerprintjs/fingerprintjs-ios",
-      "state" : {
-        "revision" : "b34f55f1c527dc6122a402531ee7d52c61c422a2",
-        "version" : "1.4.0"
       }
     },
     {
