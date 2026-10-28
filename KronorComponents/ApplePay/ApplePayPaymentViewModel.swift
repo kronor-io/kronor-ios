@@ -37,6 +37,7 @@ import os
     private var paymentRequest: KronorApi.PaymentRequestFields?
     private var cdeToken: String?
     private var orderLines: [ApplePayOrderLine] = []
+    private var orderLinesTask: Task<Void, Never>?
     private var subscription: Task<Void, Never>?
 
     /// Stable for the duration of a payment attempt, so that retrying the
@@ -127,7 +128,23 @@ import os
         case .createPaymentRequest:
             Self.logger.debug("creating apple pay payment request")
 
-            async let orderLines = networking.fetchOrderLines()
+            // The items are only an itemization of the total, so they never
+            // hold up the payment: the sheet shows them if they've arrived by
+            // the time it opens, and only the total otherwise.
+            orderLinesTask?.cancel()
+            orderLinesTask = Task { [networking] in
+                let result = await networking.fetchOrderLines()
+                if Task.isCancelled {
+                    return
+                }
+                switch result {
+                case .success(let lines):
+                    self.orderLines = lines
+                case .failure(let error):
+                    Self.logger.warning("could not fetch the order lines, showing only the total: \(error)")
+                }
+            }
+
             let result = await networking.createPaymentRequest(
                 returnURL: self.returnURL,
                 idempotencyKey: self.idempotencyKey,
@@ -139,6 +156,7 @@ import os
             // treat that as a payment error. A repeated initialize retries the
             // request creation when the view appears again.
             if Task.isCancelled {
+                orderLinesTask?.cancel()
                 return
             }
 
@@ -156,17 +174,6 @@ import os
                 }
 
                 self.cdeToken = cdeToken
-
-                // The items are only an itemization of the total on the
-                // payment sheet; without them the sheet still shows the total.
-                switch await orderLines {
-                case .success(let lines):
-                    self.orderLines = lines
-                case .failure(let error):
-                    Self.logger.warning("could not fetch the order lines, showing only the total: \(error)")
-                    self.orderLines = []
-                }
-
                 await transition(.paymentRequestCreated(waitToken: payment.waitToken))
             }
 
@@ -209,6 +216,8 @@ import os
 
             self.paymentRequest = nil
             self.cdeToken = nil
+            self.orderLinesTask?.cancel()
+            self.orderLinesTask = nil
             self.orderLines = []
             self.idempotencyKey = UUID().uuidString
             await transition(.initialize)
