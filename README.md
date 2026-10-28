@@ -69,9 +69,9 @@ AvardaComponent(
 ## P24
 
 `P24Component` handles Przelewy24 payments on Kronor's hosted payment page. Pass
-`channelOverride` with a `P24PaymentChannel` value to offer a single P24 channel
-instead of the merchant's configured channels, for example to show a dedicated
-BLIK button in your checkout:
+`channelOverride` to offer a single P24 channel instead of the merchant's
+configured channels, for example to show a dedicated BLIK button in your
+checkout:
 
 ```swift
 P24Component(
@@ -80,11 +80,16 @@ P24Component(
         sessionToken: sessionToken,
         returnURL: URL(string: "myapp://")!
     ),
-    channelOverride: "BLIK"
+    channelOverride: .blik
 ) { result in
     // Handle payment result here
 }
 ```
+
+`P24PaymentChannel` provides `.blik` and `.bankTransfers`. A channel added to
+the API later can be passed as `P24PaymentChannel(rawValue: "...")`; a value the
+API doesn't recognise is rejected when the payment is created, and the
+component reports an error.
 
 ## Apple Pay
 
