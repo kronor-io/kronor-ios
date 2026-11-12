@@ -91,6 +91,37 @@ the API later can be passed as `P24PaymentChannel(rawValue: "...")`; a value the
 API doesn't recognise is rejected when the payment is created, and the
 component reports an error.
 
+## PointsPay
+
+`PointsPayComponent` handles Pointspay payments on Kronor's hosted payment page.
+Pass `loyaltyPrograms` to steer which loyalty program the shopper pays with: a
+list of Pointspay program codes, most preferred first. Pointspay only offers
+the programs the merchant is connected to, and when exactly one of the listed
+programs matches, the shopper skips Pointspay's program selection:
+
+```swift
+PointsPayComponent(
+    configuration: .init(
+        env: .production,
+        sessionToken: sessionToken,
+        returnURL: URL(string: "myapp://")!
+    ),
+    loyaltyPrograms: ["SAS", "FLB"]
+) { result in
+    // Handle payment result here
+}
+```
+
+The currently valid codes are `SAS` (SAS EuroBonus), `FLB` (Flying Blue), `MAM`
+(Miles & More), `ETHWL` (Etihad Guest) and `CBXL` (Cashback XL). The full list is
+the `program_hint` field in
+[Pointspay's payment API docs](https://api.pointspay.com/v5/openapi/docs#/payment%20endpoints/process_payment_v5_payments_post).
+The codes are validated by the API rather than the SDK, so programs Pointspay
+adds later work without an SDK update. An unknown or wrongly-cased code is
+rejected when the payment is created, and the component reports an error.
+Without `loyaltyPrograms`, the shopper chooses among all the merchant's
+programs.
+
 ## Apple Pay
 
 The `ApplePayComponent` provides a native (in-app) Apple Pay flow using PassKit.
